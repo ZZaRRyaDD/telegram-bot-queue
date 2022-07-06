@@ -25,15 +25,9 @@ def pre_push(context):
         checker=linters.all,
         error_msg="Code style checks failed!",
     )
-    tests_passed = _run_check(
-        context=context,
-        checker=tests.pytest,
-        error_msg="Tests failed!",
-    )
     if not all(
         [
             code_style_passed,
-            tests_passed,
         ]
     ):
         common.error("Push aborted due to errors\nPLS fix them first!")

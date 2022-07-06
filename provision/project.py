@@ -12,8 +12,8 @@ def install_tools(context):
 @task
 def install_requirements(context):
     """Install local development requirements."""
-    common.success(f"Install requirements with poetry")
-    context.run(f"poetry install")
+    common.success("Install requirements with poetry")
+    context.run("poetry install")
 
 
 @task
@@ -32,4 +32,4 @@ def init(context):
     install_tools(context)
     install_requirements(context)
     docker.build(context)
-    lock_requirements("poetry lock --no-update")
+    lock_requirements(context)

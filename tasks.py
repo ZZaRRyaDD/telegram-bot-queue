@@ -1,11 +1,6 @@
 from invoke import Collection
 
-from provision import (
-    docker,
-    git,
-    linters,
-    project,
-)
+from provision import docker, git, linters, project
 
 ns = Collection(
     docker,

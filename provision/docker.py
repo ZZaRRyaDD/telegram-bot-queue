@@ -11,14 +11,26 @@ def build(context):
 
 @task
 def run(context):
-    """Run postgres, redis, django."""
+    """Run postgres, redis, telegram app."""
     return context.run(f"{START_COMMAND} up")
 
 
 @task
-def runbuild(context):
-    """Run postgres, redis, django."""
+def run_build(context):
+    """Run and build app."""
     return context.run(f"{START_COMMAND} up --build")
+
+
+@task
+def clean_volumes(context):
+    """Clean volumes."""
+    return context.run(f"{START_COMMAND} down -v")
+
+
+@task
+def run_container(context, command=""):
+    """Base template for commands with django container."""
+    return context.run(f"{START_COMMAND} run --rm bot {command}")
 
 
 @task

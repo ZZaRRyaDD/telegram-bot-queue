@@ -2,6 +2,7 @@ version: "3.10"
 
 services:
   bot:
+    container_name: telegram_bot
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,7 +10,11 @@ services:
       - postgres
       - redis
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:{POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - TOKEN=${TOKEN}
+    command: python ./src/main.py
+    volumes:
+      - .:/app
 
   redis:
     container_name: redis

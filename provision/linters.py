@@ -13,13 +13,6 @@ def isort(context, path=DEFAULT_FOLDERS, params=""):
 
 
 @task
-def black(context, path=DEFAULT_FOLDERS):
-    """Run `black` linter."""
-    common.success("Linters: Black running")
-    docker.run_container(context, f"black {path}")
-
-
-@task
 def flake8(context, path=DEFAULT_FOLDERS):
     """Run `flake8` linter."""
     common.success("Linters: Flake8 running")
@@ -30,7 +23,7 @@ def flake8(context, path=DEFAULT_FOLDERS):
 def all(context, path=DEFAULT_FOLDERS):
     """Run all linters."""
     common.success("Linters: Running all linters")
-    linters = (isort, black, flake8)
+    linters = (isort, flake8)
     failed = []
     for linter in linters:
         try:
