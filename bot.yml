@@ -12,7 +12,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - TOKEN=${TOKEN}
-    command: python ./src/main.py
+      - ADMIN_ID=${ADMIN_ID}
+    command: python ./src/actions.py
     volumes:
       - .:/app
 

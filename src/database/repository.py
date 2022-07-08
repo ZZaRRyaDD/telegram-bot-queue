@@ -1,7 +1,6 @@
-import json
 from typing import Optional
 
-from sqlalchemy import delete, desc, select, update
+from sqlalchemy import desc, select, update
 
 from . import connect, models
 
@@ -32,15 +31,12 @@ class UserActions:
     @staticmethod
     def edit_user(id: int, user: dict) -> Optional[models.User]:
         """Edit user by id."""
-        print(user)
-        print(type(user))
         with connect.SessionLocal.begin() as session:
-            res = session.execute(
+            session.execute(
                 update(models.User).where(
                     models.User.id == id
                 ).values(user)
             )
-            print(res)
         return UserActions.get_user(id)
 
 
@@ -54,6 +50,17 @@ class GroupActions:
             group = session.execute(
                 select(models.Group).filter(
                     models.Group.id == id
+                )
+            ).first()
+            return group[0] if group else None
+
+    @staticmethod
+    def get_group_by_name(name: str) -> Optional[models.Group]:
+        """Get group by name."""
+        with connect.SessionLocal() as session:
+            group = session.execute(
+                select(models.Group).filter(
+                    models.Group.name == name
                 )
             ).first()
             return group[0] if group else None
@@ -81,10 +88,8 @@ class GroupActions:
     @staticmethod
     def create_group(group: dict) -> models.Group:
         """Create group."""
-        print(type(group))
-        new_group = models.Group(json.dumps(group.__dict__))
         with connect.SessionLocal.begin() as session:
-            session.add(new_group)
+            session.add(models.Group(**group))
             session.commit()
         return GroupActions.get_last_group()
 
@@ -95,7 +100,7 @@ class GroupActions:
             session.execute(
                 update(models.Group).where(
                     models.Group.id == id
-                ).values(json.dumps(group.__dict__))
+                ).values(group)
             )
         return GroupActions.get_group(id)
 
@@ -103,11 +108,7 @@ class GroupActions:
     def delete_group(id: int) -> None:
         """Delete group by id."""
         with connect.SessionLocal.begin() as session:
-            session.execute(
-                delete(models.Group).where(
-                    models.Group.id == id
-                )
-            )
+            session.delete(GroupActions.get_group(id))
 
 
 class SubjectActions:
@@ -143,20 +144,19 @@ class SubjectActions:
     @staticmethod
     def create_subject(subject: dict) -> models.Subject:
         """Create subject."""
-        new_subject = models.Subject(json.dumps(subject.__dict__))
         with connect.SessionLocal.begin() as session:
-            session.add(new_subject)
+            session.add(models.Subject(subject))
             session.commit()
         return SubjectActions.get_last_subject()
 
     @staticmethod
-    def edit_subject(id: int, subject) -> models.Subject:
+    def edit_subject(id: int, subject: dict) -> models.Subject:
         """Edit subject."""
         with connect.SessionLocal.begin() as session:
             session.execute(
                 update(models.Subject).where(
                     models.Subject.id == id
-                ).values(json.dumps(subject.__dict__))
+                ).values(subject)
             )
         return SubjectActions.get_subject(id)
 
@@ -164,8 +164,4 @@ class SubjectActions:
     def delete_subject(id: int) -> None:
         """Delete subject by id."""
         with connect.SessionLocal.begin() as session:
-            session.execute(
-                delete(models.Subject).where(
-                    models.Subject.id == id
-                )
-            )
+            session.delete(SubjectActions.get_subject(id))
