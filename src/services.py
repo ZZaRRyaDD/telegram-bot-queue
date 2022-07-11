@@ -1,10 +1,10 @@
 import os
 import random
 
-from database import UserActions
+from database import GroupActions, UserActions
 
 
-def check_admin(id) -> bool:
+def check_admin(id: int) -> bool:
     """Check for admin user."""
     return id == int(os.getenv("ADMIN_ID"))
 
@@ -19,16 +19,28 @@ def is_headman(id: int) -> bool:
     return UserActions.get_user(id).is_headman
 
 
+def member_group(id: int) -> bool:
+    """Check for member of some group."""
+    return UserActions.get_user(id).group is not None
+
+
 def check_empty_headman(id: int) -> bool:
     """Check for empty headman."""
-    user = UserActions.get_user(id)
-    return is_headman(id) and user.group is None
+    return is_headman(id) and not member_group(id)
 
 
 def check_headman_of_group(id: int) -> bool:
     """Check headman how owner of group."""
-    user = UserActions.get_user(id)
-    return is_headman(id) and user.group is not None
+    return is_headman(id) and member_group(id)
+
+
+def check_count_subject_group(id: int) -> bool:
+    """Check for count of subjects."""
+    return bool(
+        GroupActions.get_group_with_subjects(
+            UserActions.get_user(id).group
+        ).subjects
+    )
 
 
 def polynomial_hash(string: str) -> int:

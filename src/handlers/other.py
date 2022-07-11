@@ -1,0 +1,33 @@
+from aiogram import Dispatcher, types
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Text
+
+from services import check_user
+
+
+async def cancel_handler(message: types.Message, state: FSMContext) -> None:
+    """Handler for cancel action."""
+    await message.answer("Изменение данных отменено")
+    await state.finish()
+
+
+def register_handlers_cancel_action(dispatcher: Dispatcher) -> None:
+    """Register handlers for cancel action."""
+    dispatcher.register_message_handler(
+        cancel_handler,
+        lambda message: check_user(message.from_user.id),
+        state="*",
+        commands=["cancel"],
+    )
+    dispatcher.register_message_handler(
+        cancel_handler,
+        lambda message: check_user(message.from_user.id),
+        Text(equals="Cancel", ignore_case=True),
+        state="*",
+    )
+    dispatcher.register_message_handler(
+        cancel_handler,
+        lambda message: check_user(message.from_user.id),
+        Text(equals="Cancel", ignore_case=True),
+        state="*",
+    )

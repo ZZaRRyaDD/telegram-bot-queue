@@ -1,6 +1,4 @@
-import enum
-
-from sqlalchemy import Boolean, Column, Enum, ForeignKey, Integer, String, orm
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, orm
 
 from .connect import Base
 
@@ -9,10 +7,9 @@ class Queue(Base):
     """Model for each queue."""
     __tablename__ = "queue"
 
-    user_id = Column(ForeignKey("users.id"), primary_key=True)
-    subject_id = Column(ForeignKey("subjects.id"), primary_key=True)
-    users = orm.relationship("User", back_populates="subjects")
-    subjects = orm.relationship("Subject", back_populates="users")
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    subject_id = Column(Integer, ForeignKey("subjects.id"))
 
 
 class User(Base):
@@ -21,14 +18,17 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     full_name = Column(String(128), nullable=False)
-    email = Column(String(128))
     is_headman = Column(Boolean, default=False)
-    subjects = orm.relationship("Queue", back_populates="users")
+    subjects = orm.relationship(
+        "Subject",
+        secondary="queue",
+        back_populates="users",
+    )
     group = Column(Integer, ForeignKey("groups.id"), nullable=True)
 
     def __str__(self) -> str:
         """Return representation of object in string."""
-        return f"User {self.full_name}, {self.email}, {self.group}"
+        return f"User {self.full_name}, {self.group}"
 
 
 class Group(Base):
@@ -53,32 +53,28 @@ class Subject(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(128), nullable=False)
     group = Column(Integer, ForeignKey("groups.id"), nullable=False)
-    users = orm.relationship("Queue", back_populates="subjects")
-    days = orm.relationship("Date")
+    users = orm.relationship(
+        "User",
+        secondary="queue",
+        back_populates="subjects",
+    )
+    days = orm.relationship("Date", back_populates="subjects")
+    can_select = Column(Boolean, default=True)
 
     def __str__(self) -> str:
         """Return representation of object in string."""
         return f"Subject {self.name} for group {self.group}"
 
 
-class DaysOfWeek(enum.Enum):
-    """Class choices."""
-
-    monday = 1
-    tuesday = 2
-    wednesday = 3
-    thursday = 4
-    friday = 5
-    saturday = 6
-
-
 class Date(Base):
     """Model for each days."""
     __tablename__ = "days"
 
-    name = Column(Enum(DaysOfWeek), primary_key=True)
-    subject = Column(Integer, ForeignKey("subjects.id"), nullable=False)
+    id = Column(Integer, primary_key=True)
+    number = Column(Integer)
+    subject = Column(Integer, ForeignKey("subjects.id"))
+    subjects = orm.relationship("Subject", back_populates="days")
 
     def __str__(self) -> str:
         """Return representation of object in string."""
-        return self.name
+        return f"Date {self.number}"

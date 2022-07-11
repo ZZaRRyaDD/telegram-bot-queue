@@ -16,21 +16,21 @@ async def start_set_headman(message: types.Message) -> None:
     """Entrypoint for set headman."""
     await SetHeadman.is_headman.set()
     await message.answer(
-        "Введите id пользователя, которого нужно назначить старостой"
+        (
+            "Введите id пользователя, у которого нужно изменить статус, "
+            "либо 'cancel'"
+        )
     )
 
 
 async def input_id_headman(message: types.Message, state: FSMContext) -> None:
     """Input id of future headman."""
-    async with state.proxy() as data:
-        data["id"] = int(message.text)
-    user = UserActions.get_user(data["id"])
+    user = UserActions.get_user(int(message.text))
     if user:
         new_status = not user.is_headman
         new_info = {
             "id": user.id,
             "full_name": user.full_name,
-            "email": user.email,
             "is_headman": new_status,
         }
         UserActions.edit_user(user.id, new_info)
@@ -42,11 +42,11 @@ async def input_id_headman(message: types.Message, state: FSMContext) -> None:
         await message.answer(
             f"Пользователь {user.full_name} {situation}"
         )
+        await state.finish()
     else:
         await message.answer(
-            "Такого пользователя нет"
+            "Такого пользователя нет. Введите id, либо 'cancel'"
         )
-    await state.finish()
 
 
 def register_handlers_set_headman(dispatcher: Dispatcher) -> None:

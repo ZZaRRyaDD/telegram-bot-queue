@@ -1,11 +1,30 @@
+import os
 from enum import Enum
 
 from aiogram import Dispatcher, types
 
-from database import UserActions
-from database.repository import GroupActions
+from database import GroupActions, UserActions
 from services import check_user
-from state import register_handlers_change_account
+from state import (register_handlers_change_account,
+                   register_handlers_select_group,
+                   register_handlers_stay_queue)
+
+HELLO_TEXT = """
+Хай
+Этот бот поможет тебе безболезненно встать в очередь на предмет и сдать лабу.
+От бота приходит два уведомления:
+- в 17:00 напоминание о записи на сдачу лабы;
+- в 22:00 итоги рандома (полный список и твоя позиция)
+Твои права:
+Как студента:
+- войти в группу;
+- записаться/отписаться на сдачу предмета
+Как старосты:
+- CRUD операции с группой, предметами (кроме обновления);
+- записаться/отписаться на сдачу предмета
+По дефолту вы студент.
+Чтобы стать старостой напишите админу. Его контактики найдете в меню
+"""
 
 
 class Choices(Enum):
@@ -15,7 +34,8 @@ class Choices(Enum):
     INFO_PROFILE = "Информация о профиле"
     CHANGE_PROFILE = "Изменение информации о профиле"
     CHOICE_GROUP = "Изменить группу"
-    STAY_QUEUE = "Встать в очередь"
+    STAY_QUEUE = "Встать/уйти из очереди"
+    TO_ADMIN = "Написать админу"
 
 
 async def set_commands_client(dispatcher: Dispatcher):
@@ -24,8 +44,9 @@ async def set_commands_client(dispatcher: Dispatcher):
         types.BotCommand("start", Choices.START_UP.value),
         types.BotCommand("info", Choices.INFO_PROFILE.value),
         types.BotCommand("change_profile", Choices.CHANGE_PROFILE.value),
-        types.BotCommand("choice_group", Choices.CHOICE_GROUP.value),
+        types.BotCommand("select_group", Choices.CHOICE_GROUP.value),
         types.BotCommand("stay_queue", Choices.STAY_QUEUE.value),
+        types.BotCommand("to_admin", Choices.TO_ADMIN.value),
     ])
 
 
@@ -35,14 +56,13 @@ def print_info(id: int) -> str:
     user = UserActions.get_user(id)
     info += f"ID: {user.id}\n"
     info += f"Фамилия Имя: {user.full_name}\n"
-    info += f"Email: {user.email}\n"
-    if user.is_headman:
-        group = (
-            GroupActions.get_group(user.group).name
-            if user.group is not None
-            else ""
-        )
-        info += f"Вы являетесь старостой {group}\n"
+    group = (
+        GroupActions.get_group(user.group).name
+        if user.group is not None
+        else ""
+    )
+    status = 'старостой' if user.is_headman else 'студентом'
+    info += f"Вы являетесь {status} {group}\n"
     return info
 
 
@@ -58,12 +78,14 @@ async def start_command(message: types.Message) -> None:
         new_user = {
             "id": message.from_user.id,
             "full_name": full_name,
-            "email": "",
         }
         UserActions.create_user(new_user)
     await message.answer(
-        "Хай",
+        HELLO_TEXT,
     )
+    # await message.answer(
+    #     DateActions.get_dates()
+    # )
 
 
 async def info_user(message: types.Message) -> None:
@@ -73,12 +95,26 @@ async def info_user(message: types.Message) -> None:
     )
 
 
+async def to_admin(message: types.Message) -> None:
+    """Print info about user."""
+    await message.answer(
+        f"Контакты господина: {os.getenv('ADMIN_URL')}.\nТянки, пишите))",
+    )
+
+
 def register_handlers_client(dispatcher: Dispatcher) -> None:
     """Register handler for different types commands of user."""
     dispatcher.register_message_handler(start_command, commands=["start"])
+    register_handlers_change_account(dispatcher)
+    register_handlers_select_group(dispatcher)
+    register_handlers_stay_queue(dispatcher)
     dispatcher.register_message_handler(
         info_user,
         lambda message: check_user(message.from_user.id),
         commands=["info"],
     )
-    register_handlers_change_account(dispatcher)
+    dispatcher.register_message_handler(
+        to_admin,
+        lambda message: check_user(message.from_user.id),
+        commands=["to_admin"],
+    )

@@ -1,7 +1,7 @@
 version: "3.10"
 
 services:
-  bot:
+  bot: &bot
     container_name: telegram_bot
     build:
       context: .
@@ -13,6 +13,9 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - TOKEN=${TOKEN}
       - ADMIN_ID=${ADMIN_ID}
+      - ADMIN_URL=${ADMIN_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
     command: python ./src/actions.py
     volumes:
       - .:/app
@@ -20,6 +23,8 @@ services:
   redis:
     container_name: redis
     image: redis:7
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
 
   postgres:
     container_name: postgresql
@@ -34,6 +39,12 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+
+  celery:
+    <<: *bot
+    container_name: celery
+    command: celery -A src.celery_config.celery_app worker --beat --loglevel=debug
+    ports: []
 
 volumes:
     postgres_data:

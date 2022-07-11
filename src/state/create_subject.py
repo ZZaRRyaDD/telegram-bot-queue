@@ -1,0 +1,110 @@
+from aiogram import Dispatcher, types
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import State, StatesGroup
+
+from database import DateActions, GroupActions, SubjectActions, UserActions
+from keywords import select_days
+from services import check_headman_of_group
+
+
+class Subject(StatesGroup):
+    """FSM for create and edit group."""
+
+    name = State()
+    days = State()
+
+
+async def start_subject(message: types.Message) -> None:
+    """Entrypoint for subject."""
+    await Subject.name.set()
+    await message.answer("Введите название дисциплины, либо 'cancel'")
+
+
+async def input_name_subject(
+    message: types.Message,
+    state: FSMContext,
+) -> None:
+    """Input name of subject."""
+    group = GroupActions.get_group_with_subjects(
+        UserActions.get_user(message.from_user.id).group
+    )
+    if not list(filter(
+        lambda x: x.name.lower() == message.text.lower(), group.subjects
+    )):
+        async with state.proxy() as data:
+            data["name"] = message.text
+        await Subject.next()
+        await message.answer(
+            (
+                "Выберите дни недели, в которые проходит дисциплина, "
+                "либо введите 'cancel'"
+            ),
+            reply_markup=select_days(),
+        )
+    else:
+        await message.answer(
+            (
+                "Предмет с аналогичным названием уже есть в группе. "
+                "Введите другое название, либо введите 'cancel'"
+            )
+        )
+
+
+async def input_date_subject(
+    callback: types.CallbackQuery,
+    state: FSMContext,
+) -> None:
+    """Input date of subject."""
+    call_data = callback.data
+    new_subject = {}
+    new_days = {"days": []}
+    async with state.proxy() as data:
+        if call_data != "Stop":
+            if data.get("days") is None:
+                data["days"] = [call_data]
+            else:
+                data["days"].append(call_data)
+        new_subject["name"] = data["name"]
+        new_days["days"] = data["days"] if data.get("days") else []
+    if call_data == "Stop":
+        if new_days["days"]:
+            new_subject["group"] = UserActions.get_user(
+                callback.from_user.id
+            ).group
+            subject = SubjectActions.create_subject(new_subject)
+            for day in new_days["days"]:
+                DateActions.create_date(
+                    {
+                        "number": int(day),
+                        "subject": subject.id,
+                    },
+                )
+            await callback.message.answer(
+                """Предмет успешно добавлен в группу"""
+            )
+            await state.finish()
+        else:
+            await callback.message.answer(
+                (
+                    "Выберите дни недели, в которые проходит дисциплина,"
+                    " либо введите 'cancel'"
+                ),
+            )
+
+
+def register_handlers_subject(dispatcher: Dispatcher) -> None:
+    """Register handlers for subject."""
+    dispatcher.register_message_handler(
+        start_subject,
+        lambda message: check_headman_of_group(message.from_user.id),
+        commands=["add_subject"],
+        state=None,
+    )
+    dispatcher.register_message_handler(
+        input_name_subject,
+        state=Subject.name,
+    )
+    dispatcher.register_callback_query_handler(
+        input_date_subject,
+        state=Subject.days,
+    )

@@ -17,17 +17,15 @@ class Group(StatesGroup):
 async def start_group(message: types.Message) -> None:
     """Entrypoint for group."""
     await Group.name.set()
-    await message.answer("Введите название группы")
+    await message.answer("Введите название группы, либо 'cancel'")
 
 
 async def input_name_group(message: types.Message, state: FSMContext) -> None:
     """Input name of group."""
     group = GroupActions.get_group_by_name(message.text)
+    user = UserActions.get_user(message.from_user.id)
     name = (
-        all([
-            UserActions.get_user(message.from_user.id).is_headman,
-            UserActions.get_user(message.from_user.id).group == group.id,
-        ])
+        all([user.is_headman, user.group == group.id])
         if group is not None
         else True
     )
@@ -35,23 +33,25 @@ async def input_name_group(message: types.Message, state: FSMContext) -> None:
         async with state.proxy() as data:
             data["name"] = message.text
         await Group.next()
-        await message.answer("Введите секретное слово для входа в группу")
+        await message.answer(
+            "Введите секретное слово для входа в группу, либо 'cancel'"
+        )
     else:
         await message.answer("Группа с таким названием уже есть")
+        await state.finish()
 
 
 async def input_secret_word(message: types.Message, state: FSMContext) -> None:
     """Input secret word."""
     async with state.proxy() as data:
-        data["secret_word"] = polynomial_hash(message.text)
-    new_group = {
-        "name": data["name"],
-        "secret_word": data["secret_word"],
-    }
-    group = GroupActions.get_group_by_name(data["name"])
-    status = 'создана' if group is None else 'обновлена'
-    if group is not None:
-        GroupActions.edit_group(group.id, new_group)
+        new_group = {
+            "name": data["name"],
+            "secret_word": polynomial_hash(message.text),
+        }
+    group_id = UserActions.get_user(message.from_user.id).group
+    status = 'создана' if group_id is None else 'обновлена'
+    if group_id is not None:
+        GroupActions.edit_group(group_id, new_group)
     else:
         group = GroupActions.create_group(new_group)
         UserActions.edit_user(message.from_user.id, {"group": group.id})
