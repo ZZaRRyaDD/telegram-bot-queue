@@ -18,7 +18,7 @@ QUEUE_TEXT = """
 - нажмите на предмет, чтобы встать в очередь по нему
 (если предмет не был выбран ранее)
 - по окончании действий нажмите кнопку 'Остановить выбор'
-В любом момент вы можете нажать 'cancel', чтобы отменить процедуру
+В любом момент вы можете напечатать 'cancel', чтобы отменить процедуру
 """
 
 
@@ -26,6 +26,16 @@ class StayQueue(StatesGroup):
     """FSM for stay in queue."""
 
     name = State()
+
+
+def get_subject_info(user) -> str:
+    """Get info about subscribe subjects."""
+    if not user.subjects:
+        return "Вы не записаны ни на один предмет"
+    info = "Вы записаны на следующие предметы:\n"
+    for subject in user.subjects:
+        info += f"{subject.name}\n"
+    return info
 
 
 async def start_stay_queue(message: types.Message) -> None:
@@ -39,6 +49,11 @@ async def start_stay_queue(message: types.Message) -> None:
             lambda subject: subject.can_select, subjects
         ))
         if access_subjects:
+            await message.answer(
+                get_subject_info(
+                    UserActions.get_user(message.from_user.id, subjects=True)
+                )
+            )
             await StayQueue.name.set()
             await message.answer(
                 QUEUE_TEXT,
@@ -52,16 +67,6 @@ async def start_stay_queue(message: types.Message) -> None:
         await message.answer(
             "Чтобы выбрать предмет, нужно выбрать группу",
         )
-
-
-def get_subject_info(user) -> str:
-    """Get info about subscribe subjects."""
-    if not user.subjects:
-        return "Вы не записаны ни на один предмет"
-    info = "Вы записаны на следующие предметы:\n"
-    for subject in user.subjects:
-        info += f"{subject.name}\n"
-    return info
 
 
 async def get_subject_name(

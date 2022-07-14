@@ -61,7 +61,7 @@ class Subject(Base):
         lazy="subquery",
     )
     days = orm.relationship("Date", lazy="subquery", innerjoin=True)
-    can_select = Column(Boolean, default=True)
+    can_select = Column(Boolean, default=False)
 
     def __str__(self) -> str:
         """Return representation of object in string."""

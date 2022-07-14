@@ -14,8 +14,9 @@ services:
       - TOKEN=${TOKEN}
       - ADMIN_ID=${ADMIN_ID}
       - ADMIN_URL=${ADMIN_URL}
-      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_URL=${REDIS_URL}
       - REDIS_PORT=${REDIS_PORT}
+      - REDIS_HOST=${REDIS_HOST}
     command: python ./src/actions.py
     volumes:
       - .:/app
@@ -24,7 +25,7 @@ services:
     container_name: redis
     image: redis:7
     ports:
-      - ${REDIS_PORT}:${REDIS_PORT}
+      - 6379:6379
 
   postgres:
     container_name: postgresql

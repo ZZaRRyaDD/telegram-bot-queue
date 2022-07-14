@@ -52,7 +52,7 @@ async def get_secret_word(message: types.Message, state: FSMContext) -> None:
     group_info = {}
     async with state.proxy() as data:
         group_info["group"] = data["name"]
-    group = GroupActions.get_group(group_info["group"])
+    group = GroupActions.get_group(int(group_info["group"]))
     if int(group.secret_word) == int(polynomial_hash(message.text)):
         UserActions.edit_user(
             message.from_user.id,

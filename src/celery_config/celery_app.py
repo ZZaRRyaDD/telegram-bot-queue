@@ -6,10 +6,7 @@ from celery.schedules import crontab
 app = Celery(
     'celery_config',
     broker=(
-        f'redis://{os.getenv("REDIS_HOST")}:{int(os.getenv("REDIS_PORT"))}/0'
-    ),
-    backend=(
-        f'redis://{os.getenv("REDIS_HOST")}:{int(os.getenv("REDIS_PORT"))}/1'
+        os.getenv("REDIS_URL")
     ),
     include=["src.celery_config.tasks"],
 )
@@ -25,12 +22,10 @@ app.conf.update(
 app.conf.beat_schedule = {
    'send-reminder': {
         'task': 'src.celery_config.tasks.send_reminder',
-        # 'schedule': crontab(minute=0, hour=17),
-        'schedule': crontab(minute='*/3'),
+        'schedule': crontab(minute=0, hour=17),
     },
    'send-top': {
         'task': 'src.celery_config.tasks.send_top',
-        # 'schedule': crontab(minute=0, hour=22),
-        'schedule': crontab(minute='*/5'),
+        'schedule': crontab(minute=0, hour=22),
     },
 }

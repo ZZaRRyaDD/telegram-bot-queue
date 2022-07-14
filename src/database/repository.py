@@ -53,6 +53,16 @@ class UserActions:
                 ).values(user)
             )
 
+    @staticmethod
+    def delete_user(id: int) -> None:
+        """Delete user by id."""
+        with connect.SessionLocal.begin() as session:
+            session.execute(
+                delete(models.User).where(
+                    models.User.id == id
+                )
+            )
+
 
 class GroupActions:
     """Class with actions with group."""
@@ -66,12 +76,13 @@ class GroupActions:
     ) -> Optional[models.Group]:
         """Get group."""
         query = select(models.Group)
-        if id:
+        if id is not None:
             field = (
                 models.Group.id
                 if isinstance(id, int)
                 else models.Group.name
             )
+            print(field)
             query = query.where(field == id)
         query = (
             query.options(
@@ -225,7 +236,6 @@ class SubjectActions:
             session.execute(
                 query
             )
-            session.commit()
 
     @staticmethod
     def create_subject(subject: dict) -> models.Subject:
@@ -244,7 +254,6 @@ class SubjectActions:
                     models.Subject.id == id
                 )
             )
-            session.commit()
 
 
 class DateActions:

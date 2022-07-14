@@ -25,7 +25,7 @@ def send_top():
     subjects = SubjectActions.get_subjects(True, users=True)
     template = (
         "Очередь по дисциплине {0}\n"
-        "Ваша позиция в очереди: {1}\n\nВся очередь: {2}"
+        "Ваша позиция в очереди: {1}\n\nВся очередь:\n{2}"
     )
     if subjects:
         for subject in subjects:

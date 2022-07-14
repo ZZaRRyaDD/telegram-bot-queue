@@ -6,6 +6,7 @@ from aiogram import Dispatcher, types
 from database import GroupActions, UserActions
 from services import check_user
 from state import (register_handlers_change_account,
+                   register_handlers_delete_account,
                    register_handlers_select_group,
                    register_handlers_stay_queue)
 
@@ -36,6 +37,7 @@ class Choices(Enum):
     CHOICE_GROUP = "Изменить группу"
     STAY_QUEUE = "Встать/уйти из очереди"
     TO_ADMIN = "Написать админу"
+    DELETE_ACCOUNT = "Удалить аккаунт"
 
 
 async def set_commands_client(dispatcher: Dispatcher):
@@ -47,6 +49,7 @@ async def set_commands_client(dispatcher: Dispatcher):
         types.BotCommand("select_group", Choices.CHOICE_GROUP.value),
         types.BotCommand("stay_queue", Choices.STAY_QUEUE.value),
         types.BotCommand("to_admin", Choices.TO_ADMIN.value),
+        types.BotCommand("delete_account", Choices.DELETE_ACCOUNT.value),
     ])
 
 
@@ -105,6 +108,7 @@ def register_handlers_client(dispatcher: Dispatcher) -> None:
     register_handlers_change_account(dispatcher)
     register_handlers_select_group(dispatcher)
     register_handlers_stay_queue(dispatcher)
+    register_handlers_delete_account(dispatcher)
     dispatcher.register_message_handler(
         info_user,
         lambda message: check_user(message.from_user.id),
