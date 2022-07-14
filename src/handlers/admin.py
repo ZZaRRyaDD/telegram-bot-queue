@@ -1,7 +1,6 @@
 from aiogram import Dispatcher, types
 
-from database import GroupActions
-from database.repository import UserActions
+from database import GroupActions, UserActions, models
 from services import check_admin, check_headman_of_group, is_headman
 from state import (register_handlers_delete_group,
                    register_handlers_delete_subject, register_handlers_group,
@@ -11,7 +10,8 @@ from state import (register_handlers_delete_group,
 async def print_commands(message: types.Message) -> None:
     """Print commands of headman and admin."""
     admin_commands = {
-        "/set_headman": "Добавление/удаление старосты\n"
+        "/set_headman": "Добавление/удаление старосты\n",
+        "/all_info": "Вывод всей информации о всех группах\n",
     }
     headman_commands = {
         "/group_info": "Информация о группе\n",
@@ -39,24 +39,56 @@ async def print_commands(message: types.Message) -> None:
     )
 
 
-def print_info(id: int) -> str:
+def get_info_group(group: models.Group) -> str:
     """Return info about user."""
     info = ""
-    group = GroupActions.get_group_with_subjects(
-        UserActions.get_user(id).group
-    )
     info += f"ID: {group.id}\n"
     info += f"Название: {group.name}\n"
     for subject in group.subjects:
         days = ' '.join([str(day.number) for day in subject.days])
-        info += f"{subject.name}: {days}\n"
+        name, can_select = subject.name, subject.can_select
+        info += f"\t\t{name}; days: {days}; can_select: {can_select}\n"
+    info += "Состав группы:\n"
+    info += "".join(
+        [
+            f"\t\t{index + 1}. {user.full_name}\n"
+            for index, user in enumerate(group.students)
+        ]
+    )
     return info
+
+
+def get_all_info():
+    """Get info about groups, subjects."""
+    info = ""
+    groups = GroupActions.get_groups(subjects=True, students=True)
+    if groups:
+        for group in groups:
+            info += f"{get_info_group(group)}\n"
+        return info
+    return "Ничего нет"
 
 
 async def print_group_info(message: types.Message):
     """Print group info."""
     await message.answer(
-        print_info(message.from_user.id)
+        get_info_group(
+            GroupActions.get_group(
+                UserActions.get_user(
+                    message.from_user.id,
+                    subjects=False,
+                ).group,
+                subjects=True,
+                students=True,
+            )
+        )
+    )
+
+
+async def print_all_info(message: types.Message):
+    """Print all info."""
+    await message.answer(
+        get_all_info()
     )
 
 
@@ -79,4 +111,9 @@ def register_handlers_admin(dispatcher: Dispatcher) -> None:
         print_group_info,
         lambda message: check_headman_of_group(message.from_user.id),
         commands=["group_info"]
+    )
+    dispatcher.register_message_handler(
+        print_all_info,
+        lambda message: check_admin(message.from_user.id),
+        commands=["all_info"]
     )

@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery
+from celery.schedules import crontab
 
 app = Celery(
     'celery_config',
@@ -24,10 +25,12 @@ app.conf.update(
 app.conf.beat_schedule = {
    'send-reminder': {
         'task': 'src.celery_config.tasks.send_reminder',
-        'schedule': 30.0,
+        # 'schedule': crontab(minute=0, hour=17),
+        'schedule': crontab(minute='*/3'),
     },
    'send-top': {
         'task': 'src.celery_config.tasks.send_top',
-        'schedule': 30.0,
+        # 'schedule': crontab(minute=0, hour=22),
+        'schedule': crontab(minute='*/5'),
     },
 }

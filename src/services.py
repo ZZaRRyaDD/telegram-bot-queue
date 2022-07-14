@@ -11,17 +11,21 @@ def check_admin(id: int) -> bool:
 
 def check_user(id: int) -> bool:
     """Check register user or not."""
-    return UserActions.get_user(id) is not None
+    return UserActions.get_user(id, subjects=False) is not None
 
 
 def is_headman(id: int) -> bool:
     """Is user headman?"""
-    return UserActions.get_user(id).is_headman
+    user = UserActions.get_user(id, subjects=False)
+    if user:
+        return UserActions.get_user(id, subjects=False).is_headman
 
 
 def member_group(id: int) -> bool:
     """Check for member of some group."""
-    return UserActions.get_user(id).group is not None
+    user = UserActions.get_user(id, subjects=False)
+    if user:
+        return UserActions.get_user(id, subjects=False).group is not None
 
 
 def check_empty_headman(id: int) -> bool:
@@ -36,11 +40,12 @@ def check_headman_of_group(id: int) -> bool:
 
 def check_count_subject_group(id: int) -> bool:
     """Check for count of subjects."""
-    return bool(
-        GroupActions.get_group_with_subjects(
-            UserActions.get_user(id).group
-        ).subjects
+    group = GroupActions.get_group(
+        UserActions.get_user(id, subjects=False).group,
+        subjects=True,
     )
+    if group:
+        return bool(group.subjects if group else group)
 
 
 def polynomial_hash(string: str) -> int:

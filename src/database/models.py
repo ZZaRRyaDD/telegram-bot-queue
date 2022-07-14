@@ -23,6 +23,7 @@ class User(Base):
         "Subject",
         secondary="queue",
         back_populates="users",
+        lazy="subquery",
     )
     group = Column(Integer, ForeignKey("groups.id"), nullable=True)
 
@@ -36,8 +37,8 @@ class Group(Base):
     __tablename__ = "groups"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    students = orm.relationship("User")
-    subjects = orm.relationship("Subject")
+    students = orm.relationship("User", lazy="subquery")
+    subjects = orm.relationship("Subject", lazy="subquery")
     name = Column(String(32), unique=True, nullable=False)
     secret_word = Column(String(128), nullable=False)
 
@@ -57,8 +58,9 @@ class Subject(Base):
         "User",
         secondary="queue",
         back_populates="subjects",
+        lazy="subquery",
     )
-    days = orm.relationship("Date", back_populates="subjects")
+    days = orm.relationship("Date", lazy="subquery", innerjoin=True)
     can_select = Column(Boolean, default=True)
 
     def __str__(self) -> str:
@@ -73,7 +75,6 @@ class Date(Base):
     id = Column(Integer, primary_key=True)
     number = Column(Integer)
     subject = Column(Integer, ForeignKey("subjects.id"))
-    subjects = orm.relationship("Subject", back_populates="days")
 
     def __str__(self) -> str:
         """Return representation of object in string."""

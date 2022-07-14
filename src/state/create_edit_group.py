@@ -22,14 +22,14 @@ async def start_group(message: types.Message) -> None:
 
 async def input_name_group(message: types.Message, state: FSMContext) -> None:
     """Input name of group."""
-    group = GroupActions.get_group_by_name(message.text)
-    user = UserActions.get_user(message.from_user.id)
+    group = GroupActions.get_group(message.text)
+    user = UserActions.get_user(message.from_user.id, subjects=False)
     name = (
         all([user.is_headman, user.group == group.id])
         if group is not None
         else True
     )
-    if name:
+    if name and message.text:
         async with state.proxy() as data:
             data["name"] = message.text
         await Group.next()
@@ -37,7 +37,9 @@ async def input_name_group(message: types.Message, state: FSMContext) -> None:
             "Введите секретное слово для входа в группу, либо 'cancel'"
         )
     else:
-        await message.answer("Группа с таким названием уже есть")
+        await message.answer(
+            "Группа с таким названием уже есть, либо название не коректно"
+        )
         await state.finish()
 
 
@@ -48,7 +50,7 @@ async def input_secret_word(message: types.Message, state: FSMContext) -> None:
             "name": data["name"],
             "secret_word": polynomial_hash(message.text),
         }
-    group_id = UserActions.get_user(message.from_user.id).group
+    group_id = UserActions.get_user(message.from_user.id, subjects=False).group
     status = 'создана' if group_id is None else 'обновлена'
     if group_id is not None:
         GroupActions.edit_group(group_id, new_group)

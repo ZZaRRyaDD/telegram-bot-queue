@@ -2,10 +2,24 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from database import GroupActions, UserActions
-from database.repository import SubjectActions
+from database import GroupActions, QueueActions, UserActions
 from keywords import get_list_of_subjects
 from services import check_user, member_group
+
+QUEUE_TEXT = """
+Выберите предмет.
+Если вы еще не вставали в очередь:
+- при нажатии на предмет вы встаете в очередь на него
+- при повторном нажатии вы отменяется поставку в очередь
+- по окончании действий нажмите кнопку 'Остановить выбор'
+Если вы уже вставали в очередь:
+- нажмите на предмет, чтобы уйти с очереди по нему
+(если предмет был выбран ранее)
+- нажмите на предмет, чтобы встать в очередь по нему
+(если предмет не был выбран ранее)
+- по окончании действий нажмите кнопку 'Остановить выбор'
+В любом момент вы можете нажать 'cancel', чтобы отменить процедуру
+"""
 
 
 class StayQueue(StatesGroup):
@@ -17,8 +31,9 @@ class StayQueue(StatesGroup):
 async def start_stay_queue(message: types.Message) -> None:
     """Entrypoint for stay in queue."""
     if member_group(message.from_user.id):
-        subjects = GroupActions.get_group_with_subjects(
-            UserActions.get_user(message.from_user.id).group
+        subjects = GroupActions.get_group(
+            UserActions.get_user(message.from_user.id, subjects=False).group,
+            subjects=True,
         ).subjects
         access_subjects = list(filter(
             lambda subject: subject.can_select, subjects
@@ -26,7 +41,7 @@ async def start_stay_queue(message: types.Message) -> None:
         if access_subjects:
             await StayQueue.name.set()
             await message.answer(
-                """Выберите предмет""",
+                QUEUE_TEXT,
                 reply_markup=get_list_of_subjects(access_subjects),
             )
         else:
@@ -45,7 +60,7 @@ def get_subject_info(user) -> str:
         return "Вы не записаны ни на один предмет"
     info = "Вы записаны на следующие предметы:\n"
     for subject in user.subjects:
-        info += f"{subject.name}"
+        info += f"{subject.name}\n"
     return info
 
 
@@ -61,17 +76,23 @@ async def get_subject_name(
             if data.get("subjects") is None:
                 data["subjects"] = [call_data]
             else:
-                data["subjects"].append(call_data)
+                if call_data in data["subjects"]:
+                    data["subjects"].remove(call_data)
+                else:
+                    data["subjects"].append(call_data)
         subjects = data["subjects"] if data.get("subjects") else []
+        await callback.answer()
     if call_data == "Stop":
-        user = UserActions.get_user_with_subject(callback.from_user.id)
         for subject in subjects:
-            SubjectActions.action_user(
-                user,
-                SubjectActions.get_subject(subject),
-            )
+            params = {
+                "user_id": callback.from_user.id,
+                "subject_id": int(subject),
+            }
+            QueueActions.action_user(params)
         await callback.message.answer(
-            get_subject_info(user)
+            get_subject_info(
+                UserActions.get_user(callback.from_user.id, subjects=True)
+            )
         )
         await state.finish()
 

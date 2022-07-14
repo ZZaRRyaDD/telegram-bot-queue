@@ -2,7 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from database import GroupActions, UserActions
+from database import GroupActions, QueueActions, UserActions
 from keywords import get_list_of_groups
 from services import check_user, is_headman, polynomial_hash
 
@@ -58,7 +58,7 @@ async def get_secret_word(message: types.Message, state: FSMContext) -> None:
             message.from_user.id,
             {"group": group.id},
         )
-        UserActions.clear_user_queue(message.from_user.id)
+        QueueActions.cleaning_user(message.from_user.id)
         await message.answer(
             f"Теперь вы в группе {group.name}"
         )

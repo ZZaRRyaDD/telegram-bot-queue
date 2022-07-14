@@ -5,7 +5,7 @@ def get_list_of_groups(groups):
     """Create keys for select groups."""
     keyboard = InlineKeyboardMarkup(row_width=3)
     buttons = []
-    if len(groups) < 2:
+    if len(groups) >= 2:
         buttons = [
             [groups[i], groups[i+1]] for i in range(0, len(groups)-1, 2)
         ]
@@ -22,7 +22,7 @@ def get_list_of_groups(groups):
                 ),
                 InlineKeyboardButton(
                     text=row[1].name,
-                    callback_data=row[0].id,
+                    callback_data=row[1].id,
                 ),
             )
         else:
@@ -39,7 +39,7 @@ def get_list_of_subjects(subjects):
     """Create keys for select subjects."""
     keyboard = InlineKeyboardMarkup(row_width=3)
     buttons = []
-    if len(subjects) < 2:
+    if len(subjects) >= 2:
         buttons = [
             [subjects[i], subjects[i+1]] for i in range(0, len(subjects)-1, 2)
         ]
@@ -56,7 +56,7 @@ def get_list_of_subjects(subjects):
                 ),
                 InlineKeyboardButton(
                     text=row[1].name,
-                    callback_data=row[0].id,
+                    callback_data=row[1].id,
                 ),
             )
         else:

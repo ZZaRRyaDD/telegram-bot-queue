@@ -53,7 +53,7 @@ async def set_commands_client(dispatcher: Dispatcher):
 def print_info(id: int) -> str:
     """Return info about user."""
     info = ""
-    user = UserActions.get_user(id)
+    user = UserActions.get_user(id, subjects=False)
     info += f"ID: {user.id}\n"
     info += f"Фамилия Имя: {user.full_name}\n"
     group = (
@@ -83,9 +83,6 @@ async def start_command(message: types.Message) -> None:
     await message.answer(
         HELLO_TEXT,
     )
-    # await message.answer(
-    #     DateActions.get_dates()
-    # )
 
 
 async def info_user(message: types.Message) -> None:

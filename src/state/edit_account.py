@@ -14,7 +14,7 @@ class EditAccountInfo(StatesGroup):
 
 async def start_get_info(message: types.Message) -> None:
     """Entrypoint for edit account."""
-    await EditAccountInfo.full_name.next()
+    await EditAccountInfo.full_name.set()
     await message.answer(
         "Введи свое фамилию и имя, либо 'cancel'"
     )
@@ -22,13 +22,16 @@ async def start_get_info(message: types.Message) -> None:
 
 async def input_full_name(message: types.Message, state: FSMContext) -> None:
     """Get info about first and last name."""
-    new_info = {
-        "id": message.from_user.id,
-        "full_name": message.text,
-    }
-    UserActions.edit_user(message.from_user.id, new_info)
-    await message.answer("Ваши данные успешно заменены")
-    await state.finish()
+    if message.text:
+        new_info = {
+            "id": message.from_user.id,
+            "full_name": message.text,
+        }
+        UserActions.edit_user(message.from_user.id, new_info)
+        await message.answer("Ваши данные успешно заменены")
+        await state.finish()
+    else:
+        await message.answer("Введите корректное имя и фамилию")
 
 
 def register_handlers_change_account(dispatcher: Dispatcher) -> None:

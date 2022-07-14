@@ -25,7 +25,7 @@ async def start_set_headman(message: types.Message) -> None:
 
 async def input_id_headman(message: types.Message, state: FSMContext) -> None:
     """Input id of future headman."""
-    user = UserActions.get_user(int(message.text))
+    user = UserActions.get_user(int(message.text), subjects=False)
     if user:
         new_status = not user.is_headman
         new_info = {

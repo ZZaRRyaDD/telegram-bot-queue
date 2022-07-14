@@ -2,8 +2,8 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from database import GroupActions, SubjectActions, UserActions
-from database.repository import DateActions
+from database import (DateActions, GroupActions, QueueActions, SubjectActions,
+                      UserActions)
 from services import check_count_subject_group, check_headman_of_group
 
 
@@ -13,8 +13,22 @@ class DeleteSubject(StatesGroup):
     name = State()
 
 
+def get_list_subjects(id):
+    subjects = GroupActions.get_group(
+        UserActions.get_user(id, subjects=False).group,
+        subjects=True,
+    ).subjects
+    return "".join([
+        f"{index + 1}. {subject.name}\n"
+        for index, subject in enumerate(subjects)
+    ])
+
+
 async def start_subject(message: types.Message) -> None:
     """Entrypoint for subject."""
+    await message.answer(
+        get_list_subjects(message.from_user.id)
+    )
     await DeleteSubject.name.set()
     await message.answer("Введите название дисциплины, либо 'cancel'")
 
@@ -24,13 +38,14 @@ async def input_name_subject(
     state: FSMContext,
 ) -> None:
     """Input name of subject."""
-    group = GroupActions.get_group_with_subjects(
-        UserActions.get_user(message.from_user.id).group
+    group = GroupActions.get_group(
+        UserActions.get_user(message.from_user.id, subjects=False).group,
+        subjects=True,
     )
     subject = list(filter(lambda x: x.name == message.text, group.subjects))
     if subject:
-        for day in subject.days:
-            DateActions.delete_date(day)
+        QueueActions.cleaning_subject(subject[0].id)
+        DateActions.delete_date_by_subject(subject[0].id)
         SubjectActions.delete_subject(subject[0].id)
         await message.answer(
             "Предмет успешно удален"

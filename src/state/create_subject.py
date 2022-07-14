@@ -25,12 +25,13 @@ async def input_name_subject(
     state: FSMContext,
 ) -> None:
     """Input name of subject."""
-    group = GroupActions.get_group_with_subjects(
-        UserActions.get_user(message.from_user.id).group
+    group = GroupActions.get_group(
+        UserActions.get_user(message.from_user.id, subjects=False).group,
+        subjects=True,
     )
     if not list(filter(
         lambda x: x.name.lower() == message.text.lower(), group.subjects
-    )):
+    )) and message.text:
         async with state.proxy() as data:
             data["name"] = message.text
         await Subject.next()
@@ -44,7 +45,8 @@ async def input_name_subject(
     else:
         await message.answer(
             (
-                "Предмет с аналогичным названием уже есть в группе. "
+                "Предмет с аналогичным названием уже есть в группе, "
+                "либо название не корректно. "
                 "Введите другое название, либо введите 'cancel'"
             )
         )
@@ -63,13 +65,18 @@ async def input_date_subject(
             if data.get("days") is None:
                 data["days"] = [call_data]
             else:
-                data["days"].append(call_data)
+                if call_data not in data["days"]:
+                    data["days"].append(call_data)
+                else:
+                    data["days"].remove(call_data)
         new_subject["name"] = data["name"]
         new_days["days"] = data["days"] if data.get("days") else []
+        await callback.answer()
     if call_data == "Stop":
         if new_days["days"]:
             new_subject["group"] = UserActions.get_user(
-                callback.from_user.id
+                callback.from_user.id,
+                subjects=False,
             ).group
             subject = SubjectActions.create_subject(new_subject)
             for day in new_days["days"]:
