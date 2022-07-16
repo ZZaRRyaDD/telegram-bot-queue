@@ -12,6 +12,7 @@ class Subject(StatesGroup):
 
     name = State()
     days = State()
+    count = State()
 
 
 async def start_subject(message: types.Message) -> None:
@@ -58,7 +59,6 @@ async def input_date_subject(
 ) -> None:
     """Input date of subject."""
     call_data = callback.data
-    new_subject = {}
     new_days = {"days": []}
     async with state.proxy() as data:
         if call_data != "Stop":
@@ -69,13 +69,40 @@ async def input_date_subject(
                     data["days"].append(call_data)
                 else:
                     data["days"].remove(call_data)
-        new_subject["name"] = data["name"]
         new_days["days"] = data["days"] if data.get("days") else []
         await callback.answer()
     if call_data == "Stop":
         if new_days["days"]:
+            await Subject.next()
+            await callback.message.answer(
+                "Введите количество лабораторных работ, либо введите 'cancel'"
+            )
+        else:
+            await callback.message.answer(
+                (
+                    "Выберите дни недели, в которые проходит дисциплина,"
+                    " либо введите 'cancel'"
+                ),
+            )
+
+
+async def input_count_lab_subject(
+    message: types.Message,
+    state: FSMContext,
+) -> None:
+    """Input count of lab of subject."""
+    new_subject = {}
+    new_days = {"days": []}
+    count = message.text
+    async with state.proxy() as data:
+        new_subject["name"] = data["name"]
+        new_days["days"] = data["days"] if data.get("days") else []
+    if count.isdigit():
+        count = int(count)
+        if count > 0:
+            new_subject["count"] = count
             new_subject["group"] = UserActions.get_user(
-                callback.from_user.id,
+                message.from_user.id,
                 subjects=False,
             ).group
             subject = SubjectActions.create_subject(new_subject)
@@ -86,17 +113,18 @@ async def input_date_subject(
                         "subject": subject.id,
                     },
                 )
-            await callback.message.answer(
-                """Предмет успешно добавлен в группу"""
+            await message.answer(
+                "Предмет успешно добавлен в группу"
             )
             await state.finish()
         else:
-            await callback.message.answer(
-                (
-                    "Выберите дни недели, в которые проходит дисциплина,"
-                    " либо введите 'cancel'"
-                ),
+            await message.answer(
+                "Введите количество лабораторных работ, либо введите 'cancel'"
             )
+    else:
+        await message.answer(
+            "Введите количество лабораторных работ, либо введите 'cancel'"
+        )
 
 
 def register_handlers_subject(dispatcher: Dispatcher) -> None:
@@ -114,4 +142,8 @@ def register_handlers_subject(dispatcher: Dispatcher) -> None:
     dispatcher.register_callback_query_handler(
         input_date_subject,
         state=Subject.days,
+    )
+    dispatcher.register_message_handler(
+        input_count_lab_subject,
+        state=Subject.count,
     )

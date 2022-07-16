@@ -46,8 +46,13 @@ def get_info_group(group: models.Group) -> str:
     info += f"Название: {group.name}\n"
     for subject in group.subjects:
         days = ' '.join([str(day.number) for day in subject.days])
-        name, can_select = subject.name, subject.can_select
-        info += f"\t\t{name}; days: {days}; can_select: {can_select}\n"
+        name = subject.name
+        can_select = subject.can_select
+        count = subject.count
+        info += (
+            f"\t\t{name}; days: {days}; "
+            f"can_select: {can_select}; count: {count}\n"
+        )
     info += "Состав группы:\n"
     info += "".join(
         [

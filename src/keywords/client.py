@@ -43,7 +43,41 @@ def get_list_of_groups(groups):
 
 def get_list_of_subjects(subjects):
     """Create keys for select subjects."""
-    keyboard = get_list_keys(subjects)
+    return get_list_keys(subjects)
+
+
+def get_list_of_numbers(numbers):
+    """Create keys for select number of lab of subject."""
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    buttons = []
+    if len(numbers) >= 2:
+        buttons = [
+            [numbers[i], numbers[i+1]]
+            for i in range(0, len(numbers)-1, 2)
+        ]
+        if len(buttons) * 2 < len(numbers):
+            buttons += [numbers[len(buttons)*2:]]
+    else:
+        buttons += [[*numbers]]
+    for row in buttons:
+        if len(row) == 2:
+            keyboard.row(
+                InlineKeyboardButton(
+                    text=row[0],
+                    callback_data=row[0],
+                ),
+                InlineKeyboardButton(
+                    text=row[1],
+                    callback_data=row[1],
+                ),
+            )
+        else:
+            keyboard.row(
+                InlineKeyboardButton(
+                    text=row[0],
+                    callback_data=row[0],
+                ),
+            )
     keyboard.row(
         InlineKeyboardButton(
             text="Остановить выбор",

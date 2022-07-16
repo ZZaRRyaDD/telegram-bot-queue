@@ -10,6 +10,7 @@ class Queue(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     subject_id = Column(Integer, ForeignKey("subjects.id"))
+    number = Column(Integer)
 
 
 class User(Base):
@@ -61,7 +62,8 @@ class Subject(Base):
         lazy="subquery",
     )
     days = orm.relationship("Date", lazy="subquery", innerjoin=True)
-    can_select = Column(Boolean, default=False)
+    can_select = Column(Boolean, default=True)
+    count = Column(Integer)
 
     def __str__(self) -> str:
         """Return representation of object in string."""

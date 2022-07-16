@@ -11,10 +11,8 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(
     autocommit=False,
-    autoflush=True,
+    autoflush=False,
     bind=engine,
-    expire_on_commit=False,
-    future=True,
 )
 Base = declarative_base()
 

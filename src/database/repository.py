@@ -39,29 +39,31 @@ class UserActions:
     def create_user(user: dict) -> None:
         """Create user."""
         user = models.User(**user)
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.add(user)
             session.commit()
 
     @staticmethod
     def edit_user(id: int, user: dict) -> None:
         """Edit user by id."""
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.execute(
                 update(models.User).where(
                     models.User.id == id
                 ).values(user)
             )
+            session.commit()
 
     @staticmethod
     def delete_user(id: int) -> None:
         """Delete user by id."""
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.execute(
                 delete(models.User).where(
                     models.User.id == id
                 )
             )
+            session.commit()
 
 
 class GroupActions:
@@ -82,7 +84,6 @@ class GroupActions:
                 if isinstance(id, int)
                 else models.Group.name
             )
-            print(field)
             query = query.where(field == id)
         query = (
             query.options(
@@ -137,7 +138,7 @@ class GroupActions:
     @staticmethod
     def create_group(group: dict) -> models.Group:
         """Create group."""
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.add(models.Group(**group))
             session.commit()
         return GroupActions.get_group(last=True)
@@ -145,17 +146,18 @@ class GroupActions:
     @staticmethod
     def edit_group(id: int, group: dict) -> None:
         """Edit group."""
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.execute(
                 update(models.Group).where(
                     models.Group.id == id
                 ).values(**group)
             )
+            session.commit()
 
     @staticmethod
     def delete_group(id: int) -> None:
         """Delete group by id."""
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.execute(
                 update(models.User).where(
                     models.User.group == id,
@@ -166,6 +168,7 @@ class GroupActions:
                     models.Group.id == id
                 )
             )
+            session.commit()
 
 
 class SubjectActions:
@@ -232,28 +235,30 @@ class SubjectActions:
             else query.where(models.Subject.id == id)
         )
         query = query.values(can_select=can_select)
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.execute(
                 query
             )
+            session.commit()
 
     @staticmethod
     def create_subject(subject: dict) -> models.Subject:
         """Create subject."""
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.add(models.Subject(**subject))
             session.commit()
-            return SubjectActions.get_subject(last=True)
+        return SubjectActions.get_subject(last=True)
 
     @staticmethod
     def delete_subject(id: int) -> None:
         """Delete subject by id."""
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.execute(
                 delete(models.Subject).where(
                     models.Subject.id == id
                 )
             )
+            session.commit()
 
 
 class DateActions:
@@ -274,53 +279,72 @@ class DateActions:
     @staticmethod
     def create_date(date: dict) -> None:
         """Create date."""
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.add(models.Date(**date))
             session.commit()
 
     @staticmethod
     def delete_date_by_subject(id: int) -> None:
         """Delete date."""
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.execute(
                 delete(models.Date).where(
                     models.Date.subject == id,
                 )
             )
+            session.commit()
 
 
 class QueueActions:
     """Class for actions with queue."""
 
     @staticmethod
+    def get_queue_info(id: int) -> Optional[list[models.Queue]]:
+        """Get position, where user stay."""
+        with connect.SessionLocal() as session:
+            positions = session.execute(
+                select(models.Queue).where(
+                    models.Queue.user_id == id,
+                )
+            ).all()
+            return (
+                [position[0] for position in positions]
+                if positions
+                else None
+            )
+
+    @staticmethod
     def cleaning_user(id: int) -> None:
         """Cleaning user queue."""
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.execute(
                 delete(models.Queue).where(
                     models.Queue.user_id == id,
                 )
             )
+            session.commit()
 
     @staticmethod
     def cleaning_subject(id: int) -> None:
         """Cleaning subject queue."""
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             session.execute(
                 delete(models.Queue).where(
                     models.Queue.subject_id == id,
                 )
             )
+            session.commit()
 
     @staticmethod
     def action_user(params: dict) -> None:
         """Append/remove user to subject."""
-        with connect.SessionLocal.begin() as session:
+        with connect.SessionLocal() as session:
             stay = session.execute(
                 select(models.Queue).where(
                     sql.and_(
                         models.Queue.user_id == params["user_id"],
                         models.Queue.subject_id == params["subject_id"],
+                        models.Queue.number == params["number"],
                     )
                 )
             ).all()
@@ -334,6 +358,8 @@ class QueueActions:
                         sql.and_(
                             models.Queue.user_id == params["user_id"],
                             models.Queue.subject_id == params["subject_id"],
+                            models.Queue.number == params["number"],
                         )
                     )
                 )
+            session.commit()
