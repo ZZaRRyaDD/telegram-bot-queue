@@ -13,57 +13,48 @@ class UserActions:
     def get_user(id: int, subjects=False) -> Optional[models.User]:
         """Get user by id."""
         query = select(models.User).filter(models.User.id == id)
-        query = (
-            query.options(subqueryload(models.User.subjects))
-            if subjects
-            else query
-        )
+        if subjects:
+            query = query.options(subqueryload(models.User.subjects))
         with connect.SessionLocal() as session:
-            user = session.execute(
-                query
-            ).first()
+            user = session.execute(query).first()
             return user[0] if user else None
 
     @staticmethod
     def get_users_with_group() -> Optional[list[models.User]]:
         """Get all users with group."""
+        query = select(models.User).where(
+            models.User.group.is_not(None),
+        )
         with connect.SessionLocal() as session:
-            users = session.execute(
-                select(models.User).where(
-                    models.User.group is not None,
-                )
-            ).all()
+            users = session.execute(query).all()
             return [user[0] for user in users] if users else None
 
     @staticmethod
     def create_user(user: dict) -> None:
         """Create user."""
-        user = models.User(**user)
-        with connect.SessionLocal() as session:
-            session.add(user)
+        with connect.SessionLocal.begin() as session:
+            session.add(models.User(**user))
             session.commit()
 
     @staticmethod
     def edit_user(id: int, user: dict) -> None:
         """Edit user by id."""
-        with connect.SessionLocal() as session:
+        with connect.SessionLocal.begin() as session:
             session.execute(
                 update(models.User).where(
                     models.User.id == id
                 ).values(user)
             )
-            session.commit()
 
     @staticmethod
     def delete_user(id: int) -> None:
         """Delete user by id."""
-        with connect.SessionLocal() as session:
+        with connect.SessionLocal.begin() as session:
             session.execute(
                 delete(models.User).where(
                     models.User.id == id
                 )
             )
-            session.commit()
 
 
 class GroupActions:
@@ -85,27 +76,18 @@ class GroupActions:
                 else models.Group.name
             )
             query = query.where(field == id)
-        query = (
-            query.options(
+        if subjects:
+            query = query.options(
                 subqueryload(models.Group.subjects).options(
                     subqueryload(models.Subject.days)
                 )
-            ) if subjects else query
-        )
-        query = (
-            query.options(
-                subqueryload(models.Group.students)
-            ) if students else query
-        )
-        query = (
-            query.order_by(desc(models.Group.id))
-            if last
-            else query
-        )
+            )
+        if students:
+            query = query.options(subqueryload(models.Group.students))
+        if last:
+            query = query.order_by(desc(models.Group.id))
         with connect.SessionLocal() as session:
-            group = session.execute(
-                query
-            ).first()
+            group = session.execute(query).first()
             return group[0] if group else None
 
     @staticmethod
@@ -115,30 +97,22 @@ class GroupActions:
     ) -> Optional[list[models.Group]]:
         """Get all groups."""
         query = select(models.Group)
-        query = (
-            query.options(
+        if subjects:
+            query = query.options(
                 subqueryload(models.Group.subjects).options(
                     subqueryload(models.Subject.days)
                 )
             )
-            if subjects
-            else query
-        )
-        query = (
-            query.options(subqueryload(models.Group.students))
-            if students
-            else query
-        )
+        if students:
+            query = query.options(subqueryload(models.Group.students))
         with connect.SessionLocal() as session:
-            groups = session.execute(
-                query
-            ).all()
+            groups = session.execute(query).all()
             return [group[0] for group in groups] if groups else None
 
     @staticmethod
     def create_group(group: dict) -> models.Group:
         """Create group."""
-        with connect.SessionLocal() as session:
+        with connect.SessionLocal.begin() as session:
             session.add(models.Group(**group))
             session.commit()
         return GroupActions.get_group(last=True)
@@ -146,18 +120,17 @@ class GroupActions:
     @staticmethod
     def edit_group(id: int, group: dict) -> None:
         """Edit group."""
-        with connect.SessionLocal() as session:
+        with connect.SessionLocal.begin() as session:
             session.execute(
                 update(models.Group).where(
                     models.Group.id == id
                 ).values(**group)
             )
-            session.commit()
 
     @staticmethod
     def delete_group(id: int) -> None:
         """Delete group by id."""
-        with connect.SessionLocal() as session:
+        with connect.SessionLocal.begin() as session:
             session.execute(
                 update(models.User).where(
                     models.User.group == id,
@@ -168,7 +141,6 @@ class GroupActions:
                     models.Group.id == id
                 )
             )
-            session.commit()
 
 
 class SubjectActions:
@@ -180,24 +152,16 @@ class SubjectActions:
         users: bool = False,
         last: bool = False,
     ) -> Optional[models.Subject]:
-        """Get subject by id."""
+        """Get subject."""
         query = select(models.Subject)
         if id:
             query = query.where(models.Subject.id == id)
-        query = (
-            query.options(subqueryload(models.Subject.users))
-            if users
-            else query
-        )
-        query = (
-            query.order_by(desc(models.Subject.id))
-            if last
-            else query
-        )
+        if users:
+            query = query.options(subqueryload(models.Subject.users))
+        if last:
+            query = query.order_by(desc(models.Subject.id))
         with connect.SessionLocal() as session:
-            subject = session.execute(
-                query
-            ).first()
+            subject = session.execute(query).first()
             return subject[0] if subject else None
 
     @staticmethod
@@ -209,17 +173,10 @@ class SubjectActions:
         query = select(models.Subject)
         if can_select:
             query = query.where(models.Subject.can_select == can_select)
-        query = (
-            query.options(
-                subqueryload(models.Subject.users)
-            )
-            if users
-            else query
-        )
+        if users:
+            query = query.options(subqueryload(models.Subject.users))
         with connect.SessionLocal() as session:
-            subjects = session.execute(
-                query
-            ).all()
+            subjects = session.execute(query).all()
             return [subject[0] for subject in subjects] if subjects else None
 
     @staticmethod
@@ -235,16 +192,14 @@ class SubjectActions:
             else query.where(models.Subject.id == id)
         )
         query = query.values(can_select=can_select)
-        with connect.SessionLocal() as session:
-            session.execute(
-                query
-            )
+        with connect.SessionLocal.begin() as session:
+            session.execute(query)
             session.commit()
 
     @staticmethod
     def create_subject(subject: dict) -> models.Subject:
         """Create subject."""
-        with connect.SessionLocal() as session:
+        with connect.SessionLocal.begin() as session:
             session.add(models.Subject(**subject))
             session.commit()
         return SubjectActions.get_subject(last=True)
@@ -252,13 +207,12 @@ class SubjectActions:
     @staticmethod
     def delete_subject(id: int) -> None:
         """Delete subject by id."""
-        with connect.SessionLocal() as session:
+        with connect.SessionLocal.begin() as session:
             session.execute(
                 delete(models.Subject).where(
                     models.Subject.id == id
                 )
             )
-            session.commit()
 
 
 class DateActions:
@@ -271,28 +225,25 @@ class DateActions:
         if number:
             query = query.where(models.Date.number == number)
         with connect.SessionLocal() as session:
-            dates = session.execute(
-                query
-            ).all()
+            dates = session.execute(query).all()
             return [date[0] for date in dates] if dates else None
 
     @staticmethod
     def create_date(date: dict) -> None:
         """Create date."""
-        with connect.SessionLocal() as session:
+        with connect.SessionLocal.begin() as session:
             session.add(models.Date(**date))
             session.commit()
 
     @staticmethod
     def delete_date_by_subject(id: int) -> None:
         """Delete date."""
-        with connect.SessionLocal() as session:
+        with connect.SessionLocal.begin() as session:
             session.execute(
                 delete(models.Date).where(
                     models.Date.subject == id,
                 )
             )
-            session.commit()
 
 
 class QueueActions:
@@ -316,50 +267,76 @@ class QueueActions:
     @staticmethod
     def cleaning_user(id: int) -> None:
         """Cleaning user queue."""
-        with connect.SessionLocal() as session:
+        with connect.SessionLocal.begin() as session:
             session.execute(
                 delete(models.Queue).where(
                     models.Queue.user_id == id,
                 )
             )
-            session.commit()
 
     @staticmethod
     def cleaning_subject(id: int) -> None:
         """Cleaning subject queue."""
-        with connect.SessionLocal() as session:
+        with connect.SessionLocal.begin() as session:
             session.execute(
                 delete(models.Queue).where(
                     models.Queue.subject_id == id,
                 )
             )
-            session.commit()
 
     @staticmethod
-    def action_user(params: dict) -> None:
-        """Append/remove user to subject."""
+    def get_users_by_number(params: dict) -> bool:
+        """Check exists queue with current params."""
+        query = select(models.Queue).where(
+            sql.and_(
+                models.Queue.subject_id == params["subject_id"],
+                models.Queue.number == params["number"],
+            )
+        )
         with connect.SessionLocal() as session:
-            stay = session.execute(
-                select(models.Queue).where(
+            queues = session.execute(query).all()
+            return [queue[0] for queue in queues] if queues else None
+
+    @staticmethod
+    def exists_queue(params: dict) -> bool:
+        """Check exists queue with current params."""
+        query = select(models.Queue).where(
+            sql.and_(
+                models.Queue.user_id == params["user_id"],
+                models.Queue.subject_id == params["subject_id"],
+                models.Queue.number == params["number"],
+            )
+        )
+        with connect.SessionLocal() as session:
+            result = session.execute(query).first()
+            return result[0] if result else None
+
+    @staticmethod
+    def append_queue(params: dict) -> None:
+        """Append user in queue."""
+        with connect.SessionLocal.begin() as session:
+            session.execute(
+                insert(models.Queue).values(**params)
+            )
+
+    @staticmethod
+    def remove_queue(params: dict) -> None:
+        """Remove user from queue."""
+        with connect.SessionLocal.begin() as session:
+            session.execute(
+                delete(models.Queue).where(
                     sql.and_(
                         models.Queue.user_id == params["user_id"],
                         models.Queue.subject_id == params["subject_id"],
                         models.Queue.number == params["number"],
                     )
                 )
-            ).all()
-            if not stay:
-                session.execute(
-                    insert(models.Queue).values(**params)
-                )
-            else:
-                session.execute(
-                    delete(models.Queue).where(
-                        sql.and_(
-                            models.Queue.user_id == params["user_id"],
-                            models.Queue.subject_id == params["subject_id"],
-                            models.Queue.number == params["number"],
-                        )
-                    )
-                )
-            session.commit()
+            )
+
+    @staticmethod
+    def action_user(params: dict) -> None:
+        """Append/remove user to subject."""
+        if not QueueActions.exists_queue(params):
+            QueueActions.append_queue(params)
+        else:
+            QueueActions.remove_queue(params)

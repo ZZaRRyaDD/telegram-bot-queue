@@ -20,6 +20,8 @@ HELLO_TEXT = """
 Как студента:
 - войти в группу;
 - записаться/отписаться на сдачу предмета
+- удалить аккаунт
+- редактировать аккаунт
 Как старосты:
 - CRUD операции с группой, предметами (кроме обновления);
 - записаться/отписаться на сдачу предмета
@@ -71,7 +73,7 @@ def print_info(id: int) -> str:
 
 async def start_command(message: types.Message) -> None:
     """Handler for start command."""
-    if not check_user(message.from_user.id):
+    if not UserActions.get_user(message.from_user.id):
         await message.answer(
             "Смотрю ты еще не с нами. Давай это исправим!",
         )
@@ -104,7 +106,10 @@ async def to_admin(message: types.Message) -> None:
 
 def register_handlers_client(dispatcher: Dispatcher) -> None:
     """Register handler for different types commands of user."""
-    dispatcher.register_message_handler(start_command, commands=["start"])
+    dispatcher.register_message_handler(
+        start_command,
+        commands=["start"],
+    )
     register_handlers_change_account(dispatcher)
     register_handlers_select_group(dispatcher)
     register_handlers_stay_queue(dispatcher)

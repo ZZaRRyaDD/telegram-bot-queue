@@ -62,7 +62,7 @@ class Subject(Base):
         lazy="subquery",
     )
     days = orm.relationship("Date", lazy="subquery", innerjoin=True)
-    can_select = Column(Boolean, default=True)
+    can_select = Column(Boolean, default=False)
     count = Column(Integer)
 
     def __str__(self) -> str:

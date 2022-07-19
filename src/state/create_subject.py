@@ -70,7 +70,7 @@ async def input_date_subject(
                 else:
                     data["days"].remove(call_data)
         new_days["days"] = data["days"] if data.get("days") else []
-        await callback.answer()
+    await callback.answer()
     if call_data == "Stop":
         if new_days["days"]:
             await Subject.next()
@@ -114,7 +114,10 @@ async def input_count_lab_subject(
                     },
                 )
             await message.answer(
-                "Предмет успешно добавлен в группу"
+                (
+                    "Предмет успешно добавлен в группу. "
+                    "Возможность выбора появится со следующего дня"
+                )
             )
             await state.finish()
         else:

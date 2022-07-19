@@ -22,7 +22,7 @@ async def start_delete_account(message: types.Message) -> None:
 
 async def delete_account(message: types.Message, state: FSMContext) -> None:
     """Delete account."""
-    if is_headman(message.from_user.id):
+    if not is_headman(message.from_user.id):
         if message.text == ANSWER:
             QueueActions.cleaning_user(message.from_user.id)
             UserActions.delete_user(message.from_user.id)

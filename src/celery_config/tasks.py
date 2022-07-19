@@ -23,24 +23,40 @@ def send_reminder():
 def send_top():
     """Send result queue."""
     subjects = SubjectActions.get_subjects(True, users=True)
-    template = (
-        "Очередь по дисциплине {0}\n"
-        "Ваша позиция в очереди: {1}\n\nВся очередь:\n{2}"
+    subject_template = "Очередь по дисциплине {0}\n{1}"
+    lab_template = (
+        "Лабораторная работа №{0}\n{1}\n\n"
     )
     if subjects:
         for subject in subjects:
             if not subject.users:
                 continue
-            users = subject.users[::]
-            random.shuffle(users)
-            list_queue = "".join([
-                f"{index + 1}. {user.full_name}\n"
-                for index, user in enumerate(users)
-            ])
-            for index, user in enumerate(users):
+            all_users = []
+            list_labs = []
+            for number in range(1, subject.count + 1):
+                params = {
+                    "subject_id": subject.id,
+                    "number": number,
+                }
+                users = QueueActions.get_users_by_number(params)
+                if users:
+                    all_users.extend(users)
+                    random.shuffle(users)
+                    list_queue = "".join([
+                        f"{index + 1}. {user.full_name}\n"
+                        for index, user in enumerate(users)
+                    ])
+                    list_labs.append(
+                        lab_template.format(number, list_queue)
+                    )
+            all_users = set(all_users)
+            for user in all_users:
                 asyncio.run(bot.send_message(
                     user.id,
-                    template.format(subject.name, index + 1, list_queue)
+                    subject_template.format(
+                        subject.name,
+                        "".join(list_labs),
+                    )
                 ))
             QueueActions.cleaning_subject(subject.id)
     SubjectActions.change_status_subjects(True, False)

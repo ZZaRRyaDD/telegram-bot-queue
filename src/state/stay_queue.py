@@ -120,8 +120,9 @@ async def get_numbers_lab_subject(
             if data.get("numbers")
             else []
         )
-        await callback.answer()
+    await callback.answer()
     if call_data == "Stop":
+        await callback.answer()
         if numbers:
             for number in numbers:
                 params["number"] = number
@@ -129,7 +130,7 @@ async def get_numbers_lab_subject(
             await state.finish()
             await callback.message.answer(
                 get_subject_info(
-                    QueueActions.get_queue_info(callback.message.from_user.id)
+                    QueueActions.get_queue_info(callback.from_user.id)
                 )
             )
         else:

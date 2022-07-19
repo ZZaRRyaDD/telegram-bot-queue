@@ -10,7 +10,7 @@ async def cancel_handler(message: types.Message, state: FSMContext) -> None:
     current_state = await state.get_state()
     if current_state is None:
         return
-    await message.answer("Изменение данных отменено")
+    await message.answer("Действие отменено")
     await state.finish()
 
 
