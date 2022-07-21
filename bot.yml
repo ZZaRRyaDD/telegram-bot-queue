@@ -17,6 +17,9 @@ services:
       - REDIS_URL=${REDIS_URL}
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_HOST=${REDIS_HOST}
+      - WEBHOOK_HOST=${WEBHOOK_HOST}
+      - WEBAPP_PORT=${WEBAPP_PORT}
+      - WEBAPP_HOST=${WEBAPP_HOST}
     command: python ./src/actions.py
     volumes:
       - .:/app

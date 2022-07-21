@@ -295,7 +295,7 @@ class QueueActions:
         )
         with connect.SessionLocal() as session:
             queues = session.execute(query).all()
-            return [queue[0] for queue in queues] if queues else None
+            return [queue[0].user_id for queue in queues] if queues else None
 
     @staticmethod
     def exists_queue(params: dict) -> bool:

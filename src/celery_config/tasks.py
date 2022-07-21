@@ -43,8 +43,8 @@ def send_top():
                     all_users.extend(users)
                     random.shuffle(users)
                     list_queue = "".join([
-                        f"{index + 1}. {user.full_name}\n"
-                        for index, user in enumerate(users)
+                        f"{index + 1}. {UserActions.get_user(id).full_name}\n"
+                        for index, id in enumerate(users)
                     ])
                     list_labs.append(
                         lab_template.format(number, list_queue)
@@ -52,7 +52,7 @@ def send_top():
             all_users = set(all_users)
             for user in all_users:
                 asyncio.run(bot.send_message(
-                    user.id,
+                    user,
                     subject_template.format(
                         subject.name,
                         "".join(list_labs),
