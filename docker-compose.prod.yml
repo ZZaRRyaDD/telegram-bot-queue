@@ -1,17 +1,6 @@
 version: "3.10"
 
 services:
-  nginx:
-    restart: always
-    build:
-      context: ./
-      dockerfile: ./nginx/Dockerfile
-    depends_on:
-      - bot
-    ports:
-      - 80:80
-    expose:
-      - 80
 
   bot: &bot
     container_name: telegram_bot
@@ -31,7 +20,6 @@ services:
       - REDIS_URL=${REDIS_URL}
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_HOST=${REDIS_HOST}
-      - WEBHOOK_HOST=${WEBHOOK_HOST}
       - WEBHOOK_PATH=${WEBHOOK_PATH}
       - WEBHOOK_URL=${WEBHOOK_URL}
       - WEBAPP_HOST=${WEBAPP_HOST}
