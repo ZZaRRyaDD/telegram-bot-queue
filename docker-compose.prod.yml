@@ -18,6 +18,8 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
+      args:
+        depend: --no-dev
     depends_on:
       - postgres
       - redis

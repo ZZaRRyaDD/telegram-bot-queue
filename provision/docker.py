@@ -1,43 +1,45 @@
 from invoke import task
 
-START_COMMAND_DEV = "docker-compose"
-START_COMMAND_PROD = "docker-compose -f docker-compose.prod.yml"
+CONTAINERS = {
+    "dev": "docker-compose",
+    "prod": "docker-compose -f docker-compose.prod.yml",
+}
 
 
 @task
-def build(context, dev=True):
+def build(context, compose="dev"):
     """Build project."""
     return context.run(
-        f"{START_COMMAND_DEV if dev else START_COMMAND_PROD} build",
+        f"{CONTAINERS[compose]} build",
     )
 
 
 @task
-def run(context, dev=True):
+def run(context, compose="dev"):
     """Run postgres, redis, telegram app."""
     return context.run(
-        f"{START_COMMAND_DEV if dev else START_COMMAND_PROD} up",
+        f"{CONTAINERS[compose]} up",
     )
 
 
 @task
-def run_build(context, dev=True):
+def run_build(context, compose="dev"):
     """Run and build app."""
     return context.run(
-        f"{START_COMMAND_DEV if dev else START_COMMAND_PROD} up --build",
+        f"{CONTAINERS[compose]} up --build",
     )
 
 
 @task
-def clean_volumes(context):
+def clean_volumes(context, compose="dev"):
     """Clean volumes."""
-    return context.run(f"{START_COMMAND_DEV} down -v")
+    return context.run(f"{CONTAINERS[compose]} down -v")
 
 
 @task
-def run_container(context, command=""):
+def run_container(context, command="", compose="dev"):
     """Base template for commands with django container."""
-    return context.run(f"{START_COMMAND_DEV} run --rm bot {command}")
+    return context.run(f"{CONTAINERS[compose]} run --rm bot {command}")
 
 
 @task

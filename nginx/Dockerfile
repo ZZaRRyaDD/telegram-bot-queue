@@ -1,13 +1,12 @@
-FROM python:3.9.4-slim AS server
+FROM python:3.10.5-slim-buster
 
-WORKDIR /server
+WORKDIR /app
 
-COPY ./pyproject.toml /server/
-COPY ./poetry.lock /server/
+COPY pyproject.toml .
 
 RUN pip install poetry && poetry config virtualenvs.create false && poetry install --no-dev
 
-COPY ./src /server
+COPY . .
 
 #########################################
 

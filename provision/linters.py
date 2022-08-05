@@ -9,14 +9,14 @@ DEFAULT_FOLDERS = "."
 def isort(context, path=DEFAULT_FOLDERS, params=""):
     """Command to fix imports formatting."""
     common.success("Linters: ISort running")
-    docker.run_container(context, f"isort {path} {params}")
+    docker.run_container(context, command=f"isort {path} {params}")
 
 
 @task
 def flake8(context, path=DEFAULT_FOLDERS):
     """Run `flake8` linter."""
     common.success("Linters: Flake8 running")
-    docker.run_container(context, f"flake8 {path}")
+    docker.run_container(context, command=f"flake8 {path}")
 
 
 @task

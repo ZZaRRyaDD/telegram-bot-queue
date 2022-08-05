@@ -1,5 +1,6 @@
 FROM python:3.10.5-slim-buster
 
+ARG depend
 WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -9,4 +10,4 @@ COPY pyproject.toml .
 COPY . .
 RUN pip install poetry
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
+    && poetry install ${depend} --no-interaction --no-ansi
