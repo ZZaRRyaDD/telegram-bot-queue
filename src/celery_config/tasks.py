@@ -7,16 +7,23 @@ from ..main import bot
 from .celery_app import app
 
 
-@app.task(task_ignore_result=True)
-def send_reminder():
-    """Send remind for stay in queue."""
-    users = UserActions.get_users_with_group()
+def send_message_users(message: str) -> None:
+    """Function for send message for users with group."""
+    users = UserActions.get_users(with_group=True)
     if users:
         for user in users:
             asyncio.run(bot.send_message(
                 user.id,
-                "Не забудь записаться на сдачу лабы. В 22:00 будут результаты"
+                message,
             ))
+
+
+@app.task(task_ignore_result=True)
+def send_reminder():
+    """Send remind for stay in queue."""
+    send_message_users(
+        "Не забудь записаться на сдачу лабы. В 22:00 будут результаты",
+    )
 
 
 @app.task(task_ignore_result=True)
@@ -69,3 +76,6 @@ def send_top():
                 date.subject,
                 True,
             )
+    send_message_users(
+        "Запись на следующие лабораторные работы доступна",
+    )

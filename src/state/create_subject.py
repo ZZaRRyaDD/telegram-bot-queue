@@ -6,6 +6,12 @@ from database import DateActions, GroupActions, SubjectActions, UserActions
 from keywords import select_days
 from services import check_headman_of_group
 
+START_MESSAGE = """
+Учтите, что при создании предмета возможность его выбора появляется
+после 22:00 текущего дня (если 22:00 еще нет), либо следующего дня
+(если предмет создали после 22:00)
+"""
+
 
 class Subject(StatesGroup):
     """FSM for create and edit group."""
@@ -17,6 +23,7 @@ class Subject(StatesGroup):
 
 async def start_subject(message: types.Message) -> None:
     """Entrypoint for subject."""
+    await message.answer(START_MESSAGE)
     await Subject.name.set()
     await message.answer("Введите название дисциплины, либо 'cancel'")
 

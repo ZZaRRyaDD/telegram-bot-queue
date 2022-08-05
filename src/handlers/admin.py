@@ -4,7 +4,8 @@ from database import GroupActions, UserActions, models
 from services import check_admin, check_headman_of_group, is_headman
 from state import (register_handlers_delete_group,
                    register_handlers_delete_subject, register_handlers_group,
-                   register_handlers_set_headman, register_handlers_subject)
+                   register_handlers_message, register_handlers_set_headman,
+                   register_handlers_subject)
 
 
 async def print_commands(message: types.Message) -> None:
@@ -12,6 +13,7 @@ async def print_commands(message: types.Message) -> None:
     admin_commands = {
         "/set_headman": "Добавление/удаление старосты\n",
         "/all_info": "Вывод всей информации о всех группах\n",
+        "/send_message": "Отправка сообщений в моменте всем\n",
     }
     headman_commands = {
         "/group_info": "Информация о группе\n",
@@ -85,7 +87,7 @@ async def print_group_info(message: types.Message):
                 ).group,
                 subjects=True,
                 students=True,
-            )
+            ),
         )
     )
 
@@ -99,6 +101,7 @@ async def print_all_info(message: types.Message):
 
 def register_handlers_admin(dispatcher: Dispatcher) -> None:
     """Register handler for different types commands of admin."""
+    register_handlers_message(dispatcher)
     register_handlers_set_headman(dispatcher)
     register_handlers_group(dispatcher)
     register_handlers_delete_group(dispatcher)

@@ -1,6 +1,7 @@
 import logging
 import os
 
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 
 from database import init_db
@@ -29,6 +30,7 @@ async def on_shutdown(dispatcher) -> None:
 
 logging.basicConfig(filename="app.log")
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+dispatcher.middleware.setup(LoggingMiddleware())
 register_handlers_cancel_action(dispatcher)
 register_handlers_client(dispatcher)
 register_handlers_admin(dispatcher)

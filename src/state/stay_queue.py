@@ -2,8 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from database import GroupActions, QueueActions, UserActions
-from database.repository import SubjectActions
+from database import GroupActions, QueueActions, SubjectActions, UserActions
 from keywords import get_list_of_numbers, get_list_of_subjects
 from services import check_user, member_group
 
