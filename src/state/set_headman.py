@@ -1,8 +1,11 @@
+import asyncio
+
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import UserActions
+from main import bot
 from services import check_admin
 
 
@@ -42,6 +45,10 @@ async def input_id_headman(message: types.Message, state: FSMContext) -> None:
         await message.answer(
             f"Пользователь {user.full_name} {situation}"
         )
+        asyncio.run(bot.send_message(
+            user.id,
+            f"Вы {'стали старостой' if new_status else 'больше не староста'}",
+        ))
         await state.finish()
     else:
         await message.answer(

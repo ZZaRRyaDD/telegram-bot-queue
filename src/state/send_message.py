@@ -1,5 +1,3 @@
-import asyncio
-
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -26,10 +24,10 @@ async def send_messages(message: types.Message, state: FSMContext) -> None:
     users = UserActions.get_users()
     if users:
         for user in users:
-            asyncio.run(bot.send_message(
+            await bot.send_message(
                 user.id,
                 f"Сообщение от админа: \n{message.text}"
-            ))
+            )
     await state.finish()
 
 
