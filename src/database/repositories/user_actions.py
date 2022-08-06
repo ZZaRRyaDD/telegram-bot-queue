@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 from sqlalchemy import delete, orm, select, update
@@ -22,12 +23,17 @@ class UserActions:
     @staticmethod
     def get_users(
         with_group: bool = False,
+        without_admin: bool = False,
     ) -> Optional[list[User]]:
         """Get all users."""
         query = select(User)
         if with_group:
             query = query.where(
                 User.group.is_not(None),
+            )
+        if without_admin:
+            query = query.where(
+                User.id != int(os.getenv("ADMIN_ID")),
             )
         with connect.SessionLocal() as session:
             users = session.execute(query).all()

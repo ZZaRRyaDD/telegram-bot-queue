@@ -47,7 +47,7 @@ def get_info_group(group: models.Group) -> str:
     info += f"ID: {group.id}\n"
     info += f"Название: {group.name}\n"
     for subject in group.subjects:
-        days = ' '.join([str(day.number) for day in subject.days])
+        days = ' '.join(sorted([str(day.number) for day in subject.days]))
         name = subject.name
         can_select = subject.can_select
         count = subject.count
