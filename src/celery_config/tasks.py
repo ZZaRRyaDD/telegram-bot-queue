@@ -6,16 +6,19 @@ from ..database import DateActions, QueueActions, SubjectActions, UserActions
 from ..main import bot
 from .celery_app import app
 
+SATURDAY = 5
+
 
 def send_message_users(message: str) -> None:
     """Function for send message for users with group."""
-    users = UserActions.get_users(with_group=True)
-    if users:
-        for user in users:
-            asyncio.run(bot.send_message(
-                user.id,
-                message,
-            ))
+    if datetime.date.today().weekday() != SATURDAY:
+        users = UserActions.get_users(with_group=True)
+        if users:
+            for user in users:
+                asyncio.run(bot.send_message(
+                    user.id,
+                    message,
+                ))
 
 
 @app.task(task_ignore_result=True)
