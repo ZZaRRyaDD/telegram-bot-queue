@@ -35,26 +35,20 @@ register_handlers_cancel_action(dispatcher)
 register_handlers_client(dispatcher)
 register_handlers_admin(dispatcher)
 
-
-def main() -> None:
-    if DEBUG:
-        executor.start_polling(
-            dispatcher=dispatcher,
-            skip_updates=True,
-            on_startup=on_startup,
-            on_shutdown=on_shutdown,
-        )
-    else:
-        executor.start_webhook(
-            dispatcher=dispatcher,
-            webhook_path=os.getenv("WEBHOOK_PATH"),
-            on_startup=on_startup,
-            on_shutdown=on_shutdown,
-            skip_updates=True,
-            host=os.getenv("WEBAPP_HOST"),
-            port=int(os.getenv("WEBAPP_PORT")),
-        )
-
-
-if __name__ == "__main__":
-    main()
+if DEBUG:
+    executor.start_polling(
+        dispatcher=dispatcher,
+        skip_updates=True,
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+    )
+else:
+    executor.start_webhook(
+        dispatcher=dispatcher,
+        webhook_path=os.getenv("WEBHOOK_PATH"),
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+        skip_updates=True,
+        host=os.getenv("WEBAPP_HOST"),
+        port=int(os.getenv("WEBAPP_PORT")),
+    )

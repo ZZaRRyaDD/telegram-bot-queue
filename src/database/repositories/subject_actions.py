@@ -17,7 +17,7 @@ class SubjectActions:
     ) -> Optional[Subject]:
         """Get subject."""
         query = select(Subject)
-        if id:
+        if id is not None:
             query = query.where(Subject.id == id)
         if users:
             query = query.options(orm.subqueryload(Subject.users))
@@ -29,12 +29,12 @@ class SubjectActions:
 
     @staticmethod
     def get_subjects(
-        can_select: Optional[bool],
+        can_select: Optional[bool] = None,
         users: bool = False,
     ) -> Optional[list[Subject]]:
         """Get all subjects."""
         query = select(Subject)
-        if can_select:
+        if can_select is not None:
             query = query.where(Subject.can_select == can_select)
         if users:
             query = query.options(orm.subqueryload(Subject.users))

@@ -65,7 +65,7 @@ def get_info_group(group: models.Group) -> str:
     return info
 
 
-def get_all_info():
+def get_all_info() -> str:
     """Get info about groups, subjects."""
     info = ""
     groups = GroupActions.get_groups(subjects=True, students=True)
@@ -76,7 +76,7 @@ def get_all_info():
     return "Ничего нет"
 
 
-async def print_group_info(message: types.Message):
+async def print_group_info(message: types.Message) -> None:
     """Print group info."""
     await message.answer(
         get_info_group(
@@ -92,7 +92,7 @@ async def print_group_info(message: types.Message):
     )
 
 
-async def print_all_info(message: types.Message):
+async def print_all_info(message: types.Message) -> None:
     """Print all info."""
     await message.answer(
         get_all_info()

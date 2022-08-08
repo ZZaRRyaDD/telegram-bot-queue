@@ -35,7 +35,7 @@ def activate_tomorrow_subjects() -> None:
 
 
 @app.task(task_ignore_result=True)
-def send_reminder():
+def send_reminder() -> None:
     """Send remind for stay in queue."""
     send_message_users(
         "Не забудь записаться на сдачу лабы. В 22:00 будут результаты",
@@ -43,7 +43,7 @@ def send_reminder():
 
 
 @app.task(task_ignore_result=True)
-def send_top():
+def send_top() -> None:
     """Send result queue."""
     subjects = SubjectActions.get_subjects(True, users=True)
     subject_template = "Очередь по дисциплине {0}\n{1}"

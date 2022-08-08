@@ -10,10 +10,10 @@ class DateActions:
     """Class with actions with date."""
 
     @staticmethod
-    def get_dates(number: Optional[int]) -> Optional[list[Date]]:
+    def get_dates(number: Optional[int] = None) -> Optional[list[Date]]:
         """Get all dates."""
         query = select(Date)
-        if number:
+        if number is not None:
             query = query.where(Date.number == number)
         with connect.SessionLocal() as session:
             dates = session.execute(query).all()

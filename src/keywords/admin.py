@@ -14,7 +14,7 @@ class DaysOfWeek(enum.Enum):
     SATURDAY = 5
 
 
-def select_days():
+def select_days() -> InlineKeyboardMarkup:
     """Create keys for select days of week."""
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(

@@ -13,7 +13,7 @@ class DeleteSubject(StatesGroup):
     name = State()
 
 
-def get_list_subjects(id):
+def get_list_subjects(id: int) -> str:
     subjects = GroupActions.get_group(
         UserActions.get_user(id, subjects=False).group,
         subjects=True,

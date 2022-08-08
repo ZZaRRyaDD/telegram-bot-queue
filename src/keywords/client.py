@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-def get_list_keys(collection):
+def get_list_keys(collection) -> InlineKeyboardMarkup:
     """Create keys for select something."""
     keyboard = InlineKeyboardMarkup(row_width=3)
     buttons = []
@@ -36,17 +36,17 @@ def get_list_keys(collection):
     return keyboard
 
 
-def get_list_of_groups(groups):
+def get_list_of_groups(groups) -> InlineKeyboardMarkup:
     """Create keys for select groups."""
     return get_list_keys(groups)
 
 
-def get_list_of_subjects(subjects):
+def get_list_of_subjects(subjects) -> InlineKeyboardMarkup:
     """Create keys for select subjects."""
     return get_list_keys(subjects)
 
 
-def get_list_of_numbers(numbers):
+def get_list_of_numbers(numbers) -> InlineKeyboardMarkup:
     """Create keys for select number of lab of subject."""
     keyboard = InlineKeyboardMarkup(row_width=3)
     buttons = []
