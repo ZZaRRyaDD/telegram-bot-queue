@@ -37,12 +37,13 @@ def get_subject_info(positions) -> str:
     subjects = set(position.subject_id for position in positions)
     for subject_id in subjects:
         subject = SubjectActions.get_subject(subject_id)
-        numbers = list(
+        numbers = sorted(
             filter(lambda x: x.subject_id == subject_id, positions),
+            key=lambda x: x.number,
         )
         numbers = list(map(lambda x: str(x.number), numbers))
         info += f"Дисциплина: {subject.name}\n"
-        info += f"Лабораторные работы: {' '.join(sorted(numbers))}\n\n"
+        info += f"Лабораторные работы: {' '.join(numbers)}\n\n"
     return info
 
 

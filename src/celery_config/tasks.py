@@ -21,6 +21,19 @@ def send_message_users(message: str) -> None:
                 ))
 
 
+def activate_tomorrow_subjects() -> None:
+    """Function for activate next subjects."""
+    dates = DateActions.get_dates(
+        (datetime.date.today() + datetime.timedelta(days=1)).weekday()
+    )
+    if dates:
+        for date in dates:
+            SubjectActions.change_status_subjects(
+                date.subject,
+                True,
+            )
+
+
 @app.task(task_ignore_result=True)
 def send_reminder():
     """Send remind for stay in queue."""
@@ -34,9 +47,7 @@ def send_top():
     """Send result queue."""
     subjects = SubjectActions.get_subjects(True, users=True)
     subject_template = "Очередь по дисциплине {0}\n{1}"
-    lab_template = (
-        "Лабораторная работа №{0}\n{1}\n\n"
-    )
+    lab_template = "Лабораторная работа №{0}\n{1}\n\n"
     if subjects:
         for subject in subjects:
             if not subject.users:
@@ -70,15 +81,5 @@ def send_top():
                 ))
             QueueActions.cleaning_subject(subject.id)
     SubjectActions.change_status_subjects(True, False)
-    dates = DateActions.get_dates(
-        (datetime.date.today() + datetime.timedelta(days=1)).weekday()
-    )
-    if dates:
-        for date in dates:
-            SubjectActions.change_status_subjects(
-                date.subject,
-                True,
-            )
-    send_message_users(
-        "Запись на следующие лабораторные работы доступна",
-    )
+    activate_tomorrow_subjects()
+    send_message_users("Запись на следующие лабораторные работы доступна")

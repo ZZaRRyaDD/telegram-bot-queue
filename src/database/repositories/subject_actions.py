@@ -45,7 +45,7 @@ class SubjectActions:
     @staticmethod
     def change_status_subjects(
         id: Union[bool, int],
-        can_select: bool
+        can_select: bool,
     ) -> None:
         """Change status of subject."""
         query = update(Subject)
