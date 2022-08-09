@@ -8,6 +8,6 @@ ENV PYTHONBUFFERED 1
 
 COPY pyproject.toml .
 COPY . .
-RUN pip install poetry
-RUN poetry config virtualenvs.create false \
-    && poetry install ${depend} --no-interaction --no-ansi
+RUN pip install poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install ${depend} --no-interaction --no-ansi
