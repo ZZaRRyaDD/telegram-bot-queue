@@ -17,7 +17,7 @@ class DeleteAccount(StatesGroup):
 async def start_delete_account(message: types.Message) -> None:
     """Entrypoint for delete account."""
     await DeleteAccount.answer.set()
-    await message.answer("Введите 'Да' без ковычек")
+    await message.answer("Введите 'Да' без ковычек, либо cancel для отмены")
 
 
 async def delete_account(message: types.Message, state: FSMContext) -> None:
