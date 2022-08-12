@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import DateActions, GroupActions, SubjectActions, UserActions
-from keywords import select_days
+from keywords import select_days, select_subject_passes
 from services import check_headman_of_group
 
 START_MESSAGE = """
@@ -19,6 +19,7 @@ class Subject(StatesGroup):
     name = State()
     days = State()
     count = State()
+    week = State()
 
 
 async def start_subject(message: types.Message) -> None:
@@ -68,15 +69,20 @@ async def input_date_subject(
     call_data = callback.data
     new_days = {"days": []}
     async with state.proxy() as data:
+        message = "Завершили выбор"
         if call_data != "Stop":
             if data.get("days") is None:
                 data["days"] = [call_data]
+                message = f"Добавлен {call_data} день"
             else:
                 if call_data not in data["days"]:
                     data["days"].append(call_data)
+                    message = f"Добавлен {call_data} день"
                 else:
                     data["days"].remove(call_data)
+                    message = f"Удален {call_data} день"
         new_days["days"] = data["days"] if data.get("days") else []
+        await callback.message.answer(message)
     await callback.answer()
     if call_data == "Stop":
         if new_days["days"]:
@@ -98,32 +104,17 @@ async def input_count_lab_subject(
     state: FSMContext,
 ) -> None:
     """Input count of lab of subject."""
-    new_subject = {}
-    new_days = {"days": []}
     count = message.text
-    async with state.proxy() as data:
-        new_subject["name"] = data["name"]
-        new_days["days"] = data["days"] if data.get("days") else []
     if count.isdigit():
         count = int(count)
         if count > 0:
-            new_subject["count"] = count
-            new_subject["group"] = UserActions.get_user(
-                message.from_user.id,
-                subjects=False,
-            ).group
-            subject = SubjectActions.create_subject(new_subject)
-            for day in new_days["days"]:
-                DateActions.create_date(
-                    {
-                        "number": int(day),
-                        "subject": subject.id,
-                    },
-                )
+            async with state.proxy() as data:
+                data["count"] = count
+            await Subject.next()
             await message.answer(
-                "Предмет успешно добавлен в группу.",
+                "Выберите как будет проходить предмет, либо введите 'cancel'",
+                reply_markup=select_subject_passes(),
             )
-            await state.finish()
         else:
             await message.answer(
                 "Введите количество лабораторных работ, либо введите 'cancel'"
@@ -132,6 +123,42 @@ async def input_count_lab_subject(
         await message.answer(
             "Введите количество лабораторных работ, либо введите 'cancel'"
         )
+
+
+async def input_week_subject(
+    callback: types.CallbackQuery,
+    state: FSMContext,
+) -> None:
+    """Input type of week of subject."""
+    data = callback.data
+    new_subject = {
+        "on_even_week": (
+            True
+            if data == "True"
+            else False if data == "False" else None
+        ),
+    }
+    days = []
+    async with state.proxy() as data:
+        new_subject["name"] = data["name"]
+        new_subject["count"] = data["count"]
+        days = data["days"] if data.get("days") else []
+    new_subject["group"] = UserActions.get_user(
+        callback.from_user.id,
+        subjects=False,
+    ).group
+    subject = SubjectActions.create_subject(new_subject)
+    for day in days:
+        DateActions.create_date(
+            {
+                "number": int(day),
+                "subject": subject.id,
+            },
+        )
+    await state.finish()
+    await callback.message.answer(
+        f"Предмет {new_subject['name']} успешно добавлен в группу.",
+    )
 
 
 def register_handlers_subject(dispatcher: Dispatcher) -> None:
@@ -153,4 +180,8 @@ def register_handlers_subject(dispatcher: Dispatcher) -> None:
     dispatcher.register_message_handler(
         input_count_lab_subject,
         state=Subject.count,
+    )
+    dispatcher.register_callback_query_handler(
+        input_week_subject,
+        state=Subject.week,
     )

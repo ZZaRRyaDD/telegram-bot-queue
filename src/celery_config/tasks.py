@@ -5,6 +5,7 @@ import random
 from ..database import DateActions, QueueActions, SubjectActions, UserActions
 from ..main import bot
 from .celery_app import app
+from .services import is_event_week
 
 SATURDAY = 5
 
@@ -23,15 +24,18 @@ def send_message_users(message: str) -> None:
 
 def activate_tomorrow_subjects() -> None:
     """Function for activate next subjects."""
-    dates = DateActions.get_dates(
-        (datetime.date.today() + datetime.timedelta(days=1)).weekday()
-    )
+    tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    dates = DateActions.get_dates(tomorrow.weekday())
     if dates:
         for date in dates:
             SubjectActions.change_status_subjects(
                 date.subject,
                 True,
             )
+        SubjectActions.change_status_subjects(
+            str(not bool(is_event_week(tomorrow))),
+            False,
+        )
 
 
 @app.task(task_ignore_result=True)

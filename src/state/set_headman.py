@@ -43,9 +43,14 @@ async def input_id_headman(message: types.Message, state: FSMContext) -> None:
         await message.answer(
             f"Пользователь {user.full_name} {situation}"
         )
+        status = (
+            'стали старостой и теперь вам доступна команда /commands'
+            if new_status
+            else 'больше не староста'
+        )
         await bot.send_message(
             user.id,
-            f"Вы {'стали старостой' if new_status else 'больше не староста'}",
+            f"Вы {status}",
         )
         await state.finish()
     else:

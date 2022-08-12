@@ -16,6 +16,7 @@ class Subject(Base):
         back_populates="subjects",
         lazy="subquery",
     )
+    on_even_week = Column(Boolean, default=None)
     days = orm.relationship("Date", lazy="subquery", innerjoin=True)
     can_select = Column(Boolean, default=False)
     count = Column(Integer)

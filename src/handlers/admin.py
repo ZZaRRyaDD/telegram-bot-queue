@@ -51,9 +51,11 @@ def get_info_group(group: models.Group) -> str:
         name = subject.name
         can_select = subject.can_select
         count = subject.count
+        on_even_week = subject.on_even_week
         info += (
             f"\t\t{name}; days: {days}; "
-            f"can_select: {can_select}; count: {count}\n"
+            f"can_select: {can_select}; "
+            f"count: {count}; on_even_week: {on_even_week};\n"
         )
     info += "Состав группы:\n"
     info += "".join(

@@ -4,7 +4,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 class DaysOfWeek(enum.Enum):
-    """Class choices."""
+    """Class choices for day of week."""
 
     MONDAY = 0
     TUESDAY = 1
@@ -12,6 +12,14 @@ class DaysOfWeek(enum.Enum):
     THURSDAY = 3
     FRIDAY = 4
     SATURDAY = 5
+
+
+class SubjectPasses(enum.Enum):
+    """Class choices."""
+
+    EACH_WEEK = "None"
+    EACH_EVEN_WEEK = "True"
+    EACH_ODD_WEEK = "False"
 
 
 def select_days() -> InlineKeyboardMarkup:
@@ -46,5 +54,27 @@ def select_days() -> InlineKeyboardMarkup:
         ),
     ).row(
         InlineKeyboardButton(text="Завершить выбор", callback_data="Stop"),
+    )
+    return keyboard
+
+
+def select_subject_passes() -> KeyboardInterrupt:
+    """Create keyboard for select when subject passes."""
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    keyboard.row(
+        InlineKeyboardButton(
+            text="Раз в неделю",
+            callback_data=SubjectPasses.EACH_WEEK.value,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text="Каждую четную неделю",
+            callback_data=SubjectPasses.EACH_EVEN_WEEK.value,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text="Каждую нечетную неделю",
+            callback_data=SubjectPasses.EACH_ODD_WEEK.value,
+        ),
     )
     return keyboard

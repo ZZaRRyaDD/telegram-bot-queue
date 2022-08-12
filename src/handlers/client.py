@@ -33,7 +33,7 @@ HELLO_TEXT = """
 class Choices(Enum):
     """Button names."""
 
-    START_UP = "Создание аккаунт"
+    START_UP = "Создание аккаунта"
     INFO_PROFILE = "Информация о профиле"
     CHANGE_PROFILE = "Изменение информации о профиле"
     CHOICE_GROUP = "Изменить группу"
@@ -100,7 +100,7 @@ async def info_user(message: types.Message) -> None:
 async def to_admin(message: types.Message) -> None:
     """Print info about user."""
     await message.answer(
-        f"Контакты господина: {os.getenv('ADMIN_URL')}.\nТянки, пишите))",
+        f"Контакты господина: {os.getenv('ADMIN_URL')}",
     )
 
 

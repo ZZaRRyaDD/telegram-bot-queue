@@ -44,7 +44,7 @@ class SubjectActions:
 
     @staticmethod
     def change_status_subjects(
-        id: Union[bool, int],
+        id: Union[bool, int, str],
         can_select: bool,
     ) -> None:
         """Change status of subject."""
@@ -53,6 +53,12 @@ class SubjectActions:
             query.where(Subject.can_select == id)
             if isinstance(id, bool)
             else query.where(Subject.id == id)
+            if isinstance(id, int) else query.where(Subject.on_even_week.is_(
+                    True
+                    if id == "True"
+                    else False
+                )
+            )
         )
         query = query.values(can_select=can_select)
         with connect.SessionLocal.begin() as session:

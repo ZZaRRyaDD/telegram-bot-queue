@@ -106,20 +106,25 @@ async def get_numbers_lab_subject(
     }
     call_data = callback.data
     async with state.proxy() as data:
+        message = "Завершили выбор"
         if call_data != "Stop":
             if data.get("numbers") is None:
                 data["numbers"] = [call_data]
+                message = f"Добавлена {call_data} лаба"
             else:
                 if call_data in data["numbers"]:
                     data["numbers"].remove(call_data)
+                    message = f"Удалена {call_data} лаба"
                 else:
                     data["numbers"].append(call_data)
+                    message = f"Добавлена {call_data} лаба"
         params["subject_id"] = int(data["subject"])
         numbers = (
             list(map(int, data["numbers"]))
             if data.get("numbers")
             else []
         )
+        await callback.message.answer(message)
     await callback.answer()
     if call_data == "Stop":
         await callback.answer()
