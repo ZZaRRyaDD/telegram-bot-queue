@@ -7,6 +7,8 @@ from state import (register_handlers_delete_group,
                    register_handlers_message, register_handlers_set_headman,
                    register_handlers_subject)
 
+DAY_WEEKS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]
+
 
 async def print_commands(message: types.Message) -> None:
     """Print commands of headman and admin."""
@@ -46,16 +48,27 @@ def get_info_group(group: models.Group) -> str:
     info = ""
     info += f"ID: {group.id}\n"
     info += f"Название: {group.name}\n"
+    info += "Предметы:\n"
     for subject in group.subjects:
-        days = ' '.join(sorted([str(day.number) for day in subject.days]))
+        days = " ".join(
+            DAY_WEEKS[day]
+            for day in sorted([day.number for day in subject.days])
+        )
         name = subject.name
-        can_select = subject.can_select
+        can_select = 'Да' if subject.can_select else 'Нет'
         count = subject.count
-        on_even_week = subject.on_even_week
+        on_even_week = (
+            'по четным'
+            if subject.on_even_week is True
+            else 'по нечетным' if subject.on_even_week is False
+            else 'раз в неделю'
+        )
         info += (
-            f"\t\t{name}; days: {days}; "
-            f"can_select: {can_select}; "
-            f"count: {count}; on_even_week: {on_even_week};\n"
+            f"\t\t{name}:\n"
+            f"\t\t\t\t\t\tДни недели: {days};\n"
+            f"\t\t\t\t\t\tМожно ли сейчас выбирать: {can_select};\n"
+            f"\t\t\t\t\t\tКоличество лабораторных работа: {count};\n"
+            f"\t\t\t\t\t\tПроходит {on_even_week};\n\n"
         )
     info += "Состав группы:\n"
     info += "".join(

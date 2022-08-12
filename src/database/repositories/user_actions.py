@@ -25,7 +25,7 @@ class UserActions:
         with_group: bool = False,
         without_admin: bool = False,
     ) -> Optional[list[User]]:
-        """Get all users."""
+        """Get users."""
         query = select(User)
         if with_group:
             query = query.where(
