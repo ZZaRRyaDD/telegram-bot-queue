@@ -63,18 +63,18 @@ def select_subject_passes() -> KeyboardInterrupt:
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
         InlineKeyboardButton(
-            text="Раз в неделю",
+            text="Каждую неделю",
             callback_data=SubjectPasses.EACH_WEEK.value,
         ),
     ).row(
         InlineKeyboardButton(
-            text="Каждую четную неделю",
-            callback_data=SubjectPasses.EACH_EVEN_WEEK.value,
+            text="По нечетным неделям",
+            callback_data=SubjectPasses.EACH_ODD_WEEK.value,
         ),
     ).row(
         InlineKeyboardButton(
-            text="Каждую нечетную неделю",
-            callback_data=SubjectPasses.EACH_ODD_WEEK.value,
+            text="По четным неделям",
+            callback_data=SubjectPasses.EACH_EVEN_WEEK.value,
         ),
     )
     return keyboard

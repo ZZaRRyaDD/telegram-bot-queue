@@ -55,19 +55,19 @@ def get_info_group(group: models.Group) -> str:
             for day in sorted([day.number for day in subject.days])
         )
         name = subject.name
-        can_select = 'Да' if subject.can_select else 'Нет'
+        can_select = 'можно' if subject.can_select else 'нельзя'
         count = subject.count
         on_even_week = (
-            'по четным'
+            'по четным неделям'
             if subject.on_even_week is True
-            else 'по нечетным' if subject.on_even_week is False
-            else 'раз в неделю'
+            else 'по нечетным неделям' if subject.on_even_week is False
+            else 'каждую неделю'
         )
         info += (
             f"\t\t{name}:\n"
             f"\t\t\t\t\t\tДни недели: {days};\n"
-            f"\t\t\t\t\t\tМожно ли сейчас выбирать: {can_select};\n"
-            f"\t\t\t\t\t\tКоличество лабораторных работа: {count};\n"
+            f"\t\t\t\t\t\tСейчас {can_select} выбрать;\n"
+            f"\t\t\t\t\t\tКоличество лабораторных работ: {count};\n"
             f"\t\t\t\t\t\tПроходит {on_even_week};\n\n"
         )
     info += "Состав группы:\n"

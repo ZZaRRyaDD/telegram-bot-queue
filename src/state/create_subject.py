@@ -117,7 +117,7 @@ async def input_count_lab_subject(
                 data["count"] = count
             await Subject.next()
             await message.answer(
-                "Выберите как будет проходить предмет, либо введите 'cancel'",
+                "Выберите, как будет проходить предмет, либо введите 'cancel'",
                 reply_markup=select_subject_passes(),
             )
         else:
