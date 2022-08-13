@@ -40,6 +40,7 @@ class Choices(Enum):
     STAY_QUEUE = "Встать/уйти из очереди"
     TO_ADMIN = "Написать админу"
     DELETE_ACCOUNT = "Удалить аккаунт"
+    INFO_PREACTICE = "Информация о сданных лабораторных работах"
 
 
 async def set_commands_client(dispatcher: Dispatcher):
@@ -52,6 +53,7 @@ async def set_commands_client(dispatcher: Dispatcher):
         types.BotCommand("stay_queue", Choices.STAY_QUEUE.value),
         types.BotCommand("to_admin", Choices.TO_ADMIN.value),
         types.BotCommand("delete_account", Choices.DELETE_ACCOUNT.value),
+        types.BotCommand("info_practice", Choices.INFO_PREACTICE.value),
     ])
 
 
@@ -104,6 +106,10 @@ async def to_admin(message: types.Message) -> None:
     )
 
 
+async def pass_info_practice(message: types.Message) -> None:
+    await message.answer("Находится в разработке")
+
+
 def register_handlers_client(dispatcher: Dispatcher) -> None:
     """Register handler for different types commands of user."""
     dispatcher.register_message_handler(
@@ -123,4 +129,8 @@ def register_handlers_client(dispatcher: Dispatcher) -> None:
         to_admin,
         lambda message: check_user(message.from_user.id),
         commands=["to_admin"],
+    )
+    dispatcher.register_message_handler(
+        pass_info_practice,
+        commands=["info_practice"]
     )

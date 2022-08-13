@@ -74,7 +74,7 @@ async def input_date_subject(
     call_data = callback.data
     new_days = {"days": []}
     async with state.proxy() as data:
-        message = "Завершили выбор"
+        message = "Вы завершили выбор"
         if call_data != "Stop":
             if data.get("days") is None:
                 data["days"] = [call_data]

@@ -106,7 +106,7 @@ async def get_numbers_lab_subject(
     }
     call_data = callback.data
     async with state.proxy() as data:
-        message = "Завершили выбор"
+        message = "Вы завершили выбор"
         if call_data != "Stop":
             if data.get("numbers") is None:
                 data["numbers"] = [call_data]
@@ -127,21 +127,16 @@ async def get_numbers_lab_subject(
         await callback.message.answer(message)
     await callback.answer()
     if call_data == "Stop":
-        await callback.answer()
         if numbers:
             for number in numbers:
                 params["number"] = number
                 QueueActions.action_user(params)
             await state.finish()
-            await callback.message.answer(
-                get_subject_info(
-                    QueueActions.get_queue_info(callback.from_user.id)
-                )
+        await callback.message.answer(
+            get_subject_info(
+                QueueActions.get_queue_info(callback.from_user.id)
             )
-        else:
-            await callback.message.answer(
-                "Выберите номера лабораторных работ, либо введите 'cancel",
-            )
+        )
 
 
 def register_handlers_stay_queue(dispatcher: Dispatcher) -> None:
