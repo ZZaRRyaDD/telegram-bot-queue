@@ -11,6 +11,7 @@ SQLAlchemy = "^1.4.39"
 psycopg2-binary = "^2.9.3"
 celery = "^5.2.7"
 redis = "^4.3.4"
+alembic = "^1.8.1"
 
 [tool.poetry.dev-dependencies]
 invoke = "^1.7.1"

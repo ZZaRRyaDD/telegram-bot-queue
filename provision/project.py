@@ -23,6 +23,12 @@ def lock_requirements(context):
 
 
 @task
+def migrations(context, command="init migrations"):
+    """Run alembic migrations."""
+    docker.run_container(context, command=f"alembic {command}")
+
+
+@task
 def init(context):
     """Prepare env for working with project."""
     common.success("Setting up git config")
@@ -33,3 +39,4 @@ def init(context):
     install_requirements(context)
     docker.build(context)
     lock_requirements(context)
+    migrations(context)
