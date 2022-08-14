@@ -10,7 +10,7 @@ QUEUE_TEXT = """
 Выберите предмет, либо введите 'cancel'.
 Если вы еще не вставали в очередь:
 - при нажатии на предмет вы встаете в очередь на него
-- при повторном нажатии вы отменяется поставку в очередь
+- при повторном нажатии вы выходите из очереди по данной лабораторной работе
 - по окончании действий нажмите кнопку 'Остановить выбор'
 Если вы уже вставали в очередь:
 - нажмите на предмет, чтобы уйти с очереди по нему
@@ -84,10 +84,11 @@ async def get_subject_name(
 ) -> None:
     """Input select of subjects."""
     call_data = callback.data
+    subject = SubjectActions.get_subject(int(call_data))
     async with state.proxy() as data:
         data["subject"] = call_data
+        data["count"] = subject.count
         await callback.answer()
-    subject = SubjectActions.get_subject(int(call_data))
     await StayQueue.next()
     await callback.message.answer(
         "Выберите номера лабораторных работ, либо введите 'cancel",
@@ -106,27 +107,29 @@ async def get_numbers_lab_subject(
     }
     call_data = callback.data
     async with state.proxy() as data:
-        message = "Вы завершили выбор"
         if call_data != "Stop":
-            if data.get("numbers") is None:
-                data["numbers"] = [call_data]
-                message = f"Добавлена {call_data} лаба"
-            else:
-                if call_data in data["numbers"]:
-                    data["numbers"].remove(call_data)
-                    message = f"Удалена {call_data} лаба"
-                else:
-                    data["numbers"].append(call_data)
+            if int(call_data) in range(1, int(data["count"]+1)):
+                message = ""
+                if data.get("numbers") is None:
+                    data["numbers"] = [call_data]
                     message = f"Добавлена {call_data} лаба"
+                else:
+                    if call_data in data["numbers"]:
+                        data["numbers"].remove(call_data)
+                        message = f"Удалена {call_data} лаба"
+                    else:
+                        data["numbers"].append(call_data)
+                        message = f"Добавлена {call_data} лаба"
+                await callback.message.answer(message)
         params["subject_id"] = int(data["subject"])
         numbers = (
             list(map(int, data["numbers"]))
             if data.get("numbers")
             else []
         )
-        await callback.message.answer(message)
     await callback.answer()
     if call_data == "Stop":
+        await callback.message.answer("Вы завершили выбор")
         if numbers:
             for number in numbers:
                 params["number"] = number
