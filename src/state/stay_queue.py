@@ -134,7 +134,7 @@ async def get_numbers_lab_subject(
             for number in numbers:
                 params["number"] = number
                 QueueActions.action_user(params)
-            await state.finish()
+        await state.finish()
         await callback.message.answer(
             get_subject_info(
                 QueueActions.get_queue_info(callback.from_user.id)
