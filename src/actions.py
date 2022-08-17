@@ -18,6 +18,7 @@ async def on_startup(dispatcher) -> None:
     await set_commands_client(dispatcher)
     if not DEBUG:
         await bot.set_webhook(os.getenv("WEBHOOK_URL"))
+    await bot.send_message(int(os.getenv("ADMIN_ID")), "Я запущен")
 
 
 async def on_shutdown(dispatcher) -> None:
@@ -26,9 +27,13 @@ async def on_shutdown(dispatcher) -> None:
         await bot.delete_webhook()
     await dispatcher.storage.close()
     await dispatcher.storage.wait_closed()
+    await bot.send_message(int(os.getenv("ADMIN_ID")), "Я отрубаюсь")
 
 
-logging.basicConfig(filename="app.log")
+logging.basicConfig(
+    filename="app.log",
+    format="%(asctime)s - %(levelname)s -%(message)s",
+)
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 dispatcher.middleware.setup(LoggingMiddleware())
 register_handlers_cancel_action(dispatcher)
