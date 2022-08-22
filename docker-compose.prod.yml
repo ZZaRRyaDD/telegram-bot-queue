@@ -3,6 +3,7 @@ version: "3.10"
 services:
 
   bot: &bot
+    restart: always
     container_name: telegram_bot
     build:
       context: ./
@@ -21,23 +22,23 @@ services:
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_HOST=${REDIS_HOST}
       - WEBHOOK_PATH=${WEBHOOK_PATH}
-      - WEBHOOK_URL=${WEBHOOK_URL}
       - WEBAPP_HOST=${WEBAPP_HOST}
       - WEBAPP_PORT=${WEBAPP_PORT}
-      - DEBUG=False
+      - IP=${IP}
+      - DEBUG=True
     command: python ./src/actions.py
     volumes:
       - .:/app
-    ports:
-      - 433:433
 
   redis:
+    restart: always
     container_name: redis
     image: redis:7
     expose:
       - 6379
 
   postgres:
+    restart: always
     container_name: postgresql
     image: postgres:14.4
     volumes:
@@ -51,6 +52,7 @@ services:
 
   celery:
     <<: *bot
+    restart: always
     container_name: celery
     command: celery -A src.celery_config.celery_app worker --beat --loglevel=debug
     ports: []
