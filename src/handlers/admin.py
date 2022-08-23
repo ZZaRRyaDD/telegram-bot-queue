@@ -1,6 +1,7 @@
+import datetime
 from aiogram import Dispatcher, types
 
-from database import GroupActions, UserActions, models
+from database import GroupActions, UserActions, ScheduleActions, models
 from services import check_admin, check_headman_of_group, is_headman
 from state import (register_handlers_delete_group,
                    register_handlers_delete_subject, register_handlers_group,
@@ -43,33 +44,65 @@ async def print_commands(message: types.Message) -> None:
     )
 
 
+def get_info_schedule(subject_id: int) -> str:
+    """Return info about schedule."""
+    schedule = ScheduleActions.get_schedule(subject_id)
+    even_week = filter(lambda x: x.on_even_week is True, schedule)
+    odd_week = filter(lambda x: x.on_even_week is False, schedule)
+    every_week = filter(lambda x: x.on_even_week is None, schedule)
+    info = ""
+    if any([even_week, odd_week, every_week]):
+        info += "\t\tРасписание:\n"
+        if even_week:
+            days = " ".join(
+                [
+                    f"{DAY_WEEKS[day.date_number]}"
+                    for day in sorted(even_week, key=lambda x: x.date_number)
+                ]
+            )
+            info += f"\t\t\t\t{days} - По четным неделям"
+        if odd_week:
+            days = " ".join(
+                [
+                    f"{DAY_WEEKS[day.date_number]}"
+                    for day in sorted(odd_week, key=lambda x: x.date_number)
+                ]
+            )
+            info += f"\t\t\t\t{days} - По нечетным неделям"
+        if every_week:
+            days = " ".join(
+                [
+                    f"{DAY_WEEKS[day.date_number]}"
+                    for day in sorted(every_week, key=lambda x: x.date_number)
+                ]
+            )
+            info += f"\t\t\t\t{days} - Каждую неделю"
+        can_select = ScheduleActions.get_schedule(
+            subject_id=subject_id,
+            can_select=True,
+        )
+        info += f"Сейчас {'можно' if can_select else 'нельзя'}"
+    else:
+        info += "\t\tРасписание отсутствует\n"
+    return info
+
+
+def get_info_subject(subject: models.Subject) -> str:
+    """Return info about subject."""
+    info = f"\t\t{subject.name}\n"
+    info += get_info_schedule(subject.id)
+    info += f"\t\tКоличество лабораторных работ: {subject.count};\n"
+    return info
+
+
 def get_info_group(group: models.Group) -> str:
-    """Return info about user."""
+    """Return info about group."""
     info = ""
     info += f"ID: {group.id}\n"
     info += f"Название: {group.name}\n"
     info += "Предметы:\n"
     for subject in group.subjects:
-        days = " ".join(
-            DAY_WEEKS[day]
-            for day in sorted([day.number for day in subject.days])
-        )
-        name = subject.name
-        can_select = 'можно' if subject.can_select else 'нельзя'
-        count = subject.count
-        on_even_week = (
-            'по четным неделям'
-            if subject.on_even_week is True
-            else 'по нечетным неделям' if subject.on_even_week is False
-            else 'каждую неделю'
-        )
-        info += (
-            f"\t\t{name}:\n"
-            f"\t\t\t\t\t\tДни недели: {days};\n"
-            f"\t\t\t\t\t\tСейчас {can_select} выбрать;\n"
-            f"\t\t\t\t\t\tКоличество лабораторных работ: {count};\n"
-            f"\t\t\t\t\t\tПроходит {on_even_week};\n\n"
-        )
+        info += get_info_subject(subject)
     info += "Состав группы:\n"
     info += "".join(
         [
@@ -96,10 +129,7 @@ async def print_group_info(message: types.Message) -> None:
     await message.answer(
         get_info_group(
             GroupActions.get_group(
-                UserActions.get_user(
-                    message.from_user.id,
-                    subjects=False,
-                ).group,
+                UserActions.get_user(message.from_user.id).group,
                 subjects=True,
                 students=True,
             ),
@@ -110,7 +140,7 @@ async def print_group_info(message: types.Message) -> None:
 async def print_all_info(message: types.Message) -> None:
     """Print all info."""
     await message.answer(
-        get_all_info()
+        get_all_info(),
     )
 
 

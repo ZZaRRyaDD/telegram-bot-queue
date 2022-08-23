@@ -2,8 +2,8 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from database import (DateActions, GroupActions, QueueActions, SubjectActions,
-                      UserActions)
+from database import (ScheduleActions, GroupActions, QueueActions, SubjectActions,
+                      UserActions, CompletedPracticesActions)
 from services import check_count_subject_group, check_headman_of_group
 
 
@@ -45,11 +45,10 @@ async def input_name_subject(
     subject = list(filter(lambda x: x.name == message.text, group.subjects))
     if subject:
         QueueActions.cleaning_subject(subject[0].id)
-        DateActions.delete_date_by_subject(subject[0].id)
+        CompletedPracticesActions.cleaning_subject(subject[0].id)
+        ScheduleActions.delete_schedule_by_subject(subject[0].id)
         SubjectActions.delete_subject(subject[0].id)
-        await message.answer(
-            "Предмет успешно удален"
-        )
+        await message.answer("Предмет успешно удален")
         await state.finish()
     else:
         await message.answer(

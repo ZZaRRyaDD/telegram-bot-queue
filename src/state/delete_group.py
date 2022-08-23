@@ -2,7 +2,13 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from database import DateActions, GroupActions, QueueActions, SubjectActions
+from database import (
+    CompletedPracticesActions,
+    GroupActions,
+    QueueActions,
+    SubjectActions,
+    ScheduleActions,
+)
 from services import check_headman_of_group, polynomial_hash
 
 
@@ -45,9 +51,10 @@ async def input_secret_word(message: types.Message, state: FSMContext) -> None:
     group = GroupActions.get_group(new_group["name"], subjects=True)
     if int(group.secret_word) == int(new_group["secret_word"]):
         for subject in group.subjects:
-            QueueActions.cleaning_subject(subject.id)
-            DateActions.delete_date_by_subject(subject.id)
-            SubjectActions.delete_subject(subject.id)
+            QueueActions.cleaning_subject(subject[0].id)
+            CompletedPracticesActions.cleaning_subject(subject[0].id)
+            ScheduleActions.delete_schedule_by_subject(subject[0].id)
+            SubjectActions.delete_subject(subject[0].id)
         GroupActions.delete_group(group.id)
         await message.answer(f"Группа {new_group['name']} успешно удалена")
         await state.finish()

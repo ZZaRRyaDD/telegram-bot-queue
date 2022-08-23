@@ -10,13 +10,13 @@ class QueueActions:
     """Class for actions with queue."""
 
     @staticmethod
-    def get_queue_info(id: int) -> Optional[list[Queue]]:
+    def get_queue_info(user_id: int) -> Optional[list[Queue]]:
         """Get position, where user stay."""
         with connect.SessionLocal() as session:
             positions = session.execute(
                 select(Queue).where(
-                    Queue.user_id == id,
-                )
+                    Queue.user_id == user_id,
+                ),
             ).all()
             return (
                 [position[0] for position in positions]
@@ -25,23 +25,23 @@ class QueueActions:
             )
 
     @staticmethod
-    def cleaning_user(id: int) -> None:
+    def cleaning_user(user_id: int) -> None:
         """Cleaning user queue."""
         with connect.SessionLocal.begin() as session:
             session.execute(
                 delete(Queue).where(
-                    Queue.user_id == id,
-                )
+                    Queue.user_id == user_id,
+                ),
             )
 
     @staticmethod
-    def cleaning_subject(id: int) -> None:
+    def cleaning_subject(subject_id: int) -> None:
         """Cleaning subject queue."""
         with connect.SessionLocal.begin() as session:
             session.execute(
                 delete(Queue).where(
-                    Queue.subject_id == id,
-                )
+                    Queue.subject_id == subject_id,
+                ),
             )
 
     @staticmethod
@@ -51,7 +51,7 @@ class QueueActions:
             sql.and_(
                 Queue.subject_id == params["subject_id"],
                 Queue.number == params["number"],
-            )
+            ),
         )
         with connect.SessionLocal() as session:
             queues = session.execute(query).all()
@@ -65,7 +65,7 @@ class QueueActions:
                 Queue.user_id == params["user_id"],
                 Queue.subject_id == params["subject_id"],
                 Queue.number == params["number"],
-            )
+            ),
         )
         with connect.SessionLocal() as session:
             result = session.execute(query).first()
@@ -76,7 +76,7 @@ class QueueActions:
         """Append user in queue."""
         with connect.SessionLocal.begin() as session:
             session.execute(
-                insert(Queue).values(**params)
+                insert(Queue).values(**params),
             )
 
     @staticmethod
@@ -89,8 +89,8 @@ class QueueActions:
                         Queue.user_id == params["user_id"],
                         Queue.subject_id == params["subject_id"],
                         Queue.number == params["number"],
-                    )
-                )
+                    ),
+                ),
             )
 
     @staticmethod

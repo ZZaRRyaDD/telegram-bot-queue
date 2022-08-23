@@ -11,21 +11,21 @@ def check_admin(id: int) -> bool:
 
 def check_user(id: int) -> bool:
     """Check register user or not."""
-    return UserActions.get_user(id, subjects=False) is not None
+    return UserActions.get_user(id) is not None
 
 
 def is_headman(id: int) -> bool:
-    """Is user headman?"""
-    user = UserActions.get_user(id, subjects=False)
+    """Is user headman or not."""
+    user = UserActions.get_user(id)
     if user:
-        return UserActions.get_user(id, subjects=False).is_headman
+        return UserActions.get_user(id).is_headman
 
 
 def member_group(id: int) -> bool:
     """Check for member of some group."""
-    user = UserActions.get_user(id, subjects=False)
+    user = UserActions.get_user(id)
     if user:
-        return UserActions.get_user(id, subjects=False).group is not None
+        return UserActions.get_user(id).group is not None
 
 
 def check_empty_headman(id: int) -> bool:
@@ -41,7 +41,7 @@ def check_headman_of_group(id: int) -> bool:
 def check_count_subject_group(id: int) -> bool:
     """Check for count of subjects."""
     group = GroupActions.get_group(
-        UserActions.get_user(id, subjects=False).group,
+        UserActions.get_user(id).group,
         subjects=True,
     )
     if group:

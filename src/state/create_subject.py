@@ -10,11 +10,6 @@ START_MESSAGE = """
 Учтите, что при создании предмета возможность его выбора
 появляется после 22:00 текущего дня (если еще нет 22:00),
 либо следующего дня (если предмет создали после 22:00).
-
-Если у предмета сложное расписание, типа:
-каждую неделю в пн и ср и в пт и сб по четным неделям, то лучше сделать так:
-название_предмета_1 поставить на каждую неделю по пн и ср
-и название_предмета_2 поставить по четным неделям в пт и сб
 """
 
 
@@ -22,15 +17,15 @@ class Subject(StatesGroup):
     """FSM for create and edit group."""
 
     name = State()
+    week = State()
     days = State()
     count = State()
-    week = State()
 
 
 async def start_subject(message: types.Message) -> None:
     """Entrypoint for subject."""
     await message.answer(START_MESSAGE)
-    await Subject.name.set()
+    await Subject.name.set() # <--------------
     await message.answer("Введите название дисциплины, либо 'cancel'")
 
 
@@ -50,11 +45,8 @@ async def input_name_subject(
             data["name"] = message.text
         await Subject.next()
         await message.answer(
-            (
-                "Выберите дни недели, в которые проходит дисциплина, "
-                "либо введите 'cancel'"
-            ),
-            reply_markup=select_days(),
+            "Добавьте расписание для предмета, либо введите 'cancel'",
+            reply_markup=select_days([]),
         )
     else:
         await message.answer(

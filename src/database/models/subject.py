@@ -10,16 +10,25 @@ class Subject(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(128), nullable=False)
     group = Column(Integer, ForeignKey("groups.id"), nullable=False)
-    users = orm.relationship(
+    users_practice = orm.relationship(
         "User",
         secondary="queue",
-        back_populates="subjects",
+        back_populates="subjects_practice",
         lazy="subquery",
     )
     on_even_week = Column(Boolean, default=None)
-    days = orm.relationship("Date", lazy="subquery", innerjoin=True)
-    can_select = Column(Boolean, default=False)
+    days = orm.relationship(
+        "Schedule",
+        lazy="subquery",
+    )
+    users_completed = orm.relationship(
+        "User",
+        secondary="completed_practices",
+        back_populates="subjects_completed",
+        lazy="subquery",
+    )
     count = Column(Integer)
+    can_select = Column(Boolean, default=False)
 
     def __str__(self) -> str:
         """Return representation of object in string."""

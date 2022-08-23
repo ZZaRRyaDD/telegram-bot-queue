@@ -3,9 +3,9 @@ from sqlalchemy import Column, ForeignKey, Integer
 from ..connect import Base
 
 
-class Queue(Base):
-    """Model for each queue."""
-    __tablename__ = "queue"
+class CompletedPractices(Base):
+    """Model for each completed practice."""
+    __tablename__ = "completed_practices"
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"))
@@ -14,4 +14,4 @@ class Queue(Base):
 
     def __str__(self) -> str:
         """Return representation of object in string."""
-        return f"Queue of {self.subject_id} subject and {self.user_id} user"
+        return f"Completed practice {self.subject_id} of user {self.user_id}"

@@ -4,18 +4,30 @@ from typing import Optional
 from sqlalchemy import delete, orm, select, update
 
 from .. import connect
-from ..models import User
+from ..models import Subject, User
 
 
 class UserActions:
     """Class with actions with user."""
 
     @staticmethod
-    def get_user(id: int, subjects=False) -> Optional[User]:
+    def get_user(
+        user_id: int,
+        subjects_practice: bool = False,
+        subjects_completed: bool = False,
+    ) -> Optional[User]:
         """Get user by id."""
-        query = select(User).filter(User.id == id)
-        if subjects:
-            query = query.options(orm.subqueryload(User.subjects))
+        query = select(User).filter(User.id == user_id)
+        if subjects_practice:
+            query = query.options(
+                orm.subqueryload(User.subjects_practice).options(
+                    orm.subqueryload(Subject.days),
+                ),
+            )
+        if subjects_completed:
+            query = query.options(
+                orm.subqueryload(User.subjects_completed),
+            )
         with connect.SessionLocal() as session:
             user = session.execute(query).first()
             return user[0] if user else None
@@ -47,21 +59,21 @@ class UserActions:
             session.commit()
 
     @staticmethod
-    def edit_user(id: int, user: dict) -> None:
+    def edit_user(user_id: int, user: dict) -> None:
         """Edit user by id."""
         with connect.SessionLocal.begin() as session:
             session.execute(
                 update(User).where(
-                    User.id == id
-                ).values(user)
+                    User.id == user_id,
+                ).values(user),
             )
 
     @staticmethod
-    def delete_user(id: int) -> None:
+    def delete_user(user_id: int) -> None:
         """Delete user by id."""
         with connect.SessionLocal.begin() as session:
             session.execute(
                 delete(User).where(
-                    User.id == id
-                )
+                    User.id == user_id,
+                ),
             )
