@@ -3,6 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import GroupActions, QueueActions, SubjectActions, UserActions
+from handlers import ClientCommands
 from keywords import get_list_of_numbers, get_list_of_subjects
 from services import check_user, member_group
 
@@ -18,7 +19,7 @@ QUEUE_TEXT = """
 - нажмите на предмет, чтобы встать в очередь по нему
 (если предмет не был выбран ранее)
 - по окончании действий нажмите кнопку 'Остановить выбор'
-В любом момент вы можете напечатать 'cancel', чтобы отменить процедуру
+В любом момент вы можете ввести 'cancel', чтобы отменить процедуру
 """
 
 
@@ -90,7 +91,7 @@ async def get_subject_name(
     subject = SubjectActions.get_subject(int(call_data))
     await StayQueue.next()
     await callback.message.answer(
-        "Выберите номера лабораторных работ, либо введите 'cancel",
+        "Выберите номера лабораторных работ, либо введите 'cancel'",
         reply_markup=get_list_of_numbers(list(range(1, subject.count + 1)))
     )
 
@@ -144,7 +145,7 @@ def register_handlers_stay_queue(dispatcher: Dispatcher) -> None:
     dispatcher.register_message_handler(
         start_stay_queue,
         lambda message: check_user(message.from_user.id),
-        commands=["stay_queue"],
+        commands=[ClientCommands.STAY_QUEUE.command],
         state=None,
     )
     dispatcher.register_callback_query_handler(

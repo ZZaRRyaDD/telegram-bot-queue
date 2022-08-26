@@ -5,8 +5,12 @@ from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 
 from database import init_db
-from handlers import (register_handlers_admin, register_handlers_cancel_action,
-                      register_handlers_client, set_commands_client)
+from handlers import (
+    register_handlers_admin,
+    register_handlers_cancel_action,
+    register_handlers_client,
+    set_commands_client,
+)
 from main import bot, dispatcher
 
 DEBUG = os.getenv("DEBUG", True)

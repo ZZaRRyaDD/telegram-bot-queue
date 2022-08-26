@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import delete, desc, orm, select
+from sqlalchemy import delete, desc, orm, select, update
 
 from .. import connect
 from ..models import Subject
@@ -50,6 +50,16 @@ class SubjectActions:
             session.add(Subject(**subject))
             session.commit()
         return SubjectActions.get_subject(last=True)
+
+    @staticmethod
+    def update_subject(subject_id: int, subject: dict) -> None:
+        """Update subject."""
+        with connect.SessionLocal.begin() as session:
+            session.execute(
+                update(Subject).where(
+                    Subject.id == subject_id,
+                ).values(subject),
+            )
 
     @staticmethod
     def delete_subject(id: int) -> None:

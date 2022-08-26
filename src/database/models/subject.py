@@ -16,7 +16,6 @@ class Subject(Base):
         back_populates="subjects_practice",
         lazy="subquery",
     )
-    on_even_week = Column(Boolean, default=None)
     days = orm.relationship(
         "Schedule",
         lazy="subquery",

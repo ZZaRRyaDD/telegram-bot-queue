@@ -2,8 +2,13 @@ import asyncio
 import datetime
 import random
 
-from ..database import (DateActions, GroupActions, QueueActions,
-                        SubjectActions, UserActions)
+from ..database import (
+    DateActions,
+    GroupActions,
+    QueueActions,
+    SubjectActions,
+    UserActions,
+)
 from ..main import bot
 from .celery_app import app
 from .services import is_event_week

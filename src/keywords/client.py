@@ -1,7 +1,37 @@
+import enum
+
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-def get_list_keys(collection) -> InlineKeyboardMarkup:
+class UserActionEnum(enum.Enum):
+    """Class choices of user actions."""
+
+    UPDATE = ("Update", "Редактирование профиля")
+    DELETE = ("Delete", "Удаление профиля")
+
+    def __init__(self, action: str, description: str) -> None:
+        self.action = action
+        self.description = description
+
+
+def user_actions() -> InlineKeyboardMarkup:
+    """Create keys for update/delete user."""
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    keyboard.row(
+        InlineKeyboardButton(
+            text=UserActionEnum.UPDATE.description,
+            callback_data=UserActionEnum.UPDATE.action,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=UserActionEnum.DELETE.description,
+            callback_data=UserActionEnum.DELETE.action,
+        ),
+    )
+    return keyboard
+
+
+def get_list_keys(collection: list) -> InlineKeyboardMarkup:
     """Create keys for select something."""
     keyboard = InlineKeyboardMarkup(row_width=3)
     buttons = []
@@ -36,17 +66,17 @@ def get_list_keys(collection) -> InlineKeyboardMarkup:
     return keyboard
 
 
-def get_list_of_groups(groups) -> InlineKeyboardMarkup:
+def get_list_of_groups(groups: list) -> InlineKeyboardMarkup:
     """Create keys for select groups."""
     return get_list_keys(groups)
 
 
-def get_list_of_subjects(subjects) -> InlineKeyboardMarkup:
+def get_list_of_subjects(subjects: list) -> InlineKeyboardMarkup:
     """Create keys for select subjects."""
     return get_list_keys(subjects)
 
 
-def get_list_of_numbers(numbers) -> InlineKeyboardMarkup:
+def get_list_of_numbers(numbers: list) -> InlineKeyboardMarkup:
     """Create keys for select number of lab of subject."""
     keyboard = InlineKeyboardMarkup(row_width=3)
     buttons = []

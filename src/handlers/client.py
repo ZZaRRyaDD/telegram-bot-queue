@@ -1,16 +1,22 @@
 import os
-import emoji
-from enum import Enum
 
+import emoji
 from aiogram import Dispatcher, types
 
-from database import (CompletedPracticesActions, GroupActions, SubjectActions,
-                      UserActions)
-from services import check_user
-from state import (register_handlers_change_account,
-                   register_handlers_delete_account,
-                   register_handlers_select_group,
-                   register_handlers_stay_queue)
+from database import (
+    CompletedPracticesActions,
+    GroupActions,
+    SubjectActions,
+    UserActions,
+)
+from services import check_user, print_info
+from state import (
+    register_handlers_change_account,
+    register_handlers_select_group,
+    register_handlers_stay_queue,
+)
+
+from .commands import ClientCommands
 
 HELLO_TEXT = """
 Хай
@@ -32,47 +38,38 @@ HELLO_TEXT = """
 """
 
 
-class Choices(Enum):
-    """Button names."""
-
-    START_UP = "Создание аккаунта"
-    INFO_PROFILE = "Информация о профиле"
-    CHANGE_PROFILE = "Изменение информации о профиле"
-    CHOICE_GROUP = "Изменить группу"
-    STAY_QUEUE = "Встать/уйти из очереди"
-    TO_ADMIN = "Написать админу"
-    DELETE_ACCOUNT = "Удалить аккаунт"
-    PASS_PRACTICES = "Завершить практическую работу"
-
-
-async def set_commands_client(dispatcher: Dispatcher):
+async def set_commands_client(dispatcher: Dispatcher) -> None:
     """Set commands for client actions."""
     await dispatcher.bot.set_my_commands([
-        types.BotCommand("start", Choices.START_UP.value),
-        types.BotCommand("info", Choices.INFO_PROFILE.value),
-        types.BotCommand("change_profile", Choices.CHANGE_PROFILE.value),
-        types.BotCommand("select_group", Choices.CHOICE_GROUP.value),
-        types.BotCommand("stay_queue", Choices.STAY_QUEUE.value),
-        types.BotCommand("to_admin", Choices.TO_ADMIN.value),
-        types.BotCommand("delete_account", Choices.DELETE_ACCOUNT.value),
-        types.BotCommand("pass_practices", Choices.PASS_PRACTICES.value),
+        types.BotCommand(
+            ClientCommands.START.command,
+            ClientCommands.START.description,
+        ),
+        types.BotCommand(
+            ClientCommands.INFO_PROFILE.command,
+            ClientCommands.INFO_PROFILE.description,
+        ),
+        types.BotCommand(
+            ClientCommands.EDIT_PROFILE.command,
+            ClientCommands.EDIT_PROFILE.description,
+        ),
+        types.BotCommand(
+            ClientCommands.CHOICE_GROUP.command,
+            ClientCommands.CHOICE_GROUP.description,
+        ),
+        types.BotCommand(
+            ClientCommands.STAY_QUEUE.command,
+            ClientCommands.STAY_QUEUE.description,
+        ),
+        types.BotCommand(
+            ClientCommands.TO_ADMIN.command,
+            ClientCommands.TO_ADMIN.description,
+        ),
+        types.BotCommand(
+            ClientCommands.PASS_PRACTICES.command,
+            ClientCommands.PASS_PRACTICES.description,
+        ),
     ])
-
-
-def print_info(id: int) -> str:
-    """Return info about user."""
-    info = ""
-    user = UserActions.get_user(id)
-    info += f"ID: {user.id}\n"
-    info += f"Фамилия Имя: {user.full_name}\n"
-    group = (
-        GroupActions.get_group(user.group).name
-        if user.group is not None
-        else ""
-    )
-    status = 'старостой' if user.is_headman else 'студентом'
-    info += f"Вы являетесь {status} {group}\n"
-    return info
 
 
 async def start_command(message: types.Message) -> None:
@@ -127,7 +124,9 @@ async def info_practice(message: types.Message) -> None:
             ))
             status_subjects[subject.id] = []
             for number in range(1, subject.count + 1):
-                status_subjects[subject.name][number] = [int(number in completed)]
+                status_subjects[subject.name][number] = [
+                    int(number in completed)
+                ]
         else:
             status_subjects[subject.name] = [0*subject.count]
         info = ""
@@ -135,9 +134,14 @@ async def info_practice(message: types.Message) -> None:
             info += f"{subject}:\n"
             if any(practices):
                 for index, status in enumerate(practices, start=1):
-                    info += f"\t\t{emoji.emojize(':white_check_mark:') if status else emoji.emojize(':x:')} {index}\n"
+                    emojie_type = (
+                        emoji.emojize(':white_check_mark:')
+                        if status
+                        else emoji.emojize(':x:')
+                    )
+                    info += f"\t\t{emojie_type} {index}\n"
             else:
-                info += f"\t\tНе сдано ни одной лабы"
+                info += "\t\tНе сдано ни одной лабы"
         await message.answer(info)
 
 
@@ -145,23 +149,22 @@ def register_handlers_client(dispatcher: Dispatcher) -> None:
     """Register handler for different types commands of user."""
     dispatcher.register_message_handler(
         start_command,
-        commands=["start"],
+        commands=[ClientCommands.START.command],
     )
     register_handlers_change_account(dispatcher)
     register_handlers_select_group(dispatcher)
     register_handlers_stay_queue(dispatcher)
-    register_handlers_delete_account(dispatcher)
     dispatcher.register_message_handler(
         info_user,
         lambda message: check_user(message.from_user.id),
-        commands=["info"],
+        commands=[ClientCommands.INFO_PROFILE.command],
     )
     dispatcher.register_message_handler(
         to_admin,
         lambda message: check_user(message.from_user.id),
-        commands=["to_admin"],
+        commands=[ClientCommands.TO_ADMIN.command],
     )
     dispatcher.register_message_handler(
         info_practice,
-        commands=["info_practice"]
+        commands=[ClientCommands.PASS_PRACTICES.command]
     )

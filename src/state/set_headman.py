@@ -3,6 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import UserActions
+from handlers import AdminCommands
 from main import bot
 from services import check_admin
 
@@ -55,7 +56,7 @@ async def input_id_headman(message: types.Message, state: FSMContext) -> None:
         await state.finish()
     else:
         await message.answer(
-            "Такого пользователя нет. Введите id, либо 'cancel'"
+            "Такого пользователя нет. Введите id, либо введите 'cancel'"
         )
 
 
@@ -64,7 +65,7 @@ def register_handlers_set_headman(dispatcher: Dispatcher) -> None:
     dispatcher.register_message_handler(
         start_set_headman,
         lambda message: check_admin(message.from_user.id),
-        commands=["set_headman"],
+        commands=[AdminCommands.SET_HEADMAN.command],
         state=None,
     )
     dispatcher.register_message_handler(

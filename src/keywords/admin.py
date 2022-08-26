@@ -2,8 +2,10 @@ import enum
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from .client import get_list_keys
 
-class DaysOfWeek(enum.Enum):
+
+class DaysOfWeekEnum(enum.Enum):
     """Class choices for day of week."""
 
     MONDAY = (0, "Понедельник")
@@ -19,7 +21,19 @@ class DaysOfWeek(enum.Enum):
         self.weekday = weekday
 
 
-class SubjectPasses(enum.Enum):
+class GroupActionsEnum(enum.Enum):
+    """Class choices of group actions."""
+
+    CREATE = ("Create", "Создать группу")
+    UPDATE = ("Update", "Обновить группу")
+    DELETE = ("Delete", "Удалить группу")
+
+    def __init__(self, action: str, description: str) -> None:
+        self.action = action
+        self.description = description
+
+
+class SubjectPassesEnum(enum.Enum):
     """Class choices for time of subject."""
 
     EACH_WEEK = ("None", "Каждую неделю")
@@ -31,11 +45,24 @@ class SubjectPasses(enum.Enum):
         self.description = description
 
 
-class ScheduleActions(enum.Enum):
+class SubjectActionsEnum(enum.Enum):
+    """Class choices of subject actions."""
+
+    CREATE = ("Create", "Добавить предмет")
+    UPDATE = ("Update", "Обновить предмет")
+    DELETE = ("Delete", "Удалить предмет")
+
+    def __init__(self, action: str, description: str) -> None:
+        self.action = action
+        self.description = description
+
+
+class ScheduleActionsEnum(enum.Enum):
     """Class choices of schedule actions."""
 
     ADD = ("Add", "Добавить расписание")
     DELETE = ("Delete", "Удалить расписание")
+    NEXT_ACTION = ("Next", "Продолжить создание предмета")
 
     def __init__(self, action: str, description: str) -> None:
         self.action = action
@@ -47,74 +74,129 @@ def select_days() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
         InlineKeyboardButton(
-            text=DaysOfWeek.MONDAY.weekday,
-            callback_data=DaysOfWeek.MONDAY.number,
+            text=DaysOfWeekEnum.MONDAY.weekday,
+            callback_data=DaysOfWeekEnum.MONDAY.number,
         ),
         InlineKeyboardButton(
-            text=DaysOfWeek.TUESDAY.weekday,
-            callback_data=DaysOfWeek.TUESDAY.number,
-        ),
-    ).row(
-        InlineKeyboardButton(
-            text=DaysOfWeek.WEDNESDAY.weekday,
-            callback_data=DaysOfWeek.WEDNESDAY.number,
-        ),
-        InlineKeyboardButton(
-            text=DaysOfWeek.THURSDAY.weekday,
-            callback_data=DaysOfWeek.THURSDAY.number,
+            text=DaysOfWeekEnum.TUESDAY.weekday,
+            callback_data=DaysOfWeekEnum.TUESDAY.number,
         ),
     ).row(
         InlineKeyboardButton(
-            text=DaysOfWeek.FRIDAY.weekday,
-            callback_data=DaysOfWeek.FRIDAY.number,
+            text=DaysOfWeekEnum.WEDNESDAY.weekday,
+            callback_data=DaysOfWeekEnum.WEDNESDAY.number,
         ),
         InlineKeyboardButton(
-            text=DaysOfWeek.SATURDAY.weekday,
-            callback_data=DaysOfWeek.SATURDAY.number,
+            text=DaysOfWeekEnum.THURSDAY.weekday,
+            callback_data=DaysOfWeekEnum.THURSDAY.number,
         ),
     ).row(
         InlineKeyboardButton(
-            text=DaysOfWeek.STOP.weekday,
-            callback_data=DaysOfWeek.STOP.number,
+            text=DaysOfWeekEnum.FRIDAY.weekday,
+            callback_data=DaysOfWeekEnum.FRIDAY.number,
+        ),
+        InlineKeyboardButton(
+            text=DaysOfWeekEnum.SATURDAY.weekday,
+            callback_data=DaysOfWeekEnum.SATURDAY.number,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=DaysOfWeekEnum.STOP.weekday,
+            callback_data=DaysOfWeekEnum.STOP.number,
         ),
     )
     return keyboard
 
 
-def add_schedule(schedules) -> KeyboardInterrupt:
+def subject_action() -> InlineKeyboardMarkup:
+    """Create keyboard for create/update/delete subject."""
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    keyboard.row(
+        InlineKeyboardButton(
+            text=SubjectActionsEnum.CREATE.description,
+            callback_data=SubjectActionsEnum.CREATE.action,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=SubjectActionsEnum.UPDATE.description,
+            callback_data=SubjectActionsEnum.UPDATE.action,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=SubjectActionsEnum.DELETE.description,
+            callback_data=SubjectActionsEnum.DELETE.action,
+        ),
+    )
+    return keyboard
+
+
+def choice_schedule(schedule: list) -> InlineKeyboardMarkup:
+    """Create keyboard for choice schedule."""
+    return get_list_keys(schedule)
+
+
+def group_action() -> InlineKeyboardMarkup:
+    """Create keyboard for create/update/delete group."""
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    keyboard.row(
+        InlineKeyboardButton(
+            text=GroupActionsEnum.CREATE.description,
+            callback_data=GroupActionsEnum.CREATE.action,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=GroupActionsEnum.UPDATE.description,
+            callback_data=GroupActionsEnum.UPDATE.action,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=GroupActionsEnum.DELETE.description,
+            callback_data=GroupActionsEnum.DELETE.action,
+        ),
+    )
+    return keyboard
+
+
+def schedule_action(next_action: bool = False) -> InlineKeyboardMarkup:
     """Create keyboard for schedule of subject."""
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
         InlineKeyboardButton(
-            text=ScheduleActions.ADD.description,
-            callback_data=ScheduleActions.ADD.action,
+            text=ScheduleActionsEnum.ADD.description,
+            callback_data=ScheduleActionsEnum.ADD.action,
         ),
         InlineKeyboardButton(
-            text=ScheduleActions.DELETE.description,
-            callback_data=ScheduleActions.DELETE.action,
+            text=ScheduleActionsEnum.DELETE.description,
+            callback_data=ScheduleActionsEnum.DELETE.action,
         )
     )
+    if next_action:
+        keyboard.row(
+            InlineKeyboardButton(
+                text=ScheduleActionsEnum.NEXT_ACTION.description,
+                callback_data=ScheduleActionsEnum.NEXT_ACTION.action,
+            ),
+        )
     return keyboard
 
 
-
-def select_subject_passes() -> KeyboardInterrupt:
+def select_subject_passes() -> InlineKeyboardMarkup:
     """Create keyboard for select when subject passes."""
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
         InlineKeyboardButton(
-            text=SubjectPasses.EACH_WEEK.description,
-            callback_data=SubjectPasses.EACH_WEEK.value,
+            text=SubjectPassesEnum.EACH_WEEK.description,
+            callback_data=SubjectPassesEnum.EACH_WEEK.value,
         ),
     ).row(
         InlineKeyboardButton(
-            text=SubjectPasses.EACH_ODD_WEEK.description,
-            callback_data=SubjectPasses.EACH_ODD_WEEK.value,
+            text=SubjectPassesEnum.EACH_ODD_WEEK.description,
+            callback_data=SubjectPassesEnum.EACH_ODD_WEEK.value,
         ),
     ).row(
         InlineKeyboardButton(
-            text=SubjectPasses.EACH_EVEN_WEEK.description,
-            callback_data=SubjectPasses.EACH_EVEN_WEEK.value,
+            text=SubjectPassesEnum.EACH_EVEN_WEEK.description,
+            callback_data=SubjectPassesEnum.EACH_EVEN_WEEK.value,
         ),
     )
     return keyboard

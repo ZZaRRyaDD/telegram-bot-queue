@@ -1,7 +1,9 @@
 import os
 import random
 
-from database import GroupActions, UserActions
+from database import GroupActions, ScheduleActions, UserActions, models
+
+DAY_WEEKS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]
 
 
 def check_admin(id: int) -> bool:
@@ -59,3 +61,109 @@ def polynomial_hash(string: str) -> int:
             first_prime_const ** (len(string) - letter[0] - 1)
         )
     return hash_code % second_prime_const
+
+
+def print_info(user_id: int) -> str:
+    """Return info about user."""
+    user = UserActions.get_user(user_id)
+    info = f"ID: {user.id}\n"
+    info += f"Фамилия Имя: {user.full_name}\n"
+    group = (
+        GroupActions.get_group(user.group).name
+        if user.group is not None
+        else ""
+    )
+    status = 'старостой' if user.is_headman else 'студентом'
+    info += f"Вы являетесь {status} {group}\n"
+    return info
+
+
+def get_schedule_name(item: models.Schedule) -> str:
+    """Return info about dayweeek and type of pass."""
+    type_week = (
+        "по четным неделям"
+        if item.on_even_week is True
+        else "по нечетным неделям" if item.on_even_week is False
+        else "каждую неделю"
+    )
+    return f"{DAY_WEEKS[item.date_number]}, {type_week}"
+
+
+def get_info_schedule(subject_id: int) -> str:
+    """Return info about schedule."""
+    schedule = ScheduleActions.get_schedule(subject_id)
+    even_week = filter(lambda x: x.on_even_week is True, schedule)
+    odd_week = filter(lambda x: x.on_even_week is False, schedule)
+    every_week = filter(lambda x: x.on_even_week is None, schedule)
+    info = ""
+    if any([even_week, odd_week, every_week]):
+        info += "\t\tРасписание:\n"
+        if even_week:
+            days = " ".join(
+                [
+                    f"{DAY_WEEKS[day.date_number]}"
+                    for day in sorted(even_week, key=lambda x: x.date_number)
+                ]
+            )
+            info += f"\t\t\t\t{days} - По четным неделям"
+        if odd_week:
+            days = " ".join(
+                [
+                    f"{DAY_WEEKS[day.date_number]}"
+                    for day in sorted(odd_week, key=lambda x: x.date_number)
+                ]
+            )
+            info += f"\t\t\t\t{days} - По нечетным неделям"
+        if every_week:
+            days = " ".join(
+                [
+                    f"{DAY_WEEKS[day.date_number]}"
+                    for day in sorted(every_week, key=lambda x: x.date_number)
+                ]
+            )
+            info += f"\t\t\t\t{days} - Каждую неделю"
+        can_select = ScheduleActions.get_schedule(
+            subject_id=subject_id,
+            can_select=True,
+        )
+        info += f"Сейчас {'можно' if can_select else 'нельзя'}"
+    else:
+        info += "\t\tРасписание отсутствует\n"
+    return info
+
+
+def get_info_subject(subject: models.Subject) -> str:
+    """Return info about subject."""
+    info = f"\t\t{subject.name}\n"
+    info += get_info_schedule(subject.id)
+    info += f"\t\tКоличество лабораторных работ: {subject.count};\n"
+    return info
+
+
+def get_info_group(group: models.Group) -> str:
+    """Return info about group."""
+    info = ""
+    info += f"ID: {group.id}\n"
+    info += f"Название: {group.name}\n"
+    info += "Предметы:\n"
+    for subject in group.subjects:
+        info += get_info_subject(subject)
+    info += "Состав группы:\n"
+    info += "".join(
+        [
+            f"\t\t{index + 1}. {user.full_name}\n"
+            for index, user in enumerate(group.students)
+        ]
+    )
+    return info
+
+
+def get_all_info() -> str:
+    """Get info about groups, subjects."""
+    info = ""
+    groups = GroupActions.get_groups(subjects=True, students=True)
+    if groups:
+        for group in groups:
+            info += f"{get_info_group(group)}\n"
+        return info
+    return "Ничего нет"
