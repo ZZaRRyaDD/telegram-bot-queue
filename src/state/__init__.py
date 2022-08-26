@@ -1,3 +1,4 @@
+from .complete_practice import register_handlers_complete_practice  # noqa F401
 from .edit_account import register_handlers_change_account  # noqa F401
 from .edit_group import register_handlers_group  # noqa F401
 from .edit_subjects import register_handlers_subject  # noqa F401

@@ -1,17 +1,12 @@
 import os
 
-import emoji
 from aiogram import Dispatcher, types
 
-from database import (
-    CompletedPracticesActions,
-    GroupActions,
-    SubjectActions,
-    UserActions,
-)
+from database import UserActions
 from services import check_user, print_info
 from state import (
     register_handlers_change_account,
+    register_handlers_complete_practice,
     register_handlers_select_group,
     register_handlers_stay_queue,
 )
@@ -101,50 +96,6 @@ async def to_admin(message: types.Message) -> None:
     await message.answer(f"Контакты господина: {os.getenv('ADMIN_URL')}")
 
 
-async def info_practice(message: types.Message) -> None:
-    """Get info about practices."""
-    pass_practices = set(
-        practice.subject_id
-        for practice in CompletedPracticesActions.get_completed_practices_info(
-            message.from_user.id,
-        )
-    )
-    all_subjects = set(map(lambda x: x.id, GroupActions.get_group(
-            id=UserActions(message.from_user.id).group,
-            subjects=True,
-        ).subjects,
-    ))
-    status_subjects = {}
-    for subject_id in all_subjects:
-        subject = SubjectActions.get_subject(id=subject_id)
-        if subject_id in pass_practices:
-            completed = map(lambda x: x.number, filter(
-                lambda x: x.subject_id == subject_id,
-                pass_practices,
-            ))
-            status_subjects[subject.id] = []
-            for number in range(1, subject.count + 1):
-                status_subjects[subject.name][number] = [
-                    int(number in completed)
-                ]
-        else:
-            status_subjects[subject.name] = [0*subject.count]
-        info = ""
-        for subject, practices in status_subjects.items():
-            info += f"{subject}:\n"
-            if any(practices):
-                for index, status in enumerate(practices, start=1):
-                    emojie_type = (
-                        emoji.emojize(':white_check_mark:')
-                        if status
-                        else emoji.emojize(':x:')
-                    )
-                    info += f"\t\t{emojie_type} {index}\n"
-            else:
-                info += "\t\tНе сдано ни одной лабы"
-        await message.answer(info)
-
-
 def register_handlers_client(dispatcher: Dispatcher) -> None:
     """Register handler for different types commands of user."""
     dispatcher.register_message_handler(
@@ -154,6 +105,7 @@ def register_handlers_client(dispatcher: Dispatcher) -> None:
     register_handlers_change_account(dispatcher)
     register_handlers_select_group(dispatcher)
     register_handlers_stay_queue(dispatcher)
+    register_handlers_complete_practice(dispatcher)
     dispatcher.register_message_handler(
         info_user,
         lambda message: check_user(message.from_user.id),
@@ -163,8 +115,4 @@ def register_handlers_client(dispatcher: Dispatcher) -> None:
         to_admin,
         lambda message: check_user(message.from_user.id),
         commands=[ClientCommands.TO_ADMIN.command],
-    )
-    dispatcher.register_message_handler(
-        info_practice,
-        commands=[ClientCommands.PASS_PRACTICES.command]
     )

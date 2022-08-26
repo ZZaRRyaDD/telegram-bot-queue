@@ -2,7 +2,13 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from database import GroupActions, QueueActions, SubjectActions, UserActions
+from database import (
+    GroupActions,
+    QueueActions,
+    ScheduleActions,
+    SubjectActions,
+    UserActions,
+)
 from handlers import ClientCommands
 from keywords import get_list_of_numbers, get_list_of_subjects
 from services import check_user, member_group
@@ -30,7 +36,7 @@ class StayQueue(StatesGroup):
     number = State()
 
 
-def get_subject_info(positions) -> str:
+def get_subject_info(positions: list) -> str:
     """Get info about subscribe subjects."""
     if not positions:
         return "Вы не записаны ни на один предмет"
@@ -51,13 +57,15 @@ def get_subject_info(positions) -> str:
 async def start_stay_queue(message: types.Message) -> None:
     """Entrypoint for stay in queue."""
     if member_group(message.from_user.id):
-        subjects = GroupActions.get_group(
+        subjects = set(GroupActions.get_group(
             UserActions.get_user(message.from_user.id, subjects=False).group,
             subjects=True,
-        ).subjects
-        access_subjects = list(filter(
-            lambda subject: subject.can_select, subjects
-        ))
+        ).subjects)
+        schedule = set(
+            schedule.subject_id
+            for schedule in ScheduleActions.get_schedule(can_select=True)
+        )
+        access_subjects = subjects.intersection(schedule)
         if access_subjects:
             await message.answer(
                 get_subject_info(
@@ -65,6 +73,10 @@ async def start_stay_queue(message: types.Message) -> None:
                 )
             )
             await StayQueue.name.set()
+            access_subjects = [
+                SubjectActions.get_subject(subject_id=subject_id)
+                for subject_id in access_subjects
+            ]
             await message.answer(
                 QUEUE_TEXT,
                 reply_markup=get_list_of_subjects(access_subjects),
@@ -132,7 +144,7 @@ async def get_numbers_lab_subject(
             for number in numbers:
                 params["number"] = number
                 QueueActions.action_user(params)
-            await state.finish()
+        await state.finish()
         await callback.message.answer(
             get_subject_info(
                 QueueActions.get_queue_info(callback.from_user.id)

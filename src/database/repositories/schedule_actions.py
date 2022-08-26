@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Optional, Union
 
-from sqlalchemy import delete, desc, select
+from sqlalchemy import delete, desc, select, update
 
 from .. import connect
 from ..models import Schedule
@@ -15,6 +15,7 @@ class ScheduleActions:
         subject_id: Optional[int] = None,
         can_select: Optional[bool] = None,
         reverse: Optional[bool] = None,
+        date_number: Optional[int] = None,
     ) -> Optional[list[Schedule]]:
         """Get all schedule."""
         query = select(Schedule)
@@ -26,6 +27,8 @@ class ScheduleActions:
             query = query.where(Schedule.can_select.is_(can_select))
         if reverse is True:
             query = query.order_by(desc(Schedule.id))
+        if date_number is not None:
+            query = query.where(Schedule.date_number == date_number)
         with connect.SessionLocal() as session:
             schedule = session.execute(query).all()
             return [date[0] for date in schedule] if schedule else None
@@ -49,11 +52,34 @@ class ScheduleActions:
             )
 
     @staticmethod
-    def delete_schedule_by_id(id: int) -> None:
+    def delete_schedule_by_id(schedule_id: int) -> None:
         """Delete schedule."""
         with connect.SessionLocal.begin() as session:
             session.execute(
                 delete(Schedule).where(
-                    Schedule.id == id,
+                    Schedule.id == schedule_id,
                 ),
             )
+
+    @staticmethod
+    def change_status_subjects(
+        id: Union[bool, int, str],
+        can_select: bool,
+    ) -> None:
+        """Change field 'can_select' of subject."""
+        query = update(Schedule)
+        query = (
+            query.where(Schedule.can_select == id)
+            if isinstance(id, bool)
+            else query.where(Schedule.id == id)
+            if isinstance(id, int) else query.where(Schedule.on_even_week.is_(
+                    True
+                    if id == "True"
+                    else False
+                )
+            )
+        )
+        query = query.values(can_select=can_select)
+        with connect.SessionLocal.begin() as session:
+            session.execute(query)
+            session.commit()

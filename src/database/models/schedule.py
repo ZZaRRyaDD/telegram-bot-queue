@@ -11,6 +11,7 @@ class Schedule(Base):
     on_even_week = Column(Boolean, default=None)
     date_number = Column(Integer)
     subject_id = Column(Integer, ForeignKey("subjects.id"))
+    can_select = Column(Boolean, default=False)
 
     def __str__(self) -> str:
         """Return representation of object in string."""

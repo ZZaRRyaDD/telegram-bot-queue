@@ -3,9 +3,9 @@ import datetime
 import random
 
 from ..database import (
-    DateActions,
     GroupActions,
     QueueActions,
+    ScheduleActions,
     SubjectActions,
     UserActions,
 )
@@ -18,9 +18,14 @@ SATURDAY = 5
 
 def send_message_users(message: str) -> None:
     """Function for send message for users with group."""
-    subjects = SubjectActions.get_subjects(can_select=True)
-    if subjects:
-        groups = set(subject.group for subject in subjects)
+    schedules = ScheduleActions.get_schedule(can_select=True)
+    if schedules:
+        groups = []
+        for schedule in schedules:
+            groups.append(
+                SubjectActions.get_subject(schedule.subject_id).group
+            )
+        groups = set(groups)
         if groups:
             for group_id in groups:
                 group = GroupActions.get_group(id=group_id, students=True)
@@ -34,14 +39,14 @@ def send_message_users(message: str) -> None:
 def activate_after_tomorrow_subjects() -> None:
     """Function for activate next subjects."""
     after_tomorrow = datetime.date.today() + datetime.timedelta(days=2)
-    dates = DateActions.get_dates(after_tomorrow.weekday())
+    dates = ScheduleActions.get_schedule(date_number=after_tomorrow.weekday())
     if dates:
         for date in dates:
-            SubjectActions.change_status_subjects(
-                date.subject,
+            ScheduleActions.change_status_subjects(
+                date.subject_id,
                 True,
             )
-        SubjectActions.change_status_subjects(
+        ScheduleActions.change_status_subjects(
             str(not bool(is_event_week(after_tomorrow))),
             False,
         )
@@ -59,12 +64,16 @@ def send_reminder() -> None:
 @app.task(task_ignore_result=True)
 def send_top() -> None:
     """Send result queue."""
-    subjects = SubjectActions.get_subjects(True, users=True)
+    subjects = ScheduleActions.get_schedule(can_select=True)
     subject_template = "Очередь по дисциплине {0}\n{1}"
     lab_template = "Лабораторная работа №{0}\n{1}\n\n"
     if subjects:
-        for subject in subjects:
-            if not subject.users:
+        for subject_id in subjects:
+            subject = SubjectActions.get_subject(
+                subject_id,
+                users_practice=True,
+            )
+            if not subject.users_practice:
                 continue
             all_users = []
             list_labs = []
@@ -94,7 +103,7 @@ def send_top() -> None:
                     )
                 ))
             QueueActions.cleaning_subject(subject.id)
-    SubjectActions.change_status_subjects(True, False)
+    ScheduleActions.change_status_subjects(True, False)
     activate_after_tomorrow_subjects()
     if datetime.date.today().weekday() + 1 != SATURDAY:
         send_message_users("Запись на следующие лабораторные работы доступна")
