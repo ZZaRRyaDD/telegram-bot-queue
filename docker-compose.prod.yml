@@ -22,15 +22,11 @@ services:
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_HOST=${REDIS_HOST}
       - WEBHOOK_PATH=${WEBHOOK_PATH}
-      - WEBHOOK_URL=${WEBHOOK_URL}
       - WEBAPP_HOST=${WEBAPP_HOST}
       - WEBAPP_PORT=${WEBAPP_PORT}
-      - WEBHOOK_SSL_CERT=${WEBHOOK_SSL_CERT}
-      - WEBHOOK_SSL_PRIV=${WEBHOOK_SSL_PRIV}
-      - DEBUG=False
+      - IP=${IP}
+      - DEBUG=True
     command: python ./src/actions.py
-    expose:
-      - 8000
     volumes:
       - .:/app
 
@@ -60,17 +56,6 @@ services:
     container_name: celery
     command: celery -A src.celery_config.celery_app worker --beat --loglevel=debug
     ports: []
-
-  nginx:
-    restart: always
-    container_name: nginx
-    build:
-      context: ./
-      dockerfile: ./nginx/Dockerfile
-    depends_on:
-      - bot
-    ports:
-      - 443:443
 
 volumes:
     postgres_data:
