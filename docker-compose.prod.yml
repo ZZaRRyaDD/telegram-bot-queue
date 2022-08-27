@@ -19,13 +19,6 @@ services:
       - ADMIN_ID=${ADMIN_ID}
       - ADMIN_URL=${ADMIN_URL}
       - REDIS_URL=${REDIS_URL}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_HOST=${REDIS_HOST}
-      - WEBHOOK_PATH=${WEBHOOK_PATH}
-      - WEBAPP_HOST=${WEBAPP_HOST}
-      - WEBAPP_PORT=${WEBAPP_PORT}
-      - IP=${IP}
-      - DEBUG=True
     command: python ./src/actions.py
     volumes:
       - .:/app
@@ -54,7 +47,7 @@ services:
     <<: *bot
     restart: always
     container_name: celery
-    command: celery -A src.celery_config.celery_app worker --beat --loglevel=debug
+    command: celery -A src.celery_config.celery_app worker --beat --loglevel=info
     ports: []
 
 volumes:
