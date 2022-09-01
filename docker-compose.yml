@@ -17,6 +17,7 @@ services:
       - ADMIN_ID=${ADMIN_ID}
       - ADMIN_URL=${ADMIN_URL}
       - REDIS_URL=${REDIS_URL}
+      - DEBUG=True
     command: python ./src/actions.py
     volumes:
       - .:/app
