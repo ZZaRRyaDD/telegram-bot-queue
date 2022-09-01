@@ -159,6 +159,7 @@ cython_debug/
 # SSL sert
 *.pem
 *.key
+certbot
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
