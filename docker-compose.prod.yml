@@ -61,17 +61,21 @@ services:
     container_name: nginx
     restart: unless-stopped
     image: nginx
+    depends_on:
+      - bot
     ports:
-        - 80:80
-        - 443:443
+      - 80:80
+      - 443:443
     volumes:
-        - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-        - ./certbot/conf:/etc/letsencrypt
-        - ./certbot/www:/var/www/certbot
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
   
   certbot:
     image: certbot/certbot
     container_name: certbot
+    depends_on:
+      - nginx
     volumes: 
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
