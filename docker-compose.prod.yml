@@ -59,7 +59,7 @@ services:
   
   nginx:
     container_name: nginx
-    restart: unless-stopped
+    restart: always
     image: nginx
     depends_on:
       - bot
@@ -72,6 +72,7 @@ services:
       - ./certbot/www:/var/www/certbot
   
   certbot:
+    restart: always
     image: certbot/certbot
     container_name: certbot
     depends_on:

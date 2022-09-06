@@ -2,6 +2,7 @@ version: "3.10"
 
 services:
   bot: &bot
+    restart: always
     container_name: telegram_bot
     build:
       context: ./
@@ -23,12 +24,14 @@ services:
       - .:/app
 
   redis:
+    restart: always
     container_name: redis
     image: redis:7
     expose:
       - 6379
 
   postgres:
+    restart: always
     container_name: postgresql
     image: postgres:14.4
     volumes:
@@ -42,6 +45,7 @@ services:
 
   celery:
     <<: *bot
+    restart: always
     container_name: celery
     command: celery -A src.celery_config.celery_app worker --beat --loglevel=debug
     ports: []
