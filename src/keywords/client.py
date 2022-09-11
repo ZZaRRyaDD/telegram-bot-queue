@@ -80,7 +80,7 @@ def get_list_of_numbers(numbers) -> InlineKeyboardMarkup:
             )
     keyboard.row(
         InlineKeyboardButton(
-            text="Остановить выбор",
+            text="Завершить выбор",
             callback_data="Stop",
         ),
     )

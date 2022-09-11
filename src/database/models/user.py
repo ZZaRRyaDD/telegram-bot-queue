@@ -1,12 +1,5 @@
-from sqlalchemy import (
-    Boolean,
-    Column,
-    ForeignKey,
-    BigInteger,
-    Integer,
-    String,
-    orm,
-)
+from sqlalchemy import (BigInteger, Boolean, Column, ForeignKey, Integer,
+                        String, orm)
 
 from ..connect import Base
 

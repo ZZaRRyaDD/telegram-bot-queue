@@ -16,7 +16,7 @@ async def start_get_info(message: types.Message) -> None:
     """Entrypoint for edit account."""
     await EditAccountInfo.full_name.set()
     await message.answer(
-        "Введи свое фамилию и имя, либо 'cancel'"
+        "Введите свое фамилию и имя, либо 'cancel'",
     )
 
 

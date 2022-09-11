@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import BigInteger, Column, ForeignKey, Integer
 
 from ..connect import Base
 
@@ -8,6 +8,6 @@ class Queue(Base):
     __tablename__ = "queue"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(BigInteger, ForeignKey("users.id"))
     subject_id = Column(Integer, ForeignKey("subjects.id"))
     number = Column(Integer)

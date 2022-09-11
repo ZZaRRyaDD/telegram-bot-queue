@@ -80,7 +80,7 @@ async def start_command(message: types.Message) -> None:
             "Смотрю, ты еще не с нами. Давай это исправим!",
         )
         full_name = (
-            f"{message.from_user.first_name} {message.from_user.last_name}"
+            f"{message.from_user.last_name} {message.from_user.first_name}"
         )
         new_user = {
             "id": message.from_user.id,

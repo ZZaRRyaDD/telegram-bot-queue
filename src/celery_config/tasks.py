@@ -9,6 +9,7 @@ from .celery_app import app
 from .services import is_event_week
 
 SATURDAY = 5
+DAYS_BEFORE_SUBJECT = 2
 
 
 def send_message_users(message: str) -> None:
@@ -28,7 +29,9 @@ def send_message_users(message: str) -> None:
 
 def activate_after_tomorrow_subjects() -> None:
     """Function for activate next subjects."""
-    after_tomorrow = datetime.date.today() + datetime.timedelta(days=2)
+    after_tomorrow = datetime.date.today() + datetime.timedelta(
+        days=DAYS_BEFORE_SUBJECT,
+    )
     dates = DateActions.get_dates(after_tomorrow.weekday())
     if dates:
         for date in dates:
@@ -61,7 +64,10 @@ def send_top() -> None:
         for subject in subjects:
             if not subject.users:
                 continue
-            all_users = []
+            all_users = GroupActions.get_group(
+                id=subject.group,
+                students=True,
+            ).students
             list_labs = []
             for number in range(1, subject.count + 1):
                 params = {
@@ -70,7 +76,6 @@ def send_top() -> None:
                 }
                 users = QueueActions.get_users_by_number(params)
                 if users:
-                    all_users.extend(users)
                     random.shuffle(users)
                     list_queue = "".join([
                         f"{index + 1}. {UserActions.get_user(id).full_name}\n"
@@ -79,10 +84,9 @@ def send_top() -> None:
                     list_labs.append(
                         lab_template.format(number, list_queue)
                     )
-            all_users = set(all_users)
-            for user in all_users:
+            for student in all_users:
                 asyncio.run(bot.send_message(
-                    user,
+                    student.id,
                     subject_template.format(
                         subject.name,
                         "".join(list_labs),
