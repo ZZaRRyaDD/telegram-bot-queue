@@ -94,9 +94,10 @@ class QueueActions:
             )
 
     @staticmethod
-    def action_user(params: dict) -> None:
+    def action_user(params: dict) -> bool:
         """Append/remove user to subject."""
         if not QueueActions.exists_queue(params):
             QueueActions.append_queue(params)
-        else:
-            QueueActions.remove_queue(params)
+            return True
+        QueueActions.remove_queue(params)
+        return False

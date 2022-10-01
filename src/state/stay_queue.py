@@ -11,13 +11,13 @@ QUEUE_TEXT = """
 Если вы еще не вставали в очередь:
 - при нажатии на номер лабораторной работы вы встаете в очередь на нее
 - при повторном нажатии вы выходите из очереди по данной лабораторной работе
-- по окончании действий нажмите кнопку 'Завершить выбор'
 Если вы уже вставали в очередь:
 - нажмите на номер лабораторной работы, чтобы уйти с очереди на нее
 (если работа была выбрана ранее)
 - нажмите на номер лабораторной работы, чтобы встать в очередь на нее
 (если работа не была выбрана ранее)
-- по окончании действий нажмите кнопку 'Завершить выбор'
+Для того, чтобы встать в очередь на другую лабораторную работу нужно проделать
+все выше изложенные действия
 В любом момент вы можете напечатать 'cancel', чтобы отменить процедуру
 """
 
@@ -43,7 +43,7 @@ def get_subject_info(positions) -> str:
         )
         numbers = list(map(lambda x: str(x.number), numbers))
         info += f"Дисциплина: {subject.name}\n"
-        info += f"Лабораторные работы: {' '.join(numbers)}\n\n"
+        info += f"Номера лабораторных работ: {' '.join(numbers)}\n\n"
     return info
 
 
@@ -101,45 +101,22 @@ async def get_numbers_lab_subject(
     state: FSMContext,
 ) -> None:
     """Get numbers of lab of subject."""
-    numbers = []
     params = {
         "user_id": callback.from_user.id,
+        "number": callback.data,
     }
-    call_data = callback.data
     async with state.proxy() as data:
-        if call_data != "Stop":
-            if int(call_data) in range(1, int(data["count"]+1)):
-                message = ""
-                if data.get("numbers") is None:
-                    data["numbers"] = [call_data]
-                    message = f"Добавлена {call_data} лабораторная работа"
-                else:
-                    if call_data in data["numbers"]:
-                        data["numbers"].remove(call_data)
-                        message = f"Удалена {call_data} лабораторная работа"
-                    else:
-                        data["numbers"].append(call_data)
-                        message = f"Добавлена {call_data} лабораторная работа"
-                await callback.message.answer(message)
         params["subject_id"] = int(data["subject"])
-        numbers = (
-            list(map(int, data["numbers"]))
-            if data.get("numbers")
-            else []
+    result = QueueActions.action_user(params)
+    status = 'Добавлена' if result else 'Удалена'
+    message = f"{status} {params['number']} лабораторная работа"
+    await callback.message.answer(message)
+    await state.finish()
+    await callback.message.answer(
+        get_subject_info(
+            QueueActions.get_queue_info(callback.from_user.id)
         )
-    await callback.answer()
-    if call_data == "Stop":
-        await callback.message.answer("Вы завершили выбор")
-        if numbers:
-            for number in numbers:
-                params["number"] = number
-                QueueActions.action_user(params)
-        await state.finish()
-        await callback.message.answer(
-            get_subject_info(
-                QueueActions.get_queue_info(callback.from_user.id)
-            )
-        )
+    )
 
 
 def register_handlers_stay_queue(dispatcher: Dispatcher) -> None:
