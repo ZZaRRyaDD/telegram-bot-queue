@@ -16,16 +16,16 @@ from services import check_user, member_group
 QUEUE_TEXT = """
 Выберите предмет, либо введите 'cancel'.
 Если вы еще не вставали в очередь:
-- при нажатии на предмет вы встаете в очередь на него
-- при повторном нажатии вы отменяется поставку в очередь
-- по окончании действий нажмите кнопку 'Остановить выбор'
+- при нажатии на номер лабораторной работы вы встаете в очередь на нее
+- при повторном нажатии вы выходите из очереди по данной лабораторной работе
 Если вы уже вставали в очередь:
-- нажмите на предмет, чтобы уйти с очереди по нему
-(если предмет был выбран ранее)
-- нажмите на предмет, чтобы встать в очередь по нему
-(если предмет не был выбран ранее)
-- по окончании действий нажмите кнопку 'Остановить выбор'
-В любом момент вы можете ввести 'cancel', чтобы отменить процедуру
+- нажмите на номер лабораторной работы, чтобы уйти с очереди на нее
+(если работа была выбрана ранее)
+- нажмите на номер лабораторной работы, чтобы встать в очередь на нее
+(если работа не была выбрана ранее)
+Для того, чтобы встать в очередь на другую лабораторную работу нужно проделать
+все выше изложенные действия
+В любом момент вы можете напечатать 'cancel', чтобы отменить процедуру
 """
 
 
@@ -50,7 +50,7 @@ def get_subject_info(positions: list) -> str:
         )
         numbers = list(map(lambda x: str(x.number), numbers))
         info += f"Дисциплина: {subject.name}\n"
-        info += f"Лабораторные работы: {' '.join(numbers)}\n\n"
+        info += f"Номера лабораторных работ: {' '.join(numbers)}\n\n"
     return info
 
 
@@ -113,43 +113,22 @@ async def get_numbers_lab_subject(
     state: FSMContext,
 ) -> None:
     """Get numbers of lab of subject."""
-    numbers = []
     params = {
         "user_id": callback.from_user.id,
+        "number": callback.data,
     }
-    call_data = callback.data
     async with state.proxy() as data:
-        message = "Вы завершили выбор"
-        if call_data != "Stop":
-            if data.get("numbers") is None:
-                data["numbers"] = [call_data]
-                message = f"Добавлена {call_data} лаба"
-            else:
-                if call_data in data["numbers"]:
-                    data["numbers"].remove(call_data)
-                    message = f"Удалена {call_data} лаба"
-                else:
-                    data["numbers"].append(call_data)
-                    message = f"Добавлена {call_data} лаба"
         params["subject_id"] = int(data["subject"])
-        numbers = (
-            list(map(int, data["numbers"]))
-            if data.get("numbers")
-            else []
+    result = QueueActions.action_user(params)
+    status = 'Добавлена' if result else 'Удалена'
+    message = f"{status} {params['number']} лабораторная работа"
+    await callback.message.answer(message)
+    await state.finish()
+    await callback.message.answer(
+        get_subject_info(
+            QueueActions.get_queue_info(callback.from_user.id)
         )
-        await callback.message.answer(message)
-    await callback.answer()
-    if call_data == "Stop":
-        if numbers:
-            for number in numbers:
-                params["number"] = number
-                QueueActions.action_user(params)
-        await state.finish()
-        await callback.message.answer(
-            get_subject_info(
-                QueueActions.get_queue_info(callback.from_user.id)
-            )
-        )
+    )
 
 
 def register_handlers_stay_queue(dispatcher: Dispatcher) -> None:

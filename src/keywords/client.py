@@ -108,10 +108,4 @@ def get_list_of_numbers(numbers: list) -> InlineKeyboardMarkup:
                     callback_data=row[0],
                 ),
             )
-    keyboard.row(
-        InlineKeyboardButton(
-            text="Остановить выбор",
-            callback_data="Stop",
-        ),
-    )
     return keyboard

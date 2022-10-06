@@ -22,10 +22,10 @@ app.conf.update(
 app.conf.beat_schedule = {
    'send-reminder': {
         'task': 'src.celery_config.tasks.send_reminder',
-        'schedule': crontab(minute=0, hour="12, 17, 21"),
+        'schedule': crontab(minute=0, hour="7, 12, 21"),
     },
    'send-top': {
         'task': 'src.celery_config.tasks.send_top',
-        'schedule': crontab(minute=0, hour=22),
+        'schedule': crontab(minute=0, hour=8),
     },
 }

@@ -16,9 +16,9 @@ from .commands import ClientCommands
 HELLO_TEXT = """
 Хай
 Этот бот поможет тебе безболезненно встать в очередь на предмет и сдать лабу.
-От бота приходит четыре уведомления:
-- в 12:00, 17:00, 21:00 напоминание о записи на сдачу лабы;
-- в 22:00 итоги рандома (полный список и твоя позиция)
+От бота приходит пять уведомлений:
+- в 7:00 12:00, 17:00, 22:00 напоминание о записи на сдачу лабы;
+- в 8:00 итоги рандома (полный список и твоя позиция)
 Твои возможности:
 Как студента:
 - войти в группу;
@@ -74,7 +74,7 @@ async def start_command(message: types.Message) -> None:
             "Смотрю, ты еще не с нами. Давай это исправим!",
         )
         full_name = (
-            f"{message.from_user.first_name} {message.from_user.last_name}"
+            f"{message.from_user.last_name} {message.from_user.first_name}"
         )
         new_user = {
             "id": message.from_user.id,

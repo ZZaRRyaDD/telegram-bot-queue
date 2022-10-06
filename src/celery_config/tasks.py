@@ -1,6 +1,7 @@
-import asyncio
 import datetime
 import random
+
+from asgiref.sync import async_to_sync
 
 from ..database import (
     GroupActions,
@@ -14,6 +15,7 @@ from .celery_app import app
 from .services import is_event_week
 
 SATURDAY = 5
+DAYS_BEFORE_SUBJECT = 1
 
 
 def send_message_users(message: str) -> None:
@@ -30,15 +32,17 @@ def send_message_users(message: str) -> None:
             for group_id in groups:
                 group = GroupActions.get_group(id=group_id, students=True)
                 for student in group.students:
-                    asyncio.run(bot.send_message(
+                    async_to_sync(bot.send_message)(
                         student.id,
                         message,
-                    ))
+                    )
 
 
 def activate_after_tomorrow_subjects() -> None:
     """Function for activate next subjects."""
-    after_tomorrow = datetime.date.today() + datetime.timedelta(days=2)
+    after_tomorrow = datetime.date.today() + datetime.timedelta(
+        days=DAYS_BEFORE_SUBJECT,
+    )
     dates = ScheduleActions.get_schedule(date_number=after_tomorrow.weekday())
     if dates:
         for date in dates:
@@ -57,7 +61,7 @@ def send_reminder() -> None:
     """Send remind for stay in queue."""
     if datetime.date.today().weekday() != SATURDAY:
         send_message_users(
-            "Не забудь записаться на сдачу лабы. В 22:00 будут результаты",
+            "Не забудь записаться на сдачу лабы. В 8:00 будут результаты",
         )
 
 
@@ -75,7 +79,10 @@ def send_top() -> None:
             )
             if not subject.users_practice:
                 continue
-            all_users = []
+            all_users = GroupActions.get_group(
+                id=subject.group,
+                students=True,
+            ).students
             list_labs = []
             for number in range(1, subject.count + 1):
                 params = {
@@ -84,7 +91,6 @@ def send_top() -> None:
                 }
                 users = QueueActions.get_users_by_number(params)
                 if users:
-                    all_users.extend(users)
                     random.shuffle(users)
                     list_queue = "".join([
                         f"{index + 1}. {UserActions.get_user(id).full_name}\n"
@@ -93,15 +99,14 @@ def send_top() -> None:
                     list_labs.append(
                         lab_template.format(number, list_queue)
                     )
-            all_users = set(all_users)
-            for user in all_users:
-                asyncio.run(bot.send_message(
-                    user,
+            for student in all_users:
+                async_to_sync(bot.send_message)(
+                    student.id,
                     subject_template.format(
                         subject.name,
                         "".join(list_labs),
                     )
-                ))
+                )
             QueueActions.cleaning_subject(subject.id)
     ScheduleActions.change_status_subjects(True, False)
     activate_after_tomorrow_subjects()
