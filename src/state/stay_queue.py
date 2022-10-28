@@ -9,7 +9,7 @@ from database import (
     SubjectActions,
     UserActions,
 )
-from handlers import ClientCommands
+from enums import ClientCommands
 from keywords import get_list_of_numbers, get_list_of_subjects
 from services import check_user, member_group
 

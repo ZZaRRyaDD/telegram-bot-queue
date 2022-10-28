@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import GroupActions, QueueActions, UserActions
-from handlers import ClientCommands
+from enums import ClientCommands
 from keywords import get_list_of_groups
 from services import check_user, is_headman, polynomial_hash
 

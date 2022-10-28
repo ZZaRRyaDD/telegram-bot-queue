@@ -13,7 +13,7 @@ from database import (
     SubjectActions,
     UserActions,
 )
-from handlers import HeadmanCommands
+from enums import HeadmanCommands
 from keywords import (
     ScheduleActionsEnum,
     SubjectActionsEnum,

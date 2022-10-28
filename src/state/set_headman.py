@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import UserActions
-from handlers import AdminCommands
+from enums import AdminCommands
 from main import bot
 from services import check_admin
 

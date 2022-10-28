@@ -1,17 +1,6 @@
-import enum
-
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-
-class UserActionEnum(enum.Enum):
-    """Class choices of user actions."""
-
-    UPDATE = ("Update", "Редактирование профиля")
-    DELETE = ("Delete", "Удаление профиля")
-
-    def __init__(self, action: str, description: str) -> None:
-        self.action = action
-        self.description = description
+from enums import UserActionsEnum
 
 
 def user_actions() -> InlineKeyboardMarkup:
@@ -19,13 +8,13 @@ def user_actions() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
         InlineKeyboardButton(
-            text=UserActionEnum.UPDATE.description,
-            callback_data=UserActionEnum.UPDATE.action,
+            text=UserActionsEnum.UPDATE.description,
+            callback_data=UserActionsEnum.UPDATE.action,
         ),
     ).row(
         InlineKeyboardButton(
-            text=UserActionEnum.DELETE.description,
-            callback_data=UserActionEnum.DELETE.action,
+            text=UserActionsEnum.DELETE.description,
+            callback_data=UserActionsEnum.DELETE.action,
         ),
     )
     return keyboard

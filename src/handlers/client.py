@@ -3,6 +3,7 @@ import os
 from aiogram import Dispatcher, types
 
 from database import UserActions
+from enums import ClientCommands
 from services import check_user, print_info
 from state import (
     register_handlers_change_account,
@@ -10,8 +11,6 @@ from state import (
     register_handlers_select_group,
     register_handlers_stay_queue,
 )
-
-from .commands import ClientCommands
 
 HELLO_TEXT = """
 Хай

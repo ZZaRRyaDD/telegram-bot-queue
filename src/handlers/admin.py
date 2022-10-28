@@ -1,6 +1,7 @@
 from aiogram import Dispatcher, types
 
 from database import GroupActions, UserActions
+from enums import AdminCommands, HeadmanCommands
 from services import (
     check_admin,
     check_headman_of_group,
@@ -14,8 +15,6 @@ from state import (
     register_handlers_set_headman,
     register_handlers_subject,
 )
-
-from .commands import AdminCommands, HeadmanCommands
 
 
 async def print_commands(message: types.Message) -> None:

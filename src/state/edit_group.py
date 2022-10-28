@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import GroupActions, UserActions
-from handlers import HeadmanCommands
+from enums import HeadmanCommands
 from keywords import GroupActionsEnum, group_action
 from services import (
     check_empty_headman,

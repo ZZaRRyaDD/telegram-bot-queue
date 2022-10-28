@@ -2,6 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 
+from enums import OtherCommands
 from services import check_user
 
 
@@ -20,7 +21,7 @@ def register_handlers_cancel_action(dispatcher: Dispatcher) -> None:
         cancel_handler,
         lambda message: check_user(message.from_user.id),
         state="*",
-        commands=["cancel"],
+        commands=[OtherCommands.CANCEL.command],
     )
     dispatcher.register_message_handler(
         cancel_handler,
