@@ -4,8 +4,9 @@ from enums import OtherCommands
 
 
 def select_cancel() -> ReplyKeyboardMarkup:
-    keyboard = ReplyKeyboardMarkup()
-    keyboard.add(
-        KeyboardButton(OtherCommands.CANCEL.command.capitalize())
+    keyboard = ReplyKeyboardMarkup(
+        resize_keyboard=True,
+        one_time_keyboard=True,
     )
-    return keyboard.as_markup(resize_keyboard=True)
+    keyboard.add(KeyboardButton(OtherCommands.CANCEL.command))
+    return keyboard

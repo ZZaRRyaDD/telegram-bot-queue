@@ -4,8 +4,8 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import QueueActions, UserActions
 from enums import ClientCommands, UserActionsEnum
-from keywords import user_actions
-from services import check_user, is_headman
+from keywords import select_cancel, user_actions
+from services import check_user, is_headman, print_info
 
 
 class User(StatesGroup):
@@ -17,9 +17,10 @@ class User(StatesGroup):
 
 async def start_user(message: types.Message) -> None:
     """Entrypoint for user."""
+    await message.answer(print_info(message.from_user.id))
     await User.action.set()
     await message.answer(
-        "Выберите действие, либо введите 'cancel'",
+        "Выберите действие",
         reply_markup=user_actions(),
     )
 
@@ -34,16 +35,26 @@ async def input_action(
         data["action"] = callback.data
         data["full_name"] = user.full_name
     message = ""
+    await User.full_name.set()
     match callback.data:
         case UserActionsEnum.UPDATE.action:
-            message = "Введи свое фамилию и имя, либо введите 'cancel'"
+            message = "Введи свое фамилию и имя"
+            await callback.message.answer(
+                message,
+                reply_markup=select_cancel(),
+            )
         case UserActionsEnum.DELETE.action:
             message = (
-                f"Введи свое фамилию и имя '{user.full_name}' без ковычек, "
-                "либо введите 'cancel'"
+                f"Введи свое фамилию и имя '{user.full_name}' без ковычек"
             )
-    await User.full_name.set()
-    await callback.message.answer(message)
+            await callback.message.answer(
+                message,
+                reply_markup=select_cancel(),
+            )
+        case UserActionsEnum.CANCEL.action:
+            message = "Действие отменено"
+            await callback.message.answer(message)
+            await state.finish()
 
 
 async def input_full_name(message: types.Message, state: FSMContext) -> None:
@@ -53,38 +64,37 @@ async def input_full_name(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         action = data["action"]
         full_name = data["full_name"]
-    if message.text:
-        match action:
-            case UserActionsEnum.UPDATE.action:
-                new_info = {
-                    "id": message.from_user.id,
-                    "full_name": message.text,
-                }
-                UserActions.edit_user(message.from_user.id, new_info)
-                await message.answer("Ваши данные успешно заменены")
-            case UserActionsEnum.DELETE.action:
-                if not is_headman(message.from_user.id):
-                    if message.text == full_name:
-                        QueueActions.cleaning_user(message.from_user.id)
-                        UserActions.delete_user(message.from_user.id)
-                        await message.answer(
-                            "Успехов! Удачи! Спокойной ночи!",
-                        )
-                        await state.finish()
-                    else:
-                        await message.answer("Ответ не верный")
-                else:
+    match action:
+        case UserActionsEnum.UPDATE.action:
+            new_info = {
+                "id": message.from_user.id,
+                "full_name": message.text,
+            }
+            UserActions.edit_user(message.from_user.id, new_info)
+            await message.answer("Ваши данные успешно заменены")
+            await state.finish()
+        case UserActionsEnum.DELETE.action:
+            if not is_headman(message.from_user.id):
+                if message.text == full_name:
+                    QueueActions.cleaning_user(message.from_user.id)
+                    UserActions.delete_user(message.from_user.id)
                     await message.answer(
-                        (
-                            "Чтобы удалиться старосте - напишите админу. "
-                            "После этого можете спокойно удаляться"
-                        ),
+                        "Успехов! Удачи! Спокойной ночи!",
                     )
                     await state.finish()
-    else:
-        await message.answer(
-            "Введите корректное имя и фамилию, либо введите 'cancel'"
-        )
+                else:
+                    await message.answer(
+                        "Введите корректное имя и фамилию",
+                        reply_markup=select_cancel(),
+                    )
+            else:
+                await message.answer(
+                    (
+                        "Чтобы удалиться старосте - напишите админу. "
+                        "После этого можете спокойно удаляться"
+                    ),
+                )
+                await state.finish()
 
 
 def register_handlers_change_account(dispatcher: Dispatcher) -> None:

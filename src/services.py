@@ -145,9 +145,10 @@ def get_info_group(group: models.Group) -> str:
     info = ""
     info += f"ID: {group.id}\n"
     info += f"Название: {group.name}\n"
-    info += "Предметы:\n"
-    for subject in group.subjects:
-        info += get_info_subject(subject)
+    if group.subjects:
+        info += "Предметы:\n"
+        for subject in group.subjects:
+            info += get_info_subject(subject)
     info += "Состав группы:\n"
     info += "".join(
         [

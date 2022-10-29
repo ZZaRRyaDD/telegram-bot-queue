@@ -16,6 +16,11 @@ def user_actions() -> InlineKeyboardMarkup:
             text=UserActionsEnum.DELETE.description,
             callback_data=UserActionsEnum.DELETE.action,
         ),
+    ).row(
+        InlineKeyboardButton(
+            text=UserActionsEnum.CANCEL.description,
+            callback_data=UserActionsEnum.CANCEL.action,
+        ),
     )
     return keyboard
 

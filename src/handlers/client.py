@@ -16,18 +16,16 @@ HELLO_TEXT = """
 Хай
 Этот бот поможет тебе безболезненно встать в очередь на предмет и сдать лабу.
 От бота приходит пять уведомлений:
-- в 7:00 12:00, 17:00, 22:00 напоминание о записи на сдачу лабы;
-- в 8:00 итоги рандома (полный список и твоя позиция)
+\t\t- в 7:00 12:00, 21:00 напоминание о записи на сдачу лабы;
+\t\t- в 8:00 итоги рандома (полный список и Ваша позиция)
 Твои возможности:
 Как студента:
-- войти в группу;
-- записаться/отписаться на сдачу предмета
-- удалить аккаунт
-- редактировать аккаунт
-Как старосты:
-- CRUD операции с группой, предметами (кроме обновления);
-- записаться/отписаться на сдачу предмета
-По дефолту вы студент.
+\t\t- войти в группу;
+\t\t- записаться/отписаться на сдачу предмета;
+\t\t- удалить/редактировать аккаунт.
+Как старосты (дополнительные):
+\t\t- CRUD операции с группой, предметами;
+По умолчанию вы студент.
 Чтобы стать старостой, напишите админу. Его контактики найдете в меню
 """
 
@@ -48,20 +46,20 @@ async def set_commands_client(dispatcher: Dispatcher) -> None:
             ClientCommands.EDIT_PROFILE.description,
         ),
         types.BotCommand(
-            ClientCommands.CHOICE_GROUP.command,
-            ClientCommands.CHOICE_GROUP.description,
-        ),
-        types.BotCommand(
             ClientCommands.STAY_QUEUE.command,
             ClientCommands.STAY_QUEUE.description,
         ),
         types.BotCommand(
-            ClientCommands.TO_ADMIN.command,
-            ClientCommands.TO_ADMIN.description,
-        ),
-        types.BotCommand(
             ClientCommands.PASS_PRACTICES.command,
             ClientCommands.PASS_PRACTICES.description,
+        ),
+        types.BotCommand(
+            ClientCommands.CHOICE_GROUP.command,
+            ClientCommands.CHOICE_GROUP.description,
+        ),
+        types.BotCommand(
+            ClientCommands.TO_ADMIN.command,
+            ClientCommands.TO_ADMIN.description,
         ),
     ])
 
@@ -80,9 +78,7 @@ async def start_command(message: types.Message) -> None:
             "full_name": full_name,
         }
         UserActions.create_user(new_user)
-    await message.answer(
-        HELLO_TEXT,
-    )
+    await message.answer(HELLO_TEXT)
 
 
 async def info_user(message: types.Message) -> None:
@@ -91,7 +87,7 @@ async def info_user(message: types.Message) -> None:
 
 
 async def to_admin(message: types.Message) -> None:
-    """Print info about user."""
+    """Print info about admin."""
     await message.answer(f"Контакты господина: {os.getenv('ADMIN_URL')}")
 
 

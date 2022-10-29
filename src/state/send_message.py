@@ -4,6 +4,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import UserActions
 from enums import AdminCommands
+from keywords import select_cancel
 from main import bot
 from services import check_admin
 
@@ -18,7 +19,8 @@ async def get_message(message: types.Message) -> None:
     """Entrypoint for message."""
     await Message.message.set()
     await message.answer(
-        "Введите сообщение для отправки всем, либо введите 'cancel'",
+        "Введите сообщение для отправки всем",
+        reply_markup=select_cancel(),
     )
 
 

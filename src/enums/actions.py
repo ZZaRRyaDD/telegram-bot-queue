@@ -15,6 +15,7 @@ class SubjectActionsEnum(BaseActions):
     CREATE = ("Create", "Добавить предмет")
     UPDATE = ("Update", "Обновить предмет")
     DELETE = ("Delete", "Удалить предмет")
+    CANCEL = ("Cancel", "Отмена действия")
 
 
 class GroupActionsEnum(BaseActions):
@@ -23,6 +24,7 @@ class GroupActionsEnum(BaseActions):
     CREATE = ("Create", "Создать группу")
     UPDATE = ("Update", "Обновить группу")
     DELETE = ("Delete", "Удалить группу")
+    CANCEL = ("Cancel", "Отмена действия")
 
 
 class ScheduleActionsEnum(BaseActions):
@@ -31,6 +33,7 @@ class ScheduleActionsEnum(BaseActions):
     ADD = ("Add", "Добавить расписание")
     DELETE = ("Delete", "Удалить расписание")
     NEXT_ACTION = ("Next", "Продолжить создание предмета")
+    CANCEL = ("Cancel", "Отмена действия")
 
 
 class UserActionsEnum(BaseActions):
@@ -38,3 +41,4 @@ class UserActionsEnum(BaseActions):
 
     UPDATE = ("Update", "Редактирование профиля")
     DELETE = ("Delete", "Удаление профиля")
+    CANCEL = ("Cancel", "Отмена действия")

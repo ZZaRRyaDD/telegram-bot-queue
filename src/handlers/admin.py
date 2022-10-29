@@ -20,12 +20,12 @@ from state import (
 async def print_commands(message: types.Message) -> None:
     """Print commands of headman and admin."""
     list_commands_headman = [
-        f"{command.command}: {command.description}"
-        for command in filter(lambda x: not x.for_admin, HeadmanCommands)
+        f"/{command.command}: {command.description}"
+        for command in HeadmanCommands
     ]
     list_commands_admin = [
-        f"{command.command}: {command.description}"
-        for command in filter(lambda x: x.for_admin, AdminCommands)
+        f"/{command.command}: {command.description}"
+        for command in AdminCommands
     ]
     list_commands = (
         list_commands_admin + list_commands_headman
@@ -52,9 +52,7 @@ async def print_group_info(message: types.Message) -> None:
 
 async def print_all_info(message: types.Message) -> None:
     """Print all info."""
-    await message.answer(
-        get_all_info(),
-    )
+    await message.answer(get_all_info())
 
 
 def register_handlers_admin(dispatcher: Dispatcher) -> None:
@@ -74,7 +72,7 @@ def register_handlers_admin(dispatcher: Dispatcher) -> None:
     dispatcher.register_message_handler(
         print_group_info,
         lambda message: check_headman_of_group(message.from_user.id),
-        commands=[HeadmanCommands.GROUP_INFO.command]
+        commands=[HeadmanCommands.INFO_GROUP.command]
     )
     dispatcher.register_message_handler(
         print_all_info,

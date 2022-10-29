@@ -68,6 +68,11 @@ def subject_action() -> InlineKeyboardMarkup:
             text=SubjectActionsEnum.DELETE.description,
             callback_data=SubjectActionsEnum.DELETE.action,
         ),
+    ).row(
+        InlineKeyboardButton(
+            text=SubjectActionsEnum.CANCEL.description,
+            callback_data=SubjectActionsEnum.CANCEL.action,
+        ),
     )
     return keyboard
 
@@ -94,6 +99,11 @@ def group_action() -> InlineKeyboardMarkup:
         InlineKeyboardButton(
             text=GroupActionsEnum.DELETE.description,
             callback_data=GroupActionsEnum.DELETE.action,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=GroupActionsEnum.CANCEL.description,
+            callback_data=GroupActionsEnum.CANCEL.action,
         ),
     )
     return keyboard
