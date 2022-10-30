@@ -62,11 +62,11 @@ class SubjectActions:
             )
 
     @staticmethod
-    def delete_subject(id: int) -> None:
+    def delete_subject(subject_id: int) -> None:
         """Delete subject by id."""
         with connect.SessionLocal.begin() as session:
             session.execute(
                 delete(Subject).where(
-                    Subject.id == id
+                    Subject.id == subject_id
                 )
             )

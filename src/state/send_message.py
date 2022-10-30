@@ -25,14 +25,17 @@ async def get_message(message: types.Message) -> None:
 
 
 async def send_messages(message: types.Message, state: FSMContext) -> None:
-    """Input message for send it."""
-    users = UserActions.get_users(with_group=False, without_admin=True)
-    if users:
-        for user in users:
-            await bot.send_message(
-                user.id,
-                f"Сообщение от админа: \n{message.text}"
-            )
+    """Input message and send it."""
+    users = UserActions.get_users(without_admin=True)
+    if users is None:
+        await message.answer("Пользователей нет")
+        await state.finish()
+        return
+    for user in users:
+        await bot.send_message(
+            user.id,
+            f"Сообщение от админа: \n{message.text}"
+        )
     await state.finish()
 
 

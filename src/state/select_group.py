@@ -3,8 +3,8 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import GroupActions, QueueActions, UserActions
-from enums import ClientCommands
-from keywords import get_list_of_groups
+from enums import ClientCommands, OtherCommands
+from keywords import get_list_of_groups, select_cancel
 from services import check_user, is_headman, polynomial_hash
 
 
@@ -17,22 +17,18 @@ class SelectGroup(StatesGroup):
 
 async def start_select_group(message: types.Message) -> None:
     """Entrypoint for select group."""
-    if not is_headman(message.from_user.id):
-        groups = GroupActions.get_groups()
-        if groups:
-            await SelectGroup.name.set()
-            await message.answer(
-                """Выберите группу, либо введите 'cancel'""",
-                reply_markup=get_list_of_groups(groups),
-            )
-        else:
-            await message.answer(
-                "Пока нет ни одной группы",
-            )
-    else:
-        await message.answer(
-            "Староста не может выбирать, ибо он держит ее",
-        )
+    if is_headman(message.from_user.id):
+        await message.answer("Староста не может выбирать, ибо он держит ее")
+        return
+    groups = GroupActions.get_groups()
+    if groups is None:
+        await message.answer("Пока нет ни одной группы")
+        return
+    await SelectGroup.name.set()
+    await message.answer(
+        "Выберите группу",
+        reply_markup=get_list_of_groups(groups),
+    )
 
 
 async def get_select_group(
@@ -40,11 +36,16 @@ async def get_select_group(
     state: FSMContext,
 ) -> None:
     """Input select of group."""
+    if callback.data == OtherCommands.CANCEL.command:
+        await callback.message.answer("Действие отменено")
+        await state.finish()
+        return
     async with state.proxy() as data:
         data["name"] = callback.data
     await SelectGroup.next()
     await callback.message.answer(
-        """Введите секретное слово, либо введите 'cancel'"""
+        "Введите секретное слово",
+        reply_markup=select_cancel(),
     )
 
 
@@ -54,23 +55,16 @@ async def get_secret_word(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         group_info["group"] = data["name"]
     group = GroupActions.get_group(int(group_info["group"]))
-    if int(group.secret_word) == int(polynomial_hash(message.text)):
-        UserActions.edit_user(
-            message.from_user.id,
-            {"group": group.id},
-        )
-        QueueActions.cleaning_user(message.from_user.id)
+    if int(group.secret_word) != int(polynomial_hash(message.text)):
         await message.answer(
-            f"Теперь вы в группе {group.name}"
+            "Секретное слово не верно. Введите его заново.",
+            reply_markup=select_cancel(),
         )
-        await state.finish()
-    else:
-        await message.answer(
-            (
-                "Секретное слово не верно. "
-                "Введите его заново, либо введите 'cancel'"
-            ),
-        )
+        return
+    UserActions.edit_user(message.from_user.id, {"group": group.id})
+    QueueActions.cleaning_user(message.from_user.id)
+    await message.answer(f"Теперь вы в группе {group.name}")
+    await state.finish()
 
 
 def register_handlers_select_group(dispatcher: Dispatcher) -> None:

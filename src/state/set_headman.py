@@ -9,6 +9,20 @@ from main import bot
 from services import check_admin
 
 
+def get_situation(new_status: bool) -> str:
+    """Get action of user."""
+    return "назначен старостой" if new_status else "удален с поста старосты"
+
+
+def get_status(new_status: bool) -> str:
+    """Get status of user."""
+    return (
+        "стали старостой и теперь вам доступна команда /commands"
+        if new_status
+        else "больше не староста"
+    )
+
+
 class SetHeadman(StatesGroup):
     """FSM for set headman."""
 
@@ -19,40 +33,33 @@ async def start_set_headman(message: types.Message) -> None:
     """Entrypoint for set headman."""
     await SetHeadman.id_headman.set()
     await message.answer(
-        (
-            "Введите id пользователя, у которого нужно изменить статус"
-        ),
+        "Введите id пользователя, у которого нужно изменить статус",
         reply_markup=select_cancel(),
     )
 
 
 async def input_id_headman(message: types.Message, state: FSMContext) -> None:
     """Input id of future headman."""
+    if not message.text.isdigit():
+        await message.answer(
+            "Введите корректный id",
+            reply_markup=select_cancel(),
+        )
+        return
     user = UserActions.get_user(int(message.text))
-    if user:
-        new_status = not user.is_headman
-        new_info = {
-            "is_headman": new_status,
-        }
-        UserActions.edit_user(user.id, new_info)
-        situation = (
-            'назначен старостой'
-            if new_status
-            else 'удален с поста старосты'
-        )
-        await message.answer(f"Пользователь {user.full_name} {situation}")
-        status = (
-            'стали старостой и теперь вам доступна команда /commands'
-            if new_status
-            else 'больше не староста'
-        )
-        await bot.send_message(user.id, f"Вы {status}")
-        await state.finish()
-    else:
+    if user is None:
         await message.answer(
             "Такого пользователя нет. Введите корректный id",
             reply_markup=select_cancel(),
         )
+        return
+    new_status = not user.is_headman
+    UserActions.edit_user(user.id, {"is_headman": new_status})
+    await message.answer(
+        f"Пользователь {user.full_name} {get_situation(new_status)}",
+    )
+    await bot.send_message(user.id, f"Вы {get_status(new_status)}")
+    await state.finish()
 
 
 def register_handlers_set_headman(dispatcher: Dispatcher) -> None:

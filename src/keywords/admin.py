@@ -8,7 +8,7 @@ from enums import (
     SubjectPassesEnum,
 )
 
-from .client import get_list_keys
+from .client import OtherCommands, get_list_keys
 
 
 def select_days() -> InlineKeyboardMarkup:
@@ -79,7 +79,14 @@ def subject_action() -> InlineKeyboardMarkup:
 
 def choice_schedule(schedule: list) -> InlineKeyboardMarkup:
     """Create keyboard for choice schedule."""
-    return get_list_keys(schedule)
+    keyboard = get_list_keys(schedule)
+    keyboard.row(
+        InlineKeyboardButton(
+            text=OtherCommands.CANCEL.description,
+            callback_data=OtherCommands.CANCEL.command,
+        ),
+    )
+    return keyboard
 
 
 def group_action() -> InlineKeyboardMarkup:
@@ -129,6 +136,12 @@ def schedule_action(next_action: bool = False) -> InlineKeyboardMarkup:
                 callback_data=ScheduleActionsEnum.NEXT_ACTION.action,
             ),
         )
+    keyboard.row(
+        InlineKeyboardButton(
+            text=ScheduleActionsEnum.CANCEL.description,
+            callback_data=ScheduleActionsEnum.CANCEL.action,
+        ),
+    )
     return keyboard
 
 

@@ -1,8 +1,17 @@
+from typing import Optional
+
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from database import GroupActions, UserActions
+from database import (
+    CompletedPracticesActions,
+    GroupActions,
+    QueueActions,
+    ScheduleActions,
+    SubjectActions,
+    UserActions,
+)
 from enums import HeadmanCommands
 from keywords import GroupActionsEnum, group_action, select_cancel
 from services import (
@@ -11,6 +20,15 @@ from services import (
     get_info_group,
     polynomial_hash,
 )
+
+
+def get_status_group(group_id: Optional[int], action: str) -> str:
+    """Return status of group."""
+    return (
+        "создана"
+        if group_id is None else "обновлена"
+        if action == GroupActionsEnum.UPDATE.action else "удалена"
+    )
 
 
 class Group(StatesGroup):
@@ -24,19 +42,48 @@ class Group(StatesGroup):
 async def start_group(message: types.Message) -> None:
     """Entrypoint for group."""
     group = UserActions.get_user(message.from_user.id).group
-    if group is not None:
+    if group is None:
+        await message.answer("У вас нет группы")
+    else:
         await message.answer(
             get_info_group(
                 GroupActions.get_group(group, subjects=True, students=True),
             ),
         )
-    else:
-        await message.answer("У вас нет группы")
     await Group.action.set()
-    await message.answer(
-        "Выберите действие",
-        reply_markup=group_action(),
-    )
+    await message.answer("Выберите действие", reply_markup=group_action())
+
+
+async def input_action_group_create(
+    callback: types.CallbackQuery,
+    state: FSMContext,
+    group,
+) -> None:
+    """Take name of group or finish proccess."""
+    if group is None:
+        await callback.message.answer(
+            "Введите название группы",
+            reply_markup=select_cancel(),
+        )
+        return
+    await callback.message.answer("У вас уже есть группа")
+    await state.finish()
+
+
+async def input_action_group_update_delete(
+    callback: types.CallbackQuery,
+    state: FSMContext,
+    group,
+) -> None:
+    """Take second name and first name for update profile."""
+    if group is not None:
+        await callback.message.answer(
+            "Введите название группы",
+            reply_markup=select_cancel(),
+        )
+        return
+    await callback.message.answer("У вас еще нет группы")
+    await state.finish()
 
 
 async def input_action_group(
@@ -50,27 +97,9 @@ async def input_action_group(
     await Group.name.set()
     match callback.data:
         case GroupActionsEnum.CREATE.action:
-            if group is None:
-                await callback.message.answer(
-                    "Введите название группы",
-                    reply_markup=select_cancel(),
-                )
-            else:
-                await callback.message.answer(
-                    "У вас уже есть группа",
-                )
-                await state.finish()
+            await input_action_group_create(callback, state, group)
         case GroupActionsEnum.UPDATE.action | GroupActionsEnum.DELETE.action:
-            if group is not None:
-                await callback.message.answer(
-                    "Введите название группы",
-                    reply_markup=select_cancel(),
-                )
-            else:
-                await callback.message.answer(
-                    "У вас еще нет группы",
-                )
-                await state.finish()
+            await input_action_group_update_delete(callback, state, group)
         case GroupActionsEnum.CANCEL.action:
             await callback.message.answer("Действие отменено")
             await state.finish()
@@ -85,15 +114,7 @@ async def input_name_group(message: types.Message, state: FSMContext) -> None:
         if group is not None
         else True
     )
-    if message.text and name:
-        async with state.proxy() as data:
-            data["name"] = message.text
-        await Group.next()
-        await message.answer(
-            "Введите секретное слово для входа в группу",
-            reply_markup=select_cancel(),
-        )
-    else:
+    if not name:
         await message.answer(
             (
                 "Группа с таким названием уже есть, "
@@ -102,6 +123,38 @@ async def input_name_group(message: types.Message, state: FSMContext) -> None:
             ),
             reply_markup=select_cancel(),
         )
+        return
+    async with state.proxy() as data:
+        data["name"] = message.text
+    await Group.next()
+    await message.answer(
+        "Введите секретное слово для входа в группу",
+        reply_markup=select_cancel(),
+    )
+
+
+async def input_secret_word_create(
+    message: types.Message,
+    new_group: dict,
+) -> None:
+    """Create new group."""
+    group = GroupActions.create_group(new_group).id
+    UserActions.edit_user(message.from_user.id, {"group": group})
+
+
+async def input_secret_word_update(group_id: int, new_group: dict) -> None:
+    """Update group."""
+    GroupActions.edit_group(group_id, new_group)
+
+
+async def input_secret_word_delete(group_id: int) -> int:
+    """Delete group and subjects."""
+    for subject in GroupActions.get_group(subjects=True).subjects:
+        QueueActions.cleaning_subject(subject.id)
+        CompletedPracticesActions.cleaning_subject(subject.id)
+        ScheduleActions.delete_schedule_by_subject(subject.id)
+        SubjectActions.delete_subject(subject.id)
+    GroupActions.delete_group(group_id)
 
 
 async def input_secret_word(
@@ -109,29 +162,24 @@ async def input_secret_word(
     state: FSMContext,
 ) -> None:
     """Input secret word."""
-    action = ""
     async with state.proxy() as data:
-        action = data["action"]
         new_group = {
             "name": data["name"],
             "secret_word": polynomial_hash(message.text),
         }
-    group_id = UserActions.get_user(message.from_user.id).group
-    status = (
-        "создана"
-        if group_id is None else "обновлена"
-        if action == GroupActionsEnum.UPDATE.action else "удалена"
-    )
-    match action:
-        case GroupActionsEnum.CREATE.action:
-            group = GroupActions.create_group(new_group)
-            UserActions.edit_user(message.from_user.id, {"group": group.id})
-        case GroupActionsEnum.UPDATE.action:
-            GroupActions.edit_group(group_id, new_group)
-        case GroupActionsEnum.DELETE.action:
-            GroupActions.delete_group(group_id)
-    await message.answer(f"Группа {new_group['name']} успешно {status}")
-    await state.finish()
+        group_id = UserActions.get_user(message.from_user.id).group
+        status = get_status_group(group_id, data["action"])
+        match data["action"]:
+            case GroupActionsEnum.CREATE.action:
+                await input_secret_word_create(message, new_group)
+            case GroupActionsEnum.UPDATE.action:
+                await input_secret_word_create(group_id, new_group)
+            case GroupActionsEnum.DELETE.action:
+                await input_secret_word_delete(group_id)
+        await message.answer(
+            f"Группа {new_group['name']} успешно {status}",
+        )
+        await state.finish()
 
 
 def register_handlers_group(dispatcher: Dispatcher) -> None:

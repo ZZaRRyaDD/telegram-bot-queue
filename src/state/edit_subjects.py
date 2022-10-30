@@ -13,12 +13,12 @@ from database import (
     SubjectActions,
     UserActions,
 )
-from enums import HeadmanCommands
+from enums import HeadmanCommands, ScheduleActionsEnum, SubjectActionsEnum
 from keywords import (
-    ScheduleActionsEnum,
-    SubjectActionsEnum,
     choice_schedule,
+    get_list_of_subjects,
     schedule_action,
+    select_cancel,
     select_days,
     select_subject_passes,
     subject_action,
@@ -32,8 +32,8 @@ from services import (
 FIRST_DAY = datetime.datetime(1970, 1, 1)
 START_MESSAGE = """
 Учтите, что при создании предмета возможность его выбора
-появляется после 22:00 текущего дня (если еще нет 22:00),
-либо следующего дня (если предмет создали после 22:00).
+появляется после 8:00 текущего дня (если еще нет 8:00),
+либо следующего дня (если предмет создали после 8:00).
 """
 
 
@@ -41,15 +41,16 @@ START_MESSAGE = """
 class ScheduleCompact:
     """Class for send schedule in keyboard."""
 
-    name: str
     id: int
+    name: str
 
 
 class Subject(StatesGroup):
     """FSM for edit subject."""
 
     action = State()
-    name = State()
+    name_create = State()
+    name_update_delete = State()
     schedule_action = State()
     schedule_delete = State()
     week = State()
@@ -60,10 +61,8 @@ class Subject(StatesGroup):
 async def start_subject(message: types.Message) -> None:
     """Entrypoint for subject."""
     await message.answer(START_MESSAGE)
-    await message.answer(
-        "Выберите действие, либо введите 'cancel'",
-        reply_markup=subject_action(),
-    )
+    await Subject.action.set()
+    await message.answer("Выберите действие", reply_markup=subject_action())
 
 
 async def input_action_subject(
@@ -73,106 +72,102 @@ async def input_action_subject(
     """Input action for subject."""
     async with state.proxy() as data:
         data["action"] = callback.data
-    await Subject.name.set()
-    await callback.message.answer(
-        "Введите название дисциплины, либо введите 'cancel'",
+    match callback.data:
+        case SubjectActionsEnum.CANCEL.action:
+            await callback.message.answer("Действие отменено")
+            await state.finish()
+        case SubjectActionsEnum.CREATE.action:
+            await Subject.name_create.set()
+            await callback.message.answer(
+                "Введите название дисциплины",
+                reply_markup=select_cancel(),
+            )
+        case (
+            SubjectActionsEnum.DELETE.action |
+            SubjectActionsEnum.UPDATE.action
+        ):
+            await Subject.name_update_delete.set()
+            subjects = GroupActions(
+                UserActions.get_user(callback.from_user.id).group,
+                subjects=True,
+            ).subjects
+            await callback.message.answer(
+                "Выберите дисциплину",
+                reply_markup=get_list_of_subjects(subjects),
+            )
+
+
+async def input_name_update_delete_subject(
+    callback: types.CallbackQuery,
+    state: FSMContext,
+) -> None:
+    """Input name of subject."""
+    group = GroupActions.get_group(
+        UserActions.get_user(callback.from_user.id).group,
+        subjects=True,
     )
+    action = ""
+    async with state.proxy() as data:
+        action = data["action"]
+    subject = list(filter(
+        lambda x: x.name == callback.data,
+        group.subjects,
+    ))[0]
+    match action:
+        case SubjectActionsEnum.UPDATE.action:
+            schedule = list(map(
+                lambda x: x.__dict__,
+                ScheduleActions.get_schedule(subject.id)
+            ))
+            async with state.proxy() as data:
+                data["name"] = subject.name
+                data["subject_id"] = subject.id
+                data["schedule"] = schedule
+            await Subject.next()
+            await callback.message.answer(get_info_schedule(subject.id))
+            await callback.message.answer(
+                "Выберите действие для расписания",
+                reply_markup=schedule_action(
+                    next_action=bool(schedule),
+                ),
+            )
+        case SubjectActionsEnum.DELETE.action:
+            QueueActions.cleaning_subject(subject.id)
+            CompletedPracticesActions.cleaning_subject(subject.id)
+            ScheduleActions.delete_schedule_by_subject(subject.id)
+            SubjectActions.delete_subject(subject.id)
+            await callback.message.answer("Предмет успешно удален")
+            await state.finish()
 
 
 async def input_name_subject(
     message: types.Message,
     state: FSMContext,
 ) -> None:
-    """Input name of subject."""
     group = GroupActions.get_group(
-        UserActions.get_user(message.from_user.id, subjects=False).group,
+        UserActions.get_user(message.from_user.id).group,
         subjects=True,
     )
-    action = ""
-    async with state.proxy() as data:
-        action = data["action"]
-    if message.text:
-        match action:
-            case SubjectActionsEnum.CREATE.action:
-                if not list(filter(
-                    lambda x: x.name.lower() == message.text.lower(),
-                    group.subjects,
-                )):
-                    async with state.proxy() as data:
-                        data["name"] = message.text
-                        data["schedule"] = []
-                    await Subject.next()
-                    await message.answer(
-                        (
-                            "Выберите действие для расписания, "
-                            "либо введите 'cancel'"
-                        ),
-                        reply_markup=schedule_action(),
-                    )
-                else:
-                    await message.answer(
-                        (
-                            "Предмет с таким названием уже есть в группе."
-                            "Введите другое название, либо введите 'cancel'"
-                        ),
-                    )
-            case SubjectActionsEnum.UPDATE.action:
-                subject = list(filter(
-                    lambda x: x.name == message.text,
-                    group.subjects,
-                ))
-                if subject:
-                    schedule = list(map(
-                        lambda x: x.__dict__,
-                        ScheduleActions.get_schedule(subject[0].id)
-                    ))
-                    async with state.proxy() as data:
-                        data["name"] = message.text
-                        data["subject_id"] = subject[0].id
-                        data["schedule"] = schedule
-                    await Subject.next()
-                    await message.answer(get_info_schedule(subject[0].id))
-                    await message.answer(
-                        (
-                            "Выберите действие для расписания, "
-                            "либо введите 'cancel'"
-                        ),
-                        reply_markup=schedule_action(
-                            next_action=bool(schedule),
-                        ),
-                    )
-                else:
-                    await message.answer(
-                        (
-                            "Предмета с таким названием нет в группе. "
-                            "Введите другое название, либо введите 'cancel'"
-                        ),
-                    )
-            case SubjectActionsEnum.DELETE.action:
-                subject = list(filter(
-                    lambda x: x.name == message.text,
-                    group.subjects,
-                ))
-                if subject:
-                    QueueActions.cleaning_subject(subject[0].id)
-                    CompletedPracticesActions.cleaning_subject(subject[0].id)
-                    ScheduleActions.delete_schedule_by_subject(subject[0].id)
-                    SubjectActions.delete_subject(subject[0].id)
-                    await message.answer("Предмет успешно удален")
-                    await state.finish()
-                else:
-                    await message.answer(
-                        (
-                            "Предмета с таким названием нет в группе. "
-                            "Введите другое название, либо введите 'cancel'"
-                        ),
-                    )
-    else:
+    subject = list(filter(
+        lambda x: x.name == message.text,
+        group.subjects,
+    ))
+    if subject:
         await message.answer(
             (
-                "Название не корректно. "
-                "Введите другое название, либо введите 'cancel'"
+                "Предмет с таким названием уже есть в группе. "
+                "Введите другое название."
             ),
+            reply_markup=select_cancel(),
+        )
+    else:
+        async with state.proxy() as data:
+            data["name"] = message.text
+            data["schedule"] = []
+        await Subject.schedule_action.set()
+        await message.answer(
+            "Выберите действие для расписания",
+            reply_markup=schedule_action(),
         )
 
 
@@ -188,7 +183,7 @@ async def input_schedule_action(
         case ScheduleActionsEnum.ADD.action:
             await Subject.week.set()
             await callback.message.answer(
-                "Выберите, как будет проходить предмет, либо введите 'cancel'",
+                "Выберите, как будет проходить предмет",
                 reply_markup=select_subject_passes(),
             )
         case ScheduleActionsEnum.DELETE.action:
@@ -199,26 +194,24 @@ async def input_schedule_action(
                 ]
                 await Subject.schedule_delete.set()
                 await callback.message.answer(
-                    (
-                        "Выберите расписание, которое нужно удалить, "
-                        "либо введите 'cancel'"
-                    ),
+                    "Выберите расписание, которое нужно удалить",
                     reply_markup=choice_schedule(schedule_list),
                 )
             else:
                 await callback.message.answer("Удалять нечего.")
                 await Subject.schedule_action.set()
                 await callback.message.answer(
-                    "Выберите действие для расписания, либо введите 'cancel'",
+                    "Выберите действие для расписания",
                     reply_markup=schedule_action(),
                 )
+        case ScheduleActionsEnum.CANCEL.action:
+            await callback.message.answer("Действие отменено")
+            await state.finish()
         case ScheduleActionsEnum.NEXT_ACTION.action:
             await Subject.count.set()
             await callback.message.answer(
-                (
-                    "Введите количество лабораторных работ, "
-                    "либо введите 'cancel'"
-                ),
+                "Введите количество лабораторных работ",
+                reply_markup=select_cancel(),
             )
 
 
@@ -239,7 +232,7 @@ async def delete_schedule_action(
         schedule = data["schedule"]
     await Subject.schedule_action.set()
     await callback.message.answer(
-        "Выберите действие для расписания, либо введите 'cancel'",
+        "Выберите действие для расписания",
         reply_markup=schedule_action(bool(schedule)),
     )
 
@@ -311,19 +304,20 @@ async def input_date_subject(
                         )
             data["schedule"].extend(new_schedules)
             schedule = data["schedule"]
+            data["days"] = []
     await callback.answer()
     if call_data == "Stop":
         if days:
             await Subject.schedule_action.set()
-            await message.answer(
-                "Выберите действие для расписания, либо введите 'cancel'",
+            await callback.message.answer(
+                "Выберите действие для расписания",
                 reply_markup=schedule_action(next_action=bool(schedule)),
             )
         else:
             await callback.message.answer(
                 (
-                    "Выберите дни недели, в которые проходит дисциплина,"
-                    " либо введите 'cancel'"
+                    "Выберите дни, в которые будет проходить "
+                    "предмет с выбранной неделей"
                 ),
             )
 
@@ -337,10 +331,7 @@ async def input_count_lab_subject(
     if count.isdigit():
         count = int(count)
         if count > 0:
-            group = UserActions.get_user(
-                message.from_user.id,
-                subjects=False,
-            ).group
+            group = UserActions.get_user(message.from_user.id).group
             subject_name = ""
             action = ""
             async with state.proxy() as data:
@@ -363,7 +354,10 @@ async def input_count_lab_subject(
                             "group": group,
                             "count": count,
                         }
-                        subject = SubjectActions.update_subject(subject_info)
+                        subject = SubjectActions.update_subject(
+                            data["subject_id"],
+                            subject_info,
+                        )
                         action = "обновлен"
                 subject_name = data["name"]
             await state.finish()
@@ -372,11 +366,13 @@ async def input_count_lab_subject(
             )
         else:
             await message.answer(
-                "Введите количество лабораторных работ, либо введите 'cancel'"
+                "Введите количество лабораторных работ",
+                reply_markup=select_cancel(),
             )
     else:
         await message.answer(
-            "Введите количество лабораторных работ, либо введите 'cancel'"
+            "Введите количество лабораторных работ",
+            reply_markup=select_cancel(),
         )
 
 
@@ -394,7 +390,11 @@ def register_handlers_subject(dispatcher: Dispatcher) -> None:
     )
     dispatcher.register_message_handler(
         input_name_subject,
-        state=Subject.name,
+        state=Subject.name_create,
+    )
+    dispatcher.register_callback_query_handler(
+        input_name_update_delete_subject,
+        state=Subject.name_update_delete,
     )
     dispatcher.register_callback_query_handler(
         input_schedule_action,

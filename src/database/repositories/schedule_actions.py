@@ -63,18 +63,19 @@ class ScheduleActions:
 
     @staticmethod
     def change_status_subjects(
-        id: Union[bool, int, str],
+        schedule_id: Union[bool, int, str],
         can_select: bool,
     ) -> None:
         """Change field 'can_select' of subject."""
         query = update(Schedule)
         query = (
-            query.where(Schedule.can_select == id)
-            if isinstance(id, bool)
-            else query.where(Schedule.id == id)
-            if isinstance(id, int) else query.where(Schedule.on_even_week.is_(
+            query.where(Schedule.can_select == schedule_id)
+            if isinstance(schedule_id, bool)
+            else query.where(Schedule.id == schedule_id)
+            if isinstance(schedule_id, int) else query.where(
+                Schedule.on_even_week.is_(
                     True
-                    if id == "True"
+                    if schedule_id == "True"
                     else False
                 )
             )

@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from enums import UserActionsEnum
+from enums import OtherCommands, UserActionsEnum
 
 
 def user_actions() -> InlineKeyboardMarkup:
@@ -62,12 +62,26 @@ def get_list_keys(collection: list) -> InlineKeyboardMarkup:
 
 def get_list_of_groups(groups: list) -> InlineKeyboardMarkup:
     """Create keys for select groups."""
-    return get_list_keys(groups)
+    keyboard = get_list_keys(groups)
+    keyboard.row(
+        InlineKeyboardButton(
+            text=OtherCommands.CANCEL.description,
+            callback_data=OtherCommands.CANCEL.command,
+        ),
+    )
+    return keyboard
 
 
 def get_list_of_subjects(subjects: list) -> InlineKeyboardMarkup:
     """Create keys for select subjects."""
-    return get_list_keys(subjects)
+    keyboard = get_list_keys(subjects)
+    keyboard.row(
+        InlineKeyboardButton(
+            text=OtherCommands.CANCEL.description,
+            callback_data=OtherCommands.CANCEL.command,
+        ),
+    )
+    return keyboard
 
 
 def get_list_of_numbers(numbers: list) -> InlineKeyboardMarkup:

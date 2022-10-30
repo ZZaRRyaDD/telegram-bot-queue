@@ -91,10 +91,10 @@ def get_schedule_name(item: models.Schedule) -> str:
 
 def get_info_schedule(subject_id: int) -> str:
     """Return info about schedule."""
-    schedule = ScheduleActions.get_schedule(subject_id)
-    even_week = filter(lambda x: x.on_even_week is True, schedule)
-    odd_week = filter(lambda x: x.on_even_week is False, schedule)
-    every_week = filter(lambda x: x.on_even_week is None, schedule)
+    schedule = ScheduleActions.get_schedule(subject_id=subject_id)
+    even_week = list(filter(lambda x: x.on_even_week is True, schedule))
+    odd_week = list(filter(lambda x: x.on_even_week is False, schedule))
+    every_week = list(filter(lambda x: x.on_even_week is None, schedule))
     info = ""
     if any([even_week, odd_week, every_week]):
         info += "\t\tРасписание:\n"
@@ -105,7 +105,7 @@ def get_info_schedule(subject_id: int) -> str:
                     for day in sorted(even_week, key=lambda x: x.date_number)
                 ]
             )
-            info += f"\t\t\t\t{days} - По четным неделям"
+            info += f"\t\t\t\t{days} - По четным неделям\n"
         if odd_week:
             days = " ".join(
                 [
@@ -113,7 +113,7 @@ def get_info_schedule(subject_id: int) -> str:
                     for day in sorted(odd_week, key=lambda x: x.date_number)
                 ]
             )
-            info += f"\t\t\t\t{days} - По нечетным неделям"
+            info += f"\t\t\t\t{days} - По нечетным неделям\n"
         if every_week:
             days = " ".join(
                 [
@@ -121,12 +121,14 @@ def get_info_schedule(subject_id: int) -> str:
                     for day in sorted(every_week, key=lambda x: x.date_number)
                 ]
             )
-            info += f"\t\t\t\t{days} - Каждую неделю"
+            info += f"\t\t\t\t{days} - Каждую неделю\n"
         can_select = ScheduleActions.get_schedule(
             subject_id=subject_id,
             can_select=True,
         )
-        info += f"Сейчас {'можно' if can_select else 'нельзя'}"
+        info += (
+            f"\t\t\t\tСейчас {'можно' if can_select else 'нельзя'} выбрать\n"
+        )
     else:
         info += "\t\tРасписание отсутствует\n"
     return info
@@ -135,8 +137,8 @@ def get_info_schedule(subject_id: int) -> str:
 def get_info_subject(subject: models.Subject) -> str:
     """Return info about subject."""
     info = f"\t\t{subject.name}\n"
+    info += f"\t\tКоличество лабораторных работ: {subject.count}\n"
     info += get_info_schedule(subject.id)
-    info += f"\t\tКоличество лабораторных работ: {subject.count};\n"
     return info
 
 
