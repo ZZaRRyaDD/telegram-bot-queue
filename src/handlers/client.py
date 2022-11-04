@@ -67,9 +67,7 @@ async def set_commands_client(dispatcher: Dispatcher) -> None:
 async def start_command(message: types.Message) -> None:
     """Handler for start command."""
     if not UserActions.get_user(message.from_user.id):
-        await message.answer(
-            "Смотрю, ты еще не с нами. Давай это исправим!",
-        )
+        await message.answer("Смотрю, ты еще не с нами. Давай это исправим!")
         full_name = (
             f"{message.from_user.last_name} {message.from_user.first_name}"
         )

@@ -41,7 +41,7 @@ class GroupActions:
     def get_groups(
         subjects: bool = False,
         students: bool = False,
-    ) -> Optional[list[Group]]:
+    ) -> list[Group]:
         """Get all groups."""
         query = select(Group)
         if subjects:
@@ -56,7 +56,7 @@ class GroupActions:
             )
         with connect.SessionLocal() as session:
             groups = session.execute(query).all()
-            return [group[0] for group in groups] if groups else None
+            return [group[0] for group in groups] if groups else []
 
     @staticmethod
     def create_group(group: dict) -> Group:

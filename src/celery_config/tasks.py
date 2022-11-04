@@ -30,7 +30,7 @@ def send_message_users(message: str) -> None:
         groups = set(groups)
         if groups:
             for group_id in groups:
-                group = GroupActions.get_group(id=group_id, students=True)
+                group = GroupActions.get_group(group_id, students=True)
                 for student in group.students:
                     async_to_sync(bot.send_message)(
                         student.id,
@@ -44,43 +44,41 @@ def activate_after_tomorrow_subjects() -> None:
         days=DAYS_BEFORE_SUBJECT,
     )
     dates = ScheduleActions.get_schedule(date_number=after_tomorrow.weekday())
-    if dates:
-        for date in dates:
-            ScheduleActions.change_status_subjects(
-                date.subject_id,
-                True,
-            )
+    for date in dates:
         ScheduleActions.change_status_subjects(
-            str(not bool(is_event_week(after_tomorrow))),
-            False,
+            date.id,
+            True,
         )
+    ScheduleActions.change_status_subjects(
+        str(not bool(is_event_week(after_tomorrow))),
+        False,
+    )
 
 
 @app.task(task_ignore_result=True)
 def send_reminder() -> None:
     """Send remind for stay in queue."""
-    if datetime.date.today().weekday() != SATURDAY:
-        send_message_users(
-            "Не забудь записаться на сдачу лабы. В 8:00 будут результаты",
-        )
+    send_message_users(
+        "Не забудь записаться на сдачу лабы. В 8:00 будут результаты",
+    )
 
 
 @app.task(task_ignore_result=True)
 def send_top() -> None:
     """Send result queue."""
-    subjects = ScheduleActions.get_schedule(can_select=True)
+    schedule = ScheduleActions.get_schedule(can_select=True)
     subject_template = "Очередь по дисциплине {0}\n{1}"
     lab_template = "Лабораторная работа №{0}\n{1}\n\n"
-    if subjects:
-        for subject_id in subjects:
+    if schedule:
+        for subject_id in [item.subject_id for item in schedule]:
             subject = SubjectActions.get_subject(
-                subject_id,
+                subject_id=subject_id,
                 users_practice=True,
             )
             if not subject.users_practice:
                 continue
             all_users = GroupActions.get_group(
-                id=subject.group,
+                group_id=subject.group,
                 students=True,
             ).students
             list_labs = []
@@ -110,5 +108,4 @@ def send_top() -> None:
             QueueActions.cleaning_subject(subject.id)
     ScheduleActions.change_status_subjects(True, False)
     activate_after_tomorrow_subjects()
-    if datetime.date.today().weekday() + 1 != SATURDAY:
-        send_message_users("Запись на следующие лабораторные работы доступна")
+    send_message_users("Запись на следующие лабораторные работы доступна")

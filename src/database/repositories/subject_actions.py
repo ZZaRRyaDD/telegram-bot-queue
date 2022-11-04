@@ -32,7 +32,7 @@ class SubjectActions:
     @staticmethod
     def get_subjects(
         users_practice: bool = False,
-    ) -> Optional[list[Subject]]:
+    ) -> list[Subject]:
         """Get all subjects."""
         query = select(Subject)
         if users_practice:
@@ -41,7 +41,7 @@ class SubjectActions:
             )
         with connect.SessionLocal() as session:
             subjects = session.execute(query).all()
-            return [subject[0] for subject in subjects] if subjects else None
+            return [subject[0] for subject in subjects] if subjects else []
 
     @staticmethod
     def create_subject(subject: dict) -> Subject:

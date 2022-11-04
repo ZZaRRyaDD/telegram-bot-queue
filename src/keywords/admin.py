@@ -116,7 +116,7 @@ def group_action() -> InlineKeyboardMarkup:
     return keyboard
 
 
-def schedule_action(next_action: bool = False) -> InlineKeyboardMarkup:
+def schedule_action() -> InlineKeyboardMarkup:
     """Create keyboard for schedule of subject."""
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
@@ -129,8 +129,7 @@ def schedule_action(next_action: bool = False) -> InlineKeyboardMarkup:
             callback_data=ScheduleActionsEnum.DELETE.action,
         )
     )
-    if next_action:
-        keyboard.row(
+    keyboard.row(
             InlineKeyboardButton(
                 text=ScheduleActionsEnum.NEXT_ACTION.description,
                 callback_data=ScheduleActionsEnum.NEXT_ACTION.action,

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from sqlalchemy import delete, insert, select, sql
 
 from .. import connect
@@ -10,7 +8,7 @@ class QueueActions:
     """Class for actions with queue."""
 
     @staticmethod
-    def get_queue_info(user_id: int) -> Optional[list[Queue]]:
+    def get_queue_info(user_id: int) -> list[Queue]:
         """Get position, where user stay."""
         with connect.SessionLocal() as session:
             positions = session.execute(
@@ -21,7 +19,7 @@ class QueueActions:
             return (
                 [position[0] for position in positions]
                 if positions
-                else None
+                else []
             )
 
     @staticmethod
@@ -55,7 +53,7 @@ class QueueActions:
         )
         with connect.SessionLocal() as session:
             queues = session.execute(query).all()
-            return [queue[0].user_id for queue in queues] if queues else None
+            return [queue[0].user_id for queue in queues] if queues else []
 
     @staticmethod
     def exists_queue(params: dict) -> bool:

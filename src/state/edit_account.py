@@ -44,9 +44,10 @@ async def input_action(
 ) -> None:
     """Entrypoint for edit account."""
     user = UserActions.get_user(callback.from_user.id)
-    async with state.proxy() as data:
-        data["action"] = callback.data
-        data["full_name"] = user.full_name
+    await state.update_data(
+        action=callback.data,
+        full_name=user.full_name,
+    )
     await User.full_name.set()
     match callback.data:
         case UserActionsEnum.UPDATE.action:
@@ -101,12 +102,16 @@ async def input_full_name_delete(
 
 async def input_full_name(message: types.Message, state: FSMContext) -> None:
     """Get info about first and last name."""
-    async with state.proxy() as data:
-        match data["action"]:
-            case UserActionsEnum.UPDATE.action:
-                await input_full_name_update(message, state)
-            case UserActionsEnum.DELETE.action:
-                await input_full_name_delete(message, state, data["full_name"])
+    data = await state.get_data()
+    match data["action"]:
+        case UserActionsEnum.UPDATE.action:
+            await input_full_name_update(message, state)
+        case UserActionsEnum.DELETE.action:
+            await input_full_name_delete(
+                message,
+                state,
+                data["full_name"],
+            )
 
 
 def register_handlers_change_account(dispatcher: Dispatcher) -> None:

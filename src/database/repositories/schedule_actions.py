@@ -31,7 +31,7 @@ class ScheduleActions:
             query = query.where(Schedule.date_number == date_number)
         with connect.SessionLocal() as session:
             schedule = session.execute(query).all()
-            return [date[0] for date in schedule] if schedule else None
+            return [date[0] for date in schedule] if schedule else []
 
     @staticmethod
     def create_schedule(schedule: dict) -> None:
@@ -76,7 +76,7 @@ class ScheduleActions:
                 Schedule.on_even_week.is_(
                     True
                     if schedule_id == "True"
-                    else False
+                    else False if schedule_id == "False" else None
                 )
             )
         )

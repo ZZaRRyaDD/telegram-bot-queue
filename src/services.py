@@ -79,58 +79,57 @@ def print_info(user_id: int) -> str:
 
 
 def get_schedule_name(item: models.Schedule) -> str:
-    """Return info about dayweeek and type of pass."""
+    """Return info about day week and type of pass."""
     type_week = (
         "по четным неделям"
-        if item.on_even_week is True
-        else "по нечетным неделям" if item.on_even_week is False
+        if item["on_even_week"] is True
+        else "по нечетным неделям" if item["on_even_week"] is False
         else "каждую неделю"
     )
-    return f"{DAY_WEEKS[item.date_number]}, {type_week}"
+    return f"{DAY_WEEKS[int(item['date_number'])]}, {type_week}"
 
 
 def get_info_schedule(subject_id: int) -> str:
     """Return info about schedule."""
     schedule = ScheduleActions.get_schedule(subject_id=subject_id)
+    info = ""
+    if not schedule:
+        return "\t\tРасписание отсутствует\n"
     even_week = list(filter(lambda x: x.on_even_week is True, schedule))
     odd_week = list(filter(lambda x: x.on_even_week is False, schedule))
     every_week = list(filter(lambda x: x.on_even_week is None, schedule))
-    info = ""
-    if any([even_week, odd_week, every_week]):
-        info += "\t\tРасписание:\n"
-        if even_week:
-            days = " ".join(
-                [
-                    f"{DAY_WEEKS[day.date_number]}"
-                    for day in sorted(even_week, key=lambda x: x.date_number)
-                ]
-            )
-            info += f"\t\t\t\t{days} - По четным неделям\n"
-        if odd_week:
-            days = " ".join(
-                [
-                    f"{DAY_WEEKS[day.date_number]}"
-                    for day in sorted(odd_week, key=lambda x: x.date_number)
-                ]
-            )
-            info += f"\t\t\t\t{days} - По нечетным неделям\n"
-        if every_week:
-            days = " ".join(
-                [
-                    f"{DAY_WEEKS[day.date_number]}"
-                    for day in sorted(every_week, key=lambda x: x.date_number)
-                ]
-            )
-            info += f"\t\t\t\t{days} - Каждую неделю\n"
-        can_select = ScheduleActions.get_schedule(
-            subject_id=subject_id,
-            can_select=True,
+    info += "\t\tРасписание:\n"
+    if even_week:
+        days = " ".join(
+            [
+                f"{DAY_WEEKS[day.date_number]}"
+                for day in sorted(even_week, key=lambda x: x.date_number)
+            ]
         )
-        info += (
-            f"\t\t\t\tСейчас {'можно' if can_select else 'нельзя'} выбрать\n"
+        info += f"\t\t\t\t{days} - По четным неделям\n"
+    if odd_week:
+        days = " ".join(
+            [
+                f"{DAY_WEEKS[day.date_number]}"
+                for day in sorted(odd_week, key=lambda x: x.date_number)
+            ]
         )
-    else:
-        info += "\t\tРасписание отсутствует\n"
+        info += f"\t\t\t\t{days} - По нечетным неделям\n"
+    if every_week:
+        days = " ".join(
+            [
+                f"{DAY_WEEKS[day.date_number]}"
+                for day in sorted(every_week, key=lambda x: x.date_number)
+            ]
+        )
+        info += f"\t\t\t\t{days} - Каждую неделю\n"
+    can_select = ScheduleActions.get_schedule(
+        subject_id=subject_id,
+        can_select=True,
+    )
+    info += (
+        f"\t\t\t\tСейчас {'можно' if can_select else 'нельзя'} выбрать\n"
+    )
     return info
 
 

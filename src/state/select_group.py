@@ -40,8 +40,7 @@ async def get_select_group(
         await callback.message.answer("Действие отменено")
         await state.finish()
         return
-    async with state.proxy() as data:
-        data["name"] = callback.data
+    await state.update_data(group=callback.data)
     await SelectGroup.next()
     await callback.message.answer(
         "Введите секретное слово",
@@ -51,10 +50,7 @@ async def get_select_group(
 
 async def get_secret_word(message: types.Message, state: FSMContext) -> None:
     """Input secret word."""
-    group_info = {}
-    async with state.proxy() as data:
-        group_info["group"] = data["name"]
-    group = GroupActions.get_group(int(group_info["group"]))
+    group = GroupActions.get_group(int((await state.get_data())["group"]))
     if int(group.secret_word) != int(polynomial_hash(message.text)):
         await message.answer(
             "Секретное слово не верно. Введите его заново.",

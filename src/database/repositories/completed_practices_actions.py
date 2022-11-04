@@ -1,5 +1,3 @@
-from typing import Optional
-
 from sqlalchemy import delete, insert, select, sql
 
 from .. import connect
@@ -12,7 +10,7 @@ class CompletedPracticesActions:
     @staticmethod
     def get_completed_practices_info(
         complete_practices_id: int,
-    ) -> Optional[list[CompletedPractices]]:
+    ) -> list[CompletedPractices]:
         """Get completed labs, where user stay."""
         with connect.SessionLocal() as session:
             practices = session.execute(
@@ -23,7 +21,7 @@ class CompletedPracticesActions:
             return (
                 [practice[0] for practice in practices]
                 if practices
-                else None
+                else []
             )
 
     @staticmethod
@@ -57,7 +55,7 @@ class CompletedPracticesActions:
         )
         with connect.SessionLocal() as session:
             queues = session.execute(query).all()
-            return [queue[0].user_id for queue in queues] if queues else None
+            return [queue[0].user_id for queue in queues] if queues else []
 
     @staticmethod
     def exists_completed_practices(params: dict) -> bool:
@@ -71,7 +69,7 @@ class CompletedPracticesActions:
         )
         with connect.SessionLocal() as session:
             result = session.execute(query).first()
-            return result[0] if result else None
+            return result[0] if result else []
 
     @staticmethod
     def append_completed_practices(params: dict) -> None:
@@ -100,5 +98,6 @@ class CompletedPracticesActions:
         """Append/remove user to subject."""
         if not CompletedPracticesActions.exists_completed_practices(params):
             CompletedPracticesActions.append_completed_practices(params)
-        else:
-            CompletedPracticesActions.remove_completed_practices(params)
+            return True
+        CompletedPracticesActions.remove_completed_practices(params)
+        return False

@@ -91,8 +91,7 @@ async def input_action_group(
     state: FSMContext,
 ) -> None:
     """Input action for group."""
-    async with state.proxy() as data:
-        data["action"] = callback.data
+    await state.update_data(action=callback.data)
     group = UserActions.get_user(callback.from_user.id).group
     await Group.name.set()
     match callback.data:
@@ -124,8 +123,7 @@ async def input_name_group(message: types.Message, state: FSMContext) -> None:
             reply_markup=select_cancel(),
         )
         return
-    async with state.proxy() as data:
-        data["name"] = message.text
+    await state.update_data(name=message.text)
     await Group.next()
     await message.answer(
         "Введите секретное слово для входа в группу",
@@ -162,24 +160,23 @@ async def input_secret_word(
     state: FSMContext,
 ) -> None:
     """Input secret word."""
-    async with state.proxy() as data:
-        new_group = {
-            "name": data["name"],
-            "secret_word": polynomial_hash(message.text),
-        }
-        group_id = UserActions.get_user(message.from_user.id).group
-        status = get_status_group(group_id, data["action"])
-        match data["action"]:
-            case GroupActionsEnum.CREATE.action:
-                await input_secret_word_create(message, new_group)
-            case GroupActionsEnum.UPDATE.action:
-                await input_secret_word_create(group_id, new_group)
-            case GroupActionsEnum.DELETE.action:
-                await input_secret_word_delete(group_id)
-        await message.answer(
-            f"Группа {new_group['name']} успешно {status}",
-        )
-        await state.finish()
+    data = await state.get_data()
+    name, action = data["name"], data["action"]
+    new_group = {
+        "name": name,
+        "secret_word": polynomial_hash(message.text),
+    }
+    group_id = UserActions.get_user(message.from_user.id).group
+    status = get_status_group(group_id, action)
+    match action:
+        case GroupActionsEnum.CREATE.action:
+            await input_secret_word_create(message, new_group)
+        case GroupActionsEnum.UPDATE.action:
+            await input_secret_word_update(group_id, new_group)
+        case GroupActionsEnum.DELETE.action:
+            await input_secret_word_delete(group_id)
+    await message.answer(f"Группа {name} успешно {status}")
+    await state.finish()
 
 
 def register_handlers_group(dispatcher: Dispatcher) -> None:

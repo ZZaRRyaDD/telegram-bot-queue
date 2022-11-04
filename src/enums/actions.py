@@ -32,7 +32,7 @@ class ScheduleActionsEnum(BaseActions):
 
     ADD = ("Add", "Добавить расписание")
     DELETE = ("Delete", "Удалить расписание")
-    NEXT_ACTION = ("Next", "Продолжить создание предмета")
+    NEXT_ACTION = ("Next", "Продолжить изменение предмета")
     CANCEL = ("Cancel", "Отмена действия")
 
 

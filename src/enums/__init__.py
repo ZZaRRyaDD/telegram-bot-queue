@@ -4,6 +4,7 @@ from .actions import (  # noqa F401
     SubjectActionsEnum,
     UserActionsEnum,
 )
+from .classes import ScheduleCompact, SubjectCompact  # noqa F401
 from .commands import (  # noqa F401
     AdminCommands,
     ClientCommands,

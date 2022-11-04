@@ -36,7 +36,7 @@ class UserActions:
     def get_users(
         with_group: bool = False,
         without_admin: bool = False,
-    ) -> Optional[list[User]]:
+    ) -> list[User]:
         """Get users."""
         query = select(User)
         if with_group:
@@ -49,7 +49,7 @@ class UserActions:
             )
         with connect.SessionLocal() as session:
             users = session.execute(query).all()
-            return [user[0] for user in users] if users else None
+            return [user[0] for user in users] if users else []
 
     @staticmethod
     def create_user(user: dict) -> None:

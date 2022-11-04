@@ -55,6 +55,14 @@ async def print_all_info(message: types.Message) -> None:
     await message.answer(get_all_info())
 
 
+async def download_json_data(message: types.Message) -> None:
+    """Download data from db in JSON."""
+
+
+async def upload_json_data(message: types.Message) -> None:
+    """Upload data in db from JSON."""
+
+
 def register_handlers_admin(dispatcher: Dispatcher) -> None:
     """Register handler for different types commands of admin."""
     register_handlers_message(dispatcher)
@@ -78,4 +86,14 @@ def register_handlers_admin(dispatcher: Dispatcher) -> None:
         print_all_info,
         lambda message: check_admin(message.from_user.id),
         commands=[AdminCommands.ALL_INFO.command]
+    )
+    dispatcher.register_message_handler(
+        download_json_data,
+        lambda message: check_admin(message.from_user.id),
+        commands=[AdminCommands.DOWNLOAD_DATA.command]
+    )
+    dispatcher.register_message_handler(
+        upload_json_data,
+        lambda message: check_admin(message.from_user.id),
+        commands=[AdminCommands.UPLOAD_DATA.command]
     )
