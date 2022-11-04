@@ -4,7 +4,6 @@ import os
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 
-from database import init_db
 from handlers import (
     register_handlers_admin,
     register_handlers_cancel_action,
@@ -18,7 +17,6 @@ DEBUG = os.getenv("DEBUG") != "False"
 
 async def on_startup(_) -> None:
     """Action on startup app."""
-    init_db()
     await set_commands_client(dispatcher)
     if not DEBUG:
         await bot.set_webhook(

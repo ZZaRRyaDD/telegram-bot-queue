@@ -1,9 +1,4 @@
-from .connect import (  # noqa F401
-    SQLALCHEMY_DATABASE_URL,
-    Base,
-    engine,
-    init_db,
-)
+from .connect import SQLALCHEMY_DATABASE_URL, Base, engine  # noqa F401
 from .repositories import (  # noqa F401
     CompletedPracticesActions,
     GroupActions,
