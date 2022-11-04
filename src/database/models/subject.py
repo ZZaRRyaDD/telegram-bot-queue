@@ -27,7 +27,3 @@ class Subject(Base):
         back_populates="subjects_completed",
         lazy="subquery",
     )
-
-    def __str__(self) -> str:
-        """Return representation of object in string."""
-        return f"Subject {self.name} for group {self.group}"

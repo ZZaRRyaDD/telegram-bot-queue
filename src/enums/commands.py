@@ -28,14 +28,6 @@ class AdminCommands(BaseCommands):
         "send_message",
         "Отправка сообщений в моменте всем\n",
     )
-    DOWNLOAD_DATA = (
-        "download_data",
-        "Скачка данных в JSON\n",
-    )
-    UPLOAD_DATA = (
-        "upload_data",
-        "Загрузка данных из JSON\n",
-    )
     COMMANDS = (
         "commands",
         "Вывод всех команд\n",

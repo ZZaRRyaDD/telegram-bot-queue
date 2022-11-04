@@ -11,7 +11,3 @@ class Queue(Base):
     user_id = Column(BigInteger, ForeignKey("users.id"))
     subject_id = Column(Integer, ForeignKey("subjects.id"))
     number = Column(Integer)
-
-    def __str__(self) -> str:
-        """Return representation of object in string."""
-        return f"Queue of {self.subject_id} subject and {self.user_id} user"

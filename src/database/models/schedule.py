@@ -12,10 +12,3 @@ class Schedule(Base):
     date_number = Column(Integer)
     subject_id = Column(Integer, ForeignKey("subjects.id"))
     can_select = Column(Boolean, default=False)
-
-    def __str__(self) -> str:
-        """Return representation of object in string."""
-        return (
-            f"Schedule for {self.subject_id} subject, "
-            f"on date {self.date_number}"
-        )
