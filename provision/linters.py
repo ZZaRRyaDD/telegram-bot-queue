@@ -6,17 +6,21 @@ DEFAULT_FOLDERS = "."
 
 
 @task
-def isort(context, path=DEFAULT_FOLDERS, params=""):
+def isort(
+    context,
+    path=DEFAULT_FOLDERS,
+    params="--settings-file=./setup.cfg",
+):
     """Command to fix imports formatting."""
     common.success("Linters: ISort running")
     docker.run_container(context, command=f"isort {path} {params}")
 
 
 @task
-def flake8(context, path=DEFAULT_FOLDERS):
+def flake8(context, path=DEFAULT_FOLDERS, params="--config=./setup.cfg",):
     """Run `flake8` linter."""
     common.success("Linters: Flake8 running")
-    docker.run_container(context, command=f"flake8 {path}")
+    docker.run_container(context, command=f"flake8 {path} {params}")
 
 
 @task

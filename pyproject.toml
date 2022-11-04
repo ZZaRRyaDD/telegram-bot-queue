@@ -13,6 +13,7 @@ celery = "5.2.7"
 redis = "4.3.4"
 asgiref = "3.5.2"
 emoji = "2.1.0"
+alembic = "1.8.1"
 
 [tool.poetry.dev-dependencies]
 invoke = "1.7.1"
