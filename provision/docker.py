@@ -16,7 +16,7 @@ def build(context, compose="dev"):
 
 @task
 def run(context, compose="dev"):
-    """Run postgres, redis, telegram app."""
+    """Run postgres, telegram app."""
     return context.run(
         f"{CONTAINERS[compose]} up",
     )

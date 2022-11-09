@@ -1,9 +1,21 @@
 import os
 import random
+from datetime import date, datetime, time, timedelta
 
 from database import GroupActions, ScheduleActions, UserActions, models
 
 DAY_WEEKS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]
+DIFFERENCE_TIME_HOURS = 7
+
+
+def get_time(str_time: str) -> str:
+    """Get time in utc."""
+    str_time_obj = time.fromisoformat(str_time)
+    return (
+        datetime.combine(date(1, 1, 1), str_time_obj)
+        -
+        timedelta(hours=DIFFERENCE_TIME_HOURS)
+    ).time().isoformat("minutes")
 
 
 def check_admin(id: int) -> bool:

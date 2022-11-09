@@ -1,6 +1,8 @@
+import asyncio
 import logging
 import os
 
+import aioschedule
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 
@@ -11,8 +13,22 @@ from handlers import (
     set_commands_client,
 )
 from main import bot, dispatcher
+from schedule_tasks import send_reminder, send_top
+from services import get_time
 
 DEBUG = os.getenv("DEBUG") != "False"
+REMINDER_TIME = ("07:00:00", "12:00:00", "21:00:00")
+SEND_TOP_TIME = "08:00:00"
+
+
+async def scheduler():
+    """Activate periodic tasks"""
+    aioschedule.every().day.at(get_time(SEND_TOP_TIME)).do(send_top, bot=bot)
+    for remide in REMINDER_TIME:
+        aioschedule.every().day.at(get_time(remide)).do(send_reminder, bot=bot)
+    while True:
+        await aioschedule.run_pending()
+        await asyncio.sleep(1)
 
 
 async def on_startup(_) -> None:
@@ -27,6 +43,7 @@ async def on_startup(_) -> None:
             await bot.get_webhook_info(),
         )
     await bot.send_message(int(os.getenv("ADMIN_ID")), "Я запущен")
+    asyncio.create_task(scheduler())
 
 
 async def on_shutdown(_) -> None:

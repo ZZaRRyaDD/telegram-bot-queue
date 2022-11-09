@@ -1,24 +1,23 @@
 import datetime
 import random
 
-from asgiref.sync import async_to_sync
+from aiogram import Bot
 
-from ..database import (
+from database import (
     GroupActions,
     QueueActions,
     ScheduleActions,
     SubjectActions,
     UserActions,
 )
-from ..main import bot
-from .celery_app import app
+
 from .services import is_event_week
 
 SATURDAY = 5
 DAYS_BEFORE_SUBJECT = 1
 
 
-def send_message_users(message: str) -> None:
+async def send_message_users(message: str, bot: Bot) -> None:
     """Function for send message for users with group."""
     schedules = ScheduleActions.get_schedule(can_select=True)
     if schedules:
@@ -32,13 +31,13 @@ def send_message_users(message: str) -> None:
             for group_id in groups:
                 group = GroupActions.get_group(group_id, students=True)
                 for student in group.students:
-                    async_to_sync(bot.send_message)(
+                    await bot.send_message(
                         student.id,
                         message,
                     )
 
 
-def activate_after_tomorrow_subjects() -> None:
+async def activate_after_tomorrow_subjects() -> None:
     """Function for activate next subjects."""
     after_tomorrow = datetime.date.today() + datetime.timedelta(
         days=DAYS_BEFORE_SUBJECT,
@@ -55,16 +54,15 @@ def activate_after_tomorrow_subjects() -> None:
     )
 
 
-@app.task(task_ignore_result=True)
-def send_reminder() -> None:
+async def send_reminder(bot: Bot) -> None:
     """Send remind for stay in queue."""
-    send_message_users(
+    await send_message_users(
         "Не забудь записаться на сдачу лабы. В 8:00 будут результаты",
+        bot,
     )
 
 
-@app.task(task_ignore_result=True)
-def send_top() -> None:
+async def send_top(bot: Bot) -> None:
     """Send result queue."""
     schedule = ScheduleActions.get_schedule(can_select=True)
     subject_template = "Очередь по дисциплине {0}\n{1}"
@@ -98,7 +96,7 @@ def send_top() -> None:
                         lab_template.format(number, list_queue)
                     )
             for student in all_users:
-                async_to_sync(bot.send_message)(
+                await bot.send_message(
                     student.id,
                     subject_template.format(
                         subject.name,
@@ -107,5 +105,8 @@ def send_top() -> None:
                 )
             QueueActions.cleaning_subject(subject.id)
     ScheduleActions.change_status_subjects(True, False)
-    activate_after_tomorrow_subjects()
-    send_message_users("Запись на следующие лабораторные работы доступна")
+    await activate_after_tomorrow_subjects()
+    await send_message_users(
+        "Запись на следующие лабораторные работы доступна",
+        bot,
+    )
