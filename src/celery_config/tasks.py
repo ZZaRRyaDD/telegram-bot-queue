@@ -1,6 +1,7 @@
 import datetime
 import random
 
+from aiogram.utils.exceptions import BotBlocked
 from asgiref.sync import async_to_sync
 
 from ..database import (DateActions, GroupActions, QueueActions,
@@ -22,10 +23,13 @@ def send_message_users(message: str) -> None:
             for group_id in groups:
                 group = GroupActions.get_group(id=group_id, students=True)
                 for student in group.students:
-                    async_to_sync(bot.send_message)(
-                        student.id,
-                        message,
-                    )
+                    try:
+                        async_to_sync(bot.send_message)(
+                            student.id,
+                            message,
+                        )
+                    except BotBlocked:
+                        pass
 
 
 def activate_after_tomorrow_subjects() -> None:
@@ -86,13 +90,16 @@ def send_top() -> None:
                         lab_template.format(number, list_queue)
                     )
             for student in all_users:
-                async_to_sync(bot.send_message)(
-                    student.id,
-                    subject_template.format(
-                        subject.name,
-                        "".join(list_labs),
+                try:
+                    async_to_sync(bot.send_message)(
+                        student.id,
+                        subject_template.format(
+                            subject.name,
+                            "".join(list_labs),
+                        )
                     )
-                )
+                except BotBlocked:
+                    pass
             QueueActions.cleaning_subject(subject.id)
     SubjectActions.change_status_subjects(True, False)
     activate_after_tomorrow_subjects()
