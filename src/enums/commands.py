@@ -60,7 +60,7 @@ class ClientCommands(BaseCommands):
     )
     INFO_PROFILE = (
         "info_profile",
-        "ПРосмотр информации о профиле",
+        "Просмотр информации о профиле",
     )
     EDIT_PROFILE = (
         "edit_profile",

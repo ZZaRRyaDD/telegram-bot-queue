@@ -200,7 +200,7 @@ async def input_name_update_delete_subject(
                 subject.id,
             )
         case SubjectActionsEnum.DELETE.action:
-            await input_name_update_delete_subject_update(
+            await input_name_update_delete_subject_delete(
                 callback,
                 state,
                 subject.id,

@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import QueueActions, UserActions
 from enums import ClientCommands, UserActionsEnum
-from keywords import select_cancel, user_actions
+from keywords import remove_cancel, select_cancel, user_actions
 from services import check_user, is_headman, print_info
 
 
@@ -69,7 +69,10 @@ async def input_full_name_update(
         "full_name": message.text,
     }
     UserActions.edit_user(message.from_user.id, new_info)
-    await message.answer("Ваши данные успешно заменены")
+    await message.answer(
+        "Ваши данные успешно заменены",
+        reply_markup=remove_cancel(),
+    )
     await state.finish()
 
 
@@ -85,13 +88,17 @@ async def input_full_name_delete(
                 "Чтобы удалиться старосте - напишите админу. "
                 "После этого можете спокойно удаляться"
             ),
+            reply_markup=remove_cancel(),
         )
         await state.finish()
         return
     if message.text == full_name:
         QueueActions.cleaning_user(message.from_user.id)
         UserActions.delete_user(message.from_user.id)
-        await message.answer("Успехов! Удачи! Спокойной ночи!")
+        await message.answer(
+            "Успехов! Удачи! Спокойной ночи!",
+            reply_markup=remove_cancel(),
+        )
         await state.finish()
         return
     await message.answer(

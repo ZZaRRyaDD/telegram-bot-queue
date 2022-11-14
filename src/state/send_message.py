@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import UserActions
 from enums import AdminCommands
-from keywords import select_cancel
+from keywords import remove_cancel, select_cancel
 from main import bot
 from services import check_admin
 
@@ -28,13 +28,17 @@ async def send_messages(message: types.Message, state: FSMContext) -> None:
     """Input message and send it."""
     users = UserActions.get_users(without_admin=True)
     if users is None:
-        await message.answer("Пользователей нет")
+        await message.answer(
+            "Пользователей нет",
+            reply_markup=remove_cancel(),
+        )
         await state.finish()
         return
     for user in users:
         await bot.send_message(
             user.id,
-            f"Сообщение от админа: \n{message.text}"
+            f"Сообщение от админа: \n{message.text}",
+            reply_markup=remove_cancel(),
         )
     await state.finish()
 

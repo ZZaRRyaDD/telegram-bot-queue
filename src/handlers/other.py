@@ -3,6 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 
 from enums import OtherCommands
+from keywords import remove_cancel
 from services import check_user
 
 
@@ -11,7 +12,10 @@ async def cancel_handler(message: types.Message, state: FSMContext) -> None:
     current_state = await state.get_state()
     if current_state is None:
         return
-    await message.answer("Действие отменено")
+    await message.answer(
+        "Действие отменено",
+        reply_markup=remove_cancel(),
+    )
     await state.finish()
 
 
