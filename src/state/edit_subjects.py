@@ -320,21 +320,18 @@ async def delete_schedule_action(
 ) -> None:
     """Delete schedule."""
     await callback.answer()
-    if callback.data == SubjectActionsEnum.CANCEL.action:
-        await callback.message.answer("Действие отменено")
-        await state.finish()
-        return
-    data = await state.get_data()
-    subject_id = data.get("subject_id", None)
-    if subject_id is not None:
-        ScheduleActions.delete_schedule_by_id(int(callback.data))
-    new_schedule = list(filter(
-        lambda x: str(x["id"]) != callback.data,
-        data.get("schedule"),
-    ))
-    await state.update_data({"schedule": new_schedule})
-    if subject_id is not None:
-        await callback.message.answer(get_info_schedule(subject_id))
+    if callback.data != SubjectActionsEnum.CANCEL.action:
+        data = await state.get_data()
+        subject_id = data.get("subject_id", None)
+        if subject_id is not None:
+            ScheduleActions.delete_schedule_by_id(int(callback.data))
+        new_schedule = list(filter(
+            lambda x: str(x["id"]) != callback.data,
+            data.get("schedule"),
+        ))
+        await state.update_data({"schedule": new_schedule})
+        if subject_id is not None:
+            await callback.message.answer(get_info_schedule(subject_id))
     await Subject.schedule_action.set()
     await callback.message.answer(
         "Выберите действие для расписания",
