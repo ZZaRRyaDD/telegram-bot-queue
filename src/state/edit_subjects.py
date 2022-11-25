@@ -22,6 +22,7 @@ from enums import (
 from keywords import (
     choice_schedule,
     get_list_of_subjects,
+    remove_cancel,
     schedule_action,
     select_cancel,
     select_days,
@@ -505,7 +506,10 @@ async def input_count_lab_subject(
             )
             action = "обновлен"
     await state.finish()
-    await message.answer(f"Предмет {name} успешно {action}.")
+    await message.answer(
+        f"Предмет {name} успешно {action}.",
+        reply_markup=remove_cancel(),
+    )
 
 
 def register_handlers_subject(dispatcher: Dispatcher) -> None:

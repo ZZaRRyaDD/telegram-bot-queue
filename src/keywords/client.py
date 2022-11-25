@@ -86,4 +86,11 @@ def get_list_of_subjects(subjects: list) -> InlineKeyboardMarkup:
 
 def get_list_of_numbers(numbers: list) -> InlineKeyboardMarkup:
     """Create keys for select number of lab of subject."""
-    return get_list_keys(numbers)
+    keyboard = get_list_keys(numbers)
+    keyboard.row(
+        InlineKeyboardButton(
+            text=OtherCommands.CANCEL.description,
+            callback_data=OtherCommands.CANCEL.command,
+        ),
+    )
+    return keyboard

@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import UserActions
 from enums import AdminCommands
-from keywords import select_cancel
+from keywords import remove_cancel, select_cancel
 from main import bot
 from services import check_admin
 
@@ -57,6 +57,7 @@ async def input_id_headman(message: types.Message, state: FSMContext) -> None:
     UserActions.edit_user(user.id, {"is_headman": new_status})
     await message.answer(
         f"Пользователь {user.full_name} {get_situation(new_status)}",
+        reply_markup=remove_cancel(),
     )
     await bot.send_message(user.id, f"Вы {get_status(new_status)}")
     await state.finish()

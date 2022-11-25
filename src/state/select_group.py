@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import GroupActions, QueueActions, UserActions
 from enums import ClientCommands, OtherCommands
-from keywords import get_list_of_groups, select_cancel
+from keywords import get_list_of_groups, remove_cancel, select_cancel
 from services import check_user, is_headman, polynomial_hash
 
 
@@ -59,7 +59,10 @@ async def get_secret_word(message: types.Message, state: FSMContext) -> None:
         return
     UserActions.edit_user(message.from_user.id, {"group": group.id})
     QueueActions.cleaning_user(message.from_user.id)
-    await message.answer(f"Теперь вы в группе {group.name}")
+    await message.answer(
+        f"Теперь вы в группе {group.name}",
+        reply_markup=remove_cancel(),
+    )
     await state.finish()
 
 

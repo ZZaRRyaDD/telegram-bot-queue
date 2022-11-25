@@ -13,7 +13,12 @@ from database import (
     UserActions,
 )
 from enums import HeadmanCommands
-from keywords import GroupActionsEnum, group_action, select_cancel
+from keywords import (
+    GroupActionsEnum,
+    group_action,
+    remove_cancel,
+    select_cancel,
+)
 from services import (
     check_empty_headman,
     check_headman_of_group,
@@ -147,7 +152,11 @@ async def input_secret_word_update(group_id: int, new_group: dict) -> None:
 
 async def input_secret_word_delete(group_id: int) -> int:
     """Delete group and subjects."""
-    for subject in GroupActions.get_group(subjects=True).subjects:
+    subjects = GroupActions.get_group(
+        group_id=group_id,
+        subjects=True,
+    ).subjects
+    for subject in subjects:
         QueueActions.cleaning_subject(subject.id)
         CompletedPracticesActions.cleaning_subject(subject.id)
         ScheduleActions.delete_schedule_by_subject(subject.id)
@@ -175,7 +184,10 @@ async def input_secret_word(
             await input_secret_word_update(group_id, new_group)
         case GroupActionsEnum.DELETE.action:
             await input_secret_word_delete(group_id)
-    await message.answer(f"Группа {name} успешно {status}")
+    await message.answer(
+        f"Группа {name} успешно {status}",
+        reply_markup=remove_cancel(),
+    )
     await state.finish()
 
 
