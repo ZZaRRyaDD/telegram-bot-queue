@@ -491,22 +491,34 @@ async def input_count_lab_subject(
     group = UserActions.get_user(message.from_user.id).group
     action, data = "", await state.get_data()
     name = data['name']
+    count = int(message.text)
     match data.get("action"):
         case SubjectActionsEnum.CREATE.action:
             await input_count_lab_subject_create(
                 name,
                 group,
-                int(message.text),
+                count,
                 data.get("schedule"),
             )
             action = "создан"
         case SubjectActionsEnum.UPDATE.action:
+            old_count = SubjectActions.get_subject(
+                data.get("subject_id")
+            ).count
             await input_count_lab_subject_update(
                 name,
                 group,
-                int(message.text),
+                count,
                 data.get("subject_id"),
             )
+            if old_count > count:
+                for lab in range(count + 1, old_count + 1):
+                    CompletedPracticesActions.remove_completed_practices_labs(
+                        {
+                            "subject_id": data.get("subject_id"),
+                            "number": lab,
+                        },
+                    )
             action = "обновлен"
     await state.finish()
     await message.answer(

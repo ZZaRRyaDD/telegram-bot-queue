@@ -80,6 +80,19 @@ class CompletedPracticesActions:
             )
 
     @staticmethod
+    def remove_completed_practices_labs(params: dict) -> None:
+        """Remove user from completed practices."""
+        with connect.SessionLocal.begin() as session:
+            session.execute(
+                delete(CompletedPractices).where(
+                    sql.and_(
+                        CompletedPractices.subject_id == params["subject_id"],
+                        CompletedPractices.number == params["number"],
+                    ),
+                ),
+            )
+
+    @staticmethod
     def remove_completed_practices(params: dict) -> None:
         """Remove user from completed practices."""
         with connect.SessionLocal.begin() as session:
