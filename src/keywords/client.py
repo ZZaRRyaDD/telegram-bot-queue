@@ -60,9 +60,9 @@ def get_list_keys(collection: list) -> InlineKeyboardMarkup:
     return keyboard
 
 
-def get_list_of_groups(groups: list) -> InlineKeyboardMarkup:
-    """Create keys for select groups."""
-    keyboard = get_list_keys(groups)
+def get_keyboard_with_cancel(collection: list) -> InlineKeyboardMarkup:
+    """Button for add `cancel` button in keyboard."""
+    keyboard = get_list_keys(collection)
     keyboard.row(
         InlineKeyboardButton(
             text=OtherCommands.CANCEL.description,
@@ -70,27 +70,18 @@ def get_list_of_groups(groups: list) -> InlineKeyboardMarkup:
         ),
     )
     return keyboard
+
+
+def get_list_of_groups(groups: list) -> InlineKeyboardMarkup:
+    """Create keys for select groups."""
+    return get_keyboard_with_cancel(groups)
 
 
 def get_list_of_subjects(subjects: list) -> InlineKeyboardMarkup:
     """Create keys for select subjects."""
-    keyboard = get_list_keys(subjects)
-    keyboard.row(
-        InlineKeyboardButton(
-            text=OtherCommands.CANCEL.description,
-            callback_data=OtherCommands.CANCEL.command,
-        ),
-    )
-    return keyboard
+    return get_keyboard_with_cancel(subjects)
 
 
 def get_list_of_numbers(numbers: list) -> InlineKeyboardMarkup:
     """Create keys for select number of lab of subject."""
-    keyboard = get_list_keys(numbers)
-    keyboard.row(
-        InlineKeyboardButton(
-            text=OtherCommands.CANCEL.description,
-            callback_data=OtherCommands.CANCEL.command,
-        ),
-    )
-    return keyboard
+    return get_keyboard_with_cancel(numbers)

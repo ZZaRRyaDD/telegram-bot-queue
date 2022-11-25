@@ -103,6 +103,10 @@ async def get_numbers_lab_subject(
     state: FSMContext,
 ) -> None:
     """Get numbers of lab of subject."""
+    if callback.data == OtherCommands.CANCEL.command:
+        await callback.message.answer("Действие отменено")
+        await state.finish()
+        return
     params = {
         "user_id": callback.from_user.id,
         "number": callback.data,
