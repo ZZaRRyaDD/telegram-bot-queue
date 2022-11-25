@@ -96,6 +96,7 @@ async def input_action_group(
     state: FSMContext,
 ) -> None:
     """Input action for group."""
+    await callback.answer()
     await state.update_data(action=callback.data)
     group = UserActions.get_user(callback.from_user.id).group
     await Group.name.set()

@@ -43,6 +43,7 @@ async def input_action(
     state: FSMContext,
 ) -> None:
     """Entrypoint for edit account."""
+    await callback.answer()
     user = UserActions.get_user(callback.from_user.id)
     await state.update_data(
         action=callback.data,

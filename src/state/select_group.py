@@ -36,6 +36,7 @@ async def get_select_group(
     state: FSMContext,
 ) -> None:
     """Input select of group."""
+    await callback.answer()
     if callback.data == OtherCommands.CANCEL.command:
         await callback.message.answer("Действие отменено")
         await state.finish()

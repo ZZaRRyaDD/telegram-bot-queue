@@ -125,6 +125,7 @@ async def input_action_subject(
     state: FSMContext,
 ) -> None:
     """Input action for subject."""
+    await callback.answer()
     await state.update_data(action=callback.data)
     match callback.data:
         case SubjectActionsEnum.CREATE.action:
@@ -171,6 +172,7 @@ async def input_name_update_delete_subject(
     state: FSMContext,
 ) -> None:
     """Input name of subject."""
+    await callback.answer()
     if callback.data == SubjectActionsEnum.CANCEL.action:
         await callback.message.answer("Действие отменено")
         await state.finish()
@@ -299,6 +301,7 @@ async def input_action_schedule(
     state: FSMContext,
 ) -> None:
     """Input action of schedule."""
+    await callback.answer()
     match callback.data:
         case ScheduleActionsEnum.ADD.action:
             await input_action_schedule_add(callback)
@@ -316,6 +319,7 @@ async def delete_schedule_action(
     state: FSMContext,
 ) -> None:
     """Delete schedule."""
+    await callback.answer()
     if callback.data == SubjectActionsEnum.CANCEL.action:
         await callback.message.answer("Действие отменено")
         await state.finish()
@@ -343,6 +347,7 @@ async def input_week_subject(
     state: FSMContext,
 ) -> None:
     """Input type of week of subject."""
+    await callback.answer()
     on_even_week = (
         True
         if callback.data == "True"
@@ -361,6 +366,7 @@ async def input_date_subject(
     state: FSMContext,
 ) -> None:
     """Input date of subject."""
+    await callback.answer()
     new_schedules, days, data = [], [], await state.get_data()
     message = "Вы завершили выбор"
     if callback.data != "Stop":

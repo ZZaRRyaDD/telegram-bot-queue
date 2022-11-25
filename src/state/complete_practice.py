@@ -82,6 +82,7 @@ async def get_subject_name(
     state: FSMContext,
 ) -> None:
     """Input select of subjects."""
+    await callback.answer()
     if callback.data == OtherCommands.CANCEL.command:
         await callback.message.answer("Действие отменено")
         await state.finish()
@@ -103,6 +104,7 @@ async def get_numbers_lab_subject(
     state: FSMContext,
 ) -> None:
     """Get numbers of lab of subject."""
+    await callback.answer()
     if callback.data == OtherCommands.CANCEL.command:
         await callback.message.answer("Действие отменено")
         await state.finish()
