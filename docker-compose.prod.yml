@@ -66,5 +66,21 @@ services:
       - ./certbot/www:/var/www/certbot
     command: certonly --webroot -w /var/www/certbot --force-renewal --email ${EMAIL} -d ${DOMAIN} --agree-tos
 
+  postgres-backup:
+    image: rmiddle/pg_dump:latest
+    container_name: postgres-backup
+    links:
+      - postgres
+    environment:
+      - PGUSER=${POSTGRES_USER}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - PGDB=${POSTGRES_DB}
+      - PGHOST=postgres
+      - CRON_SCHEDULE=0 0 * * 0
+      - DELETE_OLDER_THAN=1
+    volumes:
+      - ./dumps:/dump
+    command: dump-cron
+
 volumes:
     postgres_data:
