@@ -38,9 +38,9 @@ async def send_messages(message: types.Message, state: FSMContext) -> None:
         await bot.send_message(
             user.id,
             f"Сообщение от админа: \n{message.text}",
-            reply_markup=remove_cancel(),
         )
     await state.finish()
+    await message.answer(reply_markup=remove_cancel())
 
 
 def register_handlers_message(dispatcher: Dispatcher) -> None:
