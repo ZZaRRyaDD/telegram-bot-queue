@@ -1,14 +1,14 @@
 version: "3.1"
 
 services:
-  bot: &bot
+  bot:
     restart: always
     container_name: telegram_bot
     build:
-      context: ./
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./src/Dockerfile
       args:
-        depend: ""
+        MODE: "--with dev"
     depends_on:
       - postgres
     environment:
@@ -17,9 +17,9 @@ services:
       - ADMIN_ID=${ADMIN_ID}
       - ADMIN_URL=${ADMIN_URL}
       - DEBUG=True
-    command: python ./src/actions.py
+    command: python main.py
     volumes:
-      - .:/app
+      - ./src:/src
 
   postgres:
     restart: always

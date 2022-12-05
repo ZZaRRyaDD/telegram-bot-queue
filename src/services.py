@@ -12,8 +12,7 @@ def get_time(str_time: str) -> str:
     """Get time in utc."""
     str_time_obj = time.fromisoformat(str_time)
     return (
-        datetime.combine(date(1, 1, 1), str_time_obj)
-        -
+        datetime.combine(date(1, 1, 1), str_time_obj) -
         timedelta(hours=DIFFERENCE_TIME_HOURS)
     ).time().isoformat("minutes")
 

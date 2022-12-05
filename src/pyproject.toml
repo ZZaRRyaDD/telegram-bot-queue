@@ -13,7 +13,7 @@ emoji = "2.1.0"
 alembic = "1.8.1"
 aioschedule = "^0.5.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 invoke = "1.7.1"
 rich = "12.4.4"
 pre-commit = "2.19.0"

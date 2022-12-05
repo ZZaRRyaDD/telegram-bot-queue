@@ -4,8 +4,8 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from database import UserActions
 from enums import AdminCommands
+from initialize import bot
 from keywords import remove_cancel, select_cancel
-from main import bot
 from services import check_admin
 
 
