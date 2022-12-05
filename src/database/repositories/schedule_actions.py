@@ -16,7 +16,7 @@ class ScheduleActions:
         can_select: Optional[bool] = None,
         reverse: Optional[bool] = None,
         date_number: Optional[int] = None,
-    ) -> Optional[list[Schedule]]:
+    ) -> list[Schedule]:
         """Get all schedule."""
         query = select(Schedule)
         if number is not None:

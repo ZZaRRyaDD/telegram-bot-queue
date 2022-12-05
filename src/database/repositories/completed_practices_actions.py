@@ -45,7 +45,7 @@ class CompletedPracticesActions:
             )
 
     @staticmethod
-    def get_users_by_number(params: dict) -> bool:
+    def get_users_by_number(params: dict) -> list:
         """Check exists completed practices with current params."""
         query = select(CompletedPractices).where(
             sql.and_(

@@ -1,3 +1,10 @@
-from .admin import register_handlers_admin  # noqa F401
-from .client import register_handlers_client, set_commands_client  # noqa F401
-from .other import register_handlers_cancel_action  # noqa F401
+from .admin import register_handlers_admin
+from .client import register_handlers_client, set_commands_client
+from .other import register_handlers_cancel_action
+
+__all__ = (
+    register_handlers_admin,
+    register_handlers_client,
+    set_commands_client,
+    register_handlers_cancel_action,
+)

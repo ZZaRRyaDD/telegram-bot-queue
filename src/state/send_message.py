@@ -27,7 +27,7 @@ async def get_message(message: types.Message) -> None:
 async def send_messages(message: types.Message, state: FSMContext) -> None:
     """Input message and send it."""
     users = UserActions.get_users(without_admin=True)
-    if users is None:
+    if not users:
         await message.answer(
             "Пользователей нет",
             reply_markup=remove_cancel(),

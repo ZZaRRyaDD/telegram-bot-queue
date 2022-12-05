@@ -43,7 +43,7 @@ class QueueActions:
             )
 
     @staticmethod
-    def get_users_by_number(params: dict) -> bool:
+    def get_users_by_number(params: dict) -> list:
         """Check exists queue with current params."""
         query = select(Queue).where(
             sql.and_(

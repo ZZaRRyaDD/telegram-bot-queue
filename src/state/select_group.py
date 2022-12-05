@@ -21,7 +21,7 @@ async def start_select_group(message: types.Message) -> None:
         await message.answer("Староста не может выбирать, ибо он держит ее")
         return
     groups = GroupActions.get_groups()
-    if groups is None:
+    if not groups:
         await message.answer("Пока нет ни одной группы")
         return
     await SelectGroup.name.set()
