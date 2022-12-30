@@ -5,13 +5,13 @@ description = ""
 authors = ["Nazar <odddellarobea@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "3.10.5"
+python = "^3.10"
 aiogram = "2.21"
 SQLAlchemy = "1.4.42"
 psycopg2-binary = "2.9.3"
 emoji = "2.1.0"
 alembic = "1.8.1"
-aioschedule = "^0.5.2"
+aioschedule = "0.5.2"
 
 [tool.poetry.group.dev.dependencies]
 invoke = "1.7.1"
