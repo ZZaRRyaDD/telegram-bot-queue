@@ -36,5 +36,5 @@ jobs:
           invoke project.install-tools
           invoke project.install-requirements
       
-      - name: Run pre-commit
-        uses: pre-commit/action@v2.0.3
+      - name: Run linters
+        run: inv linters.all

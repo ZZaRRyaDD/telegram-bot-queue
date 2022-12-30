@@ -9,7 +9,6 @@ ns = Collection(
     git,
 )
 
-# Configurations for run command
 ns.configure(
     dict(
         run=dict(
