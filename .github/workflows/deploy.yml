@@ -16,4 +16,4 @@ jobs:
         host: ${{ secrets.HOST }}
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
-        script: "whoami && ls"
+        script: "ls && bash ./telegram-bot-queue/deploy.sh"
