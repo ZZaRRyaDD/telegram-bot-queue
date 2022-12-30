@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [ production ]
+    branches: [ develop ]
 
 jobs:
   deploy:
@@ -10,10 +10,10 @@ jobs:
 
     steps:
     - name: Deploy
-      uses: appleboy/ssh-action@master
+      uses: appleboy/ssh-action@v0.1.6
       with:
         username: ${{ secrets.USERNAME }}
         host: ${{ secrets.HOST }}
-        password: ${{ secrets.SSHKEY }}
+        key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
-        script: la
+        script: "whoami && ls"
