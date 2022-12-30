@@ -13,7 +13,7 @@ def install_tools(context):
 def install_requirements(context):
     """Install local development requirements."""
     common.success("Install requirements with poetry")
-    context.run("poetry install")
+    context.run("cd src && poetry install")
 
 
 @task
