@@ -1,48 +1,57 @@
 from invoke import task
 
+DEVELOPMENT_CONTAINER = "dev"
+PRODUCTION_CONTAINER = "prod"
+
 CONTAINERS = {
-    "dev": "docker-compose",
-    "prod": "docker-compose -f docker-compose.prod.yml",
+    DEVELOPMENT_CONTAINER: "docker-compose",
+    PRODUCTION_CONTAINER: "docker-compose -f docker-compose.prod.yml",
 }
 
 
 @task
 def build(context, compose="dev"):
     """Build project."""
-    return context.run(
-        f"{CONTAINERS[compose]} build",
-    )
+    context.run(f"{CONTAINERS[compose]} build")
+
+
+@task
+def run_background(context, compose="dev"):
+    """Build project."""
+    context.run(f"{CONTAINERS[compose]} up -d")
 
 
 @task
 def run(context, compose="dev"):
     """Run postgres, redis, telegram app."""
-    return context.run(
-        f"{CONTAINERS[compose]} up",
-    )
+    context.run(f"{CONTAINERS[compose]} up")
 
 
 @task
 def run_build(context, compose="dev"):
     """Run and build app."""
-    return context.run(
-        f"{CONTAINERS[compose]} up --build",
-    )
+    context.run(f"{CONTAINERS[compose]} up --build")
 
 
 @task
 def clean_volumes(context, compose="dev"):
     """Clean volumes."""
-    return context.run(f"{CONTAINERS[compose]} down -v")
+    context.run(f"{CONTAINERS[compose]} down -v")
 
 
 @task
-def run_container(context, command="", compose="dev"):
-    """Base template for commands with django container."""
-    return context.run(f"{CONTAINERS[compose]} run --rm bot {command}")
+def stop(context, compose="dev"):
+    """Stop and remove all containers defined in docker-compose."""
+    context.run(f"{CONTAINERS[compose]} stop")
 
 
 @task
-def delcont(context):
-    """Delete all docker containers."""
-    return context.run("docker rm -f $(docker ps -a -q)")
+def clear(context, compose="dev"):
+    """Stop and remove all containers defined in docker-compose."""
+    stop(context, compose)
+    context.run("docker system prune -f")
+
+
+def docker_compose_run(context, service, command, compose="dev"):
+    """Run ``run`` using docker-compose."""
+    return context.run(f"{CONTAINERS[compose]} run --rm {service} {command}")

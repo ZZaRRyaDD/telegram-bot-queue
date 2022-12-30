@@ -1,5 +1,12 @@
-from sqlalchemy import (BigInteger, Boolean, Column, ForeignKey, Integer,
-                        String, orm)
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Column,
+    ForeignKey,
+    Integer,
+    String,
+    orm,
+)
 
 from ..connect import Base
 
@@ -11,14 +18,16 @@ class User(Base):
     id = Column(BigInteger, primary_key=True)
     full_name = Column(String(128), nullable=False)
     is_headman = Column(Boolean, default=False)
-    subjects = orm.relationship(
+    group = Column(Integer, ForeignKey("groups.id"), nullable=True)
+    subjects_practice = orm.relationship(
         "Subject",
         secondary="queue",
-        back_populates="users",
+        back_populates="users_practice",
         lazy="subquery",
     )
-    group = Column(Integer, ForeignKey("groups.id"), nullable=True)
-
-    def __str__(self) -> str:
-        """Return representation of object in string."""
-        return f"User {self.full_name}, {self.group}"
+    subjects_completed = orm.relationship(
+        "Subject",
+        secondary="completed_practices",
+        back_populates="users_completed",
+        lazy="subquery",
+    )

@@ -23,9 +23,13 @@ def lock_requirements(context):
 
 
 @task
-def migrations(context, command="init migrations"):
+def migrations(
+    context,
+    service="bot",
+    command="revision --autogenerate -m 'initial'",
+):
     """Run alembic migrations."""
-    docker.run_container(context, command=f"alembic {command}")
+    docker.docker_compose_run(context, service, command=f"alembic {command}")
 
 
 @task

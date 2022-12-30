@@ -1,25 +1,14 @@
-import enum
-
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from enums import (
+    DaysOfWeekEnum,
+    GroupActionsEnum,
+    ScheduleActionsEnum,
+    SubjectActionsEnum,
+    SubjectPassesEnum,
+)
 
-class DaysOfWeek(enum.Enum):
-    """Class choices for day of week."""
-
-    MONDAY = 0
-    TUESDAY = 1
-    WEDNESDAY = 2
-    THURSDAY = 3
-    FRIDAY = 4
-    SATURDAY = 5
-
-
-class SubjectPasses(enum.Enum):
-    """Class choices."""
-
-    EACH_WEEK = "None"
-    EACH_EVEN_WEEK = "True"
-    EACH_ODD_WEEK = "False"
+from .client import OtherCommands, get_list_keys
 
 
 def select_days() -> InlineKeyboardMarkup:
@@ -27,54 +16,151 @@ def select_days() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
         InlineKeyboardButton(
-            text="Понедельник",
-            callback_data=DaysOfWeek.MONDAY.value,
+            text=DaysOfWeekEnum.MONDAY.weekday,
+            callback_data=DaysOfWeekEnum.MONDAY.number,
         ),
         InlineKeyboardButton(
-            text="Вторник",
-            callback_data=DaysOfWeek.TUESDAY.value,
+            text=DaysOfWeekEnum.TUESDAY.weekday,
+            callback_data=DaysOfWeekEnum.TUESDAY.number,
         ),
     ).row(
         InlineKeyboardButton(
-            text="Среда",
-            callback_data=DaysOfWeek.WEDNESDAY.value,
+            text=DaysOfWeekEnum.WEDNESDAY.weekday,
+            callback_data=DaysOfWeekEnum.WEDNESDAY.number,
         ),
         InlineKeyboardButton(
-            text="Четверг",
-            callback_data=DaysOfWeek.THURSDAY.value,
+            text=DaysOfWeekEnum.THURSDAY.weekday,
+            callback_data=DaysOfWeekEnum.THURSDAY.number,
         ),
     ).row(
         InlineKeyboardButton(
-            text="Пятница",
-            callback_data=DaysOfWeek.FRIDAY.value,
+            text=DaysOfWeekEnum.FRIDAY.weekday,
+            callback_data=DaysOfWeekEnum.FRIDAY.number,
         ),
         InlineKeyboardButton(
-            text="Суббота",
-            callback_data=DaysOfWeek.SATURDAY.value,
+            text=DaysOfWeekEnum.SATURDAY.weekday,
+            callback_data=DaysOfWeekEnum.SATURDAY.number,
         ),
     ).row(
-        InlineKeyboardButton(text="Завершить выбор", callback_data="Stop"),
+        InlineKeyboardButton(
+            text=DaysOfWeekEnum.STOP.weekday,
+            callback_data=DaysOfWeekEnum.STOP.number,
+        ),
     )
     return keyboard
 
 
-def select_subject_passes() -> KeyboardInterrupt:
+def subject_action() -> InlineKeyboardMarkup:
+    """Create keyboard for create/update/delete subject."""
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    keyboard.row(
+        InlineKeyboardButton(
+            text=SubjectActionsEnum.CREATE.description,
+            callback_data=SubjectActionsEnum.CREATE.action,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=SubjectActionsEnum.UPDATE.description,
+            callback_data=SubjectActionsEnum.UPDATE.action,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=SubjectActionsEnum.DELETE.description,
+            callback_data=SubjectActionsEnum.DELETE.action,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=SubjectActionsEnum.CANCEL.description,
+            callback_data=SubjectActionsEnum.CANCEL.action,
+        ),
+    )
+    return keyboard
+
+
+def choice_schedule(schedule: list) -> InlineKeyboardMarkup:
+    """Create keyboard for choice schedule."""
+    keyboard = get_list_keys(schedule)
+    keyboard.row(
+        InlineKeyboardButton(
+            text=OtherCommands.CANCEL.description,
+            callback_data=OtherCommands.CANCEL.command,
+        ),
+    )
+    return keyboard
+
+
+def group_action() -> InlineKeyboardMarkup:
+    """Create keyboard for create/update/delete group."""
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    keyboard.row(
+        InlineKeyboardButton(
+            text=GroupActionsEnum.CREATE.description,
+            callback_data=GroupActionsEnum.CREATE.action,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=GroupActionsEnum.UPDATE.description,
+            callback_data=GroupActionsEnum.UPDATE.action,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=GroupActionsEnum.DELETE.description,
+            callback_data=GroupActionsEnum.DELETE.action,
+        ),
+    ).row(
+        InlineKeyboardButton(
+            text=GroupActionsEnum.CANCEL.description,
+            callback_data=GroupActionsEnum.CANCEL.action,
+        ),
+    )
+    return keyboard
+
+
+def schedule_action() -> InlineKeyboardMarkup:
+    """Create keyboard for schedule of subject."""
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    keyboard.row(
+        InlineKeyboardButton(
+            text=ScheduleActionsEnum.ADD.description,
+            callback_data=ScheduleActionsEnum.ADD.action,
+        ),
+        InlineKeyboardButton(
+            text=ScheduleActionsEnum.DELETE.description,
+            callback_data=ScheduleActionsEnum.DELETE.action,
+        )
+    )
+    keyboard.row(
+            InlineKeyboardButton(
+                text=ScheduleActionsEnum.NEXT_ACTION.description,
+                callback_data=ScheduleActionsEnum.NEXT_ACTION.action,
+            ),
+        )
+    keyboard.row(
+        InlineKeyboardButton(
+            text=ScheduleActionsEnum.CANCEL.description,
+            callback_data=ScheduleActionsEnum.CANCEL.action,
+        ),
+    )
+    return keyboard
+
+
+def select_subject_passes() -> InlineKeyboardMarkup:
     """Create keyboard for select when subject passes."""
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
         InlineKeyboardButton(
-            text="Каждую неделю",
-            callback_data=SubjectPasses.EACH_WEEK.value,
+            text=SubjectPassesEnum.EACH_WEEK.description,
+            callback_data=SubjectPassesEnum.EACH_WEEK.bool_value,
         ),
     ).row(
         InlineKeyboardButton(
-            text="По нечетным неделям",
-            callback_data=SubjectPasses.EACH_ODD_WEEK.value,
+            text=SubjectPassesEnum.EACH_ODD_WEEK.description,
+            callback_data=SubjectPassesEnum.EACH_ODD_WEEK.bool_value,
         ),
     ).row(
         InlineKeyboardButton(
-            text="По четным неделям",
-            callback_data=SubjectPasses.EACH_EVEN_WEEK.value,
+            text=SubjectPassesEnum.EACH_EVEN_WEEK.description,
+            callback_data=SubjectPassesEnum.EACH_EVEN_WEEK.bool_value,
         ),
     )
     return keyboard

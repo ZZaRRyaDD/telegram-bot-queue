@@ -11,28 +11,26 @@ class GroupActions:
 
     @staticmethod
     def get_group(
-        id: Optional[Union[int, str]] = None,
+        group_id: Optional[Union[int, str]] = None,
         subjects: bool = False,
         students: bool = False,
         last: bool = False,
     ) -> Optional[Group]:
         """Get group."""
         query = select(Group)
-        if id is not None:
-            field = (
-                Group.id
-                if isinstance(id, int)
-                else Group.name
-            )
-            query = query.where(field == id)
+        if group_id is not None:
+            field = Group.id if isinstance(group_id, int) else Group.name
+            query = query.where(field == group_id)
         if subjects:
             query = query.options(
                 orm.subqueryload(Group.subjects).options(
-                    orm.subqueryload(Subject.days)
-                )
+                    orm.subqueryload(Subject.days),
+                ),
             )
         if students:
-            query = query.options(orm.subqueryload(Group.students))
+            query = query.options(
+                orm.subqueryload(Group.students),
+            )
         if last:
             query = query.order_by(desc(Group.id))
         with connect.SessionLocal() as session:
@@ -43,20 +41,22 @@ class GroupActions:
     def get_groups(
         subjects: bool = False,
         students: bool = False,
-    ) -> Optional[list[Group]]:
+    ) -> list[Group]:
         """Get all groups."""
         query = select(Group)
         if subjects:
             query = query.options(
                 orm.subqueryload(Group.subjects).options(
-                    orm.subqueryload(Subject.days)
+                    orm.subqueryload(Subject.days),
                 )
             )
         if students:
-            query = query.options(orm.subqueryload(Group.students))
+            query = query.options(
+                orm.subqueryload(Group.students),
+            )
         with connect.SessionLocal() as session:
             groups = session.execute(query).all()
-            return [group[0] for group in groups] if groups else None
+            return [group[0] for group in groups] if groups else []
 
     @staticmethod
     def create_group(group: dict) -> Group:
@@ -67,26 +67,26 @@ class GroupActions:
         return GroupActions.get_group(last=True)
 
     @staticmethod
-    def edit_group(id: int, group: dict) -> None:
+    def edit_group(group_id: int, group: dict) -> None:
         """Edit group."""
         with connect.SessionLocal.begin() as session:
             session.execute(
                 update(Group).where(
-                    Group.id == id
-                ).values(**group)
+                    Group.id == group_id
+                ).values(**group),
             )
 
     @staticmethod
-    def delete_group(id: int) -> None:
+    def delete_group(group_id: int) -> None:
         """Delete group by id."""
         with connect.SessionLocal.begin() as session:
             session.execute(
                 update(User).where(
-                    User.group == id,
-                ).values({"group": None})
+                    User.group == group_id,
+                ).values({"group": None}),
             )
             session.execute(
                 delete(Group).where(
-                    Group.id == id
-                )
+                    Group.id == group_id,
+                ),
             )

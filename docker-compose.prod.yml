@@ -2,40 +2,29 @@ version: "3.10"
 
 services:
 
-  bot: &bot
+  bot:
     restart: always
     container_name: telegram_bot
     build:
-      context: ./
-      dockerfile: Dockerfile
-      args:
-        depend: --no-dev
+      context: .
+      dockerfile: ./src/Dockerfile
     depends_on:
       - postgres
-      - redis
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - TOKEN=${TOKEN}
       - ADMIN_ID=${ADMIN_ID}
       - ADMIN_URL=${ADMIN_URL}
-      - REDIS_URL=${REDIS_URL}
       - WEBHOOK_PATH=${WEBHOOK_PATH}
       - WEBAPP_HOST=${WEBAPP_HOST}
       - WEBAPP_PORT=${WEBAPP_PORT}
       - DOMAIN=${DOMAIN}
       - DEBUG=False
-    command: python ./src/actions.py
+    command: python main.py
     expose:
       - 3001
     volumes:
-      - .:/app
-
-  redis:
-    restart: always
-    container_name: redis
-    image: redis:7
-    expose:
-      - 6379
+      - ./src:/src
 
   postgres:
     restart: always
@@ -43,19 +32,13 @@ services:
     image: postgres:14.4
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+      - ./dumps:/dumps
     expose:
       - 5432
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-
-  celery:
-    <<: *bot
-    restart: always
-    container_name: celery
-    command: celery -A src.celery_config.celery_app worker --beat --loglevel=info
-    ports: []
   
   nginx:
     container_name: nginx
@@ -80,6 +63,22 @@ services:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     command: certonly --webroot -w /var/www/certbot --force-renewal --email ${EMAIL} -d ${DOMAIN} --agree-tos
+
+  postgres-backup:
+    image: rmiddle/pg_dump:latest
+    container_name: postgres-backup
+    links:
+      - postgres
+    environment:
+      - PGUSER=${POSTGRES_USER}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - PGDB=${POSTGRES_DB}
+      - PGHOST=postgres
+      - CRON_SCHEDULE=0 0 * * 0
+      - DELETE_OLDER_THAN=1
+    volumes:
+      - ./dumps:/dump
+    command: dump-cron
 
 volumes:
     postgres_data:

@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional
 
 from sqlalchemy import delete, desc, orm, select, update
 
@@ -11,16 +11,18 @@ class SubjectActions:
 
     @staticmethod
     def get_subject(
-        id: Optional[int] = None,
-        users: bool = False,
+        subject_id: Optional[int] = None,
+        users_practice: bool = False,
         last: bool = False,
     ) -> Optional[Subject]:
         """Get subject."""
         query = select(Subject)
-        if id is not None:
-            query = query.where(Subject.id == id)
-        if users:
-            query = query.options(orm.subqueryload(Subject.users))
+        if subject_id is not None:
+            query = query.where(Subject.id == subject_id)
+        if users_practice:
+            query = query.options(
+                orm.subqueryload(Subject.users_practice),
+            )
         if last:
             query = query.order_by(desc(Subject.id))
         with connect.SessionLocal() as session:
@@ -29,41 +31,17 @@ class SubjectActions:
 
     @staticmethod
     def get_subjects(
-        can_select: Optional[bool] = None,
-        users: bool = False,
-    ) -> Optional[list[Subject]]:
+        users_practice: bool = False,
+    ) -> list[Subject]:
         """Get all subjects."""
         query = select(Subject)
-        if can_select is not None:
-            query = query.where(Subject.can_select == can_select)
-        if users:
-            query = query.options(orm.subqueryload(Subject.users))
+        if users_practice:
+            query = query.options(
+                orm.subqueryload(Subject.users_practice),
+            )
         with connect.SessionLocal() as session:
             subjects = session.execute(query).all()
-            return [subject[0] for subject in subjects] if subjects else None
-
-    @staticmethod
-    def change_status_subjects(
-        id: Union[bool, int, str],
-        can_select: bool,
-    ) -> None:
-        """Change status of subject."""
-        query = update(Subject)
-        query = (
-            query.where(Subject.can_select == id)
-            if isinstance(id, bool)
-            else query.where(Subject.id == id)
-            if isinstance(id, int) else query.where(Subject.on_even_week.is_(
-                    True
-                    if id == "True"
-                    else False
-                )
-            )
-        )
-        query = query.values(can_select=can_select)
-        with connect.SessionLocal.begin() as session:
-            session.execute(query)
-            session.commit()
+            return [subject[0] for subject in subjects] if subjects else []
 
     @staticmethod
     def create_subject(subject: dict) -> Subject:
@@ -74,11 +52,21 @@ class SubjectActions:
         return SubjectActions.get_subject(last=True)
 
     @staticmethod
-    def delete_subject(id: int) -> None:
+    def update_subject(subject_id: int, subject: dict) -> None:
+        """Update subject."""
+        with connect.SessionLocal.begin() as session:
+            session.execute(
+                update(Subject).where(
+                    Subject.id == subject_id,
+                ).values(subject),
+            )
+
+    @staticmethod
+    def delete_subject(subject_id: int) -> None:
         """Delete subject by id."""
         with connect.SessionLocal.begin() as session:
             session.execute(
                 delete(Subject).where(
-                    Subject.id == id
+                    Subject.id == subject_id
                 )
             )
