@@ -17,4 +17,8 @@ jobs:
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           key: ${{ secrets.SSHKEY }}
-          script: bash ./telegram-bot-queue/deploy.sh
+          script: |
+            cd ${{ secrets.PROJECT_PATH }}
+            sudo git pull --rebase origin develop
+            docker-compose -f docker-compose.prod.yml stop
+            docker-compose -f docker-compose.prod.yml up -d --build
