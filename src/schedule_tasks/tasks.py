@@ -2,6 +2,7 @@ import datetime
 import random
 
 from aiogram import Bot
+from aiogram.utils.exceptions import BotBlocked
 
 from database import (
     GroupActions,
@@ -31,10 +32,13 @@ async def send_message_users(message: str, bot: Bot) -> None:
             for group_id in groups:
                 group = GroupActions.get_group(group_id, students=True)
                 for student in group.students:
-                    await bot.send_message(
-                        student.id,
-                        message,
-                    )
+                    try:
+                        await bot.send_message(
+                            student.id,
+                            message,
+                        )
+                    except BotBlocked:
+                        pass
 
 
 async def activate_after_tomorrow_subjects() -> None:
@@ -96,13 +100,16 @@ async def send_top(bot: Bot) -> None:
                         lab_template.format(number, list_queue)
                     )
             for student in all_users:
-                await bot.send_message(
-                    student.id,
-                    subject_template.format(
-                        subject.name,
-                        "".join(list_labs),
+                try:
+                    await bot.send_message(
+                        student.id,
+                        subject_template.format(
+                            subject.name,
+                            "".join(list_labs),
+                        )
                     )
-                )
+                except BotBlocked:
+                    pass
             QueueActions.cleaning_subject(subject.id)
     ScheduleActions.change_status_subjects(True, False)
     await activate_after_tomorrow_subjects()

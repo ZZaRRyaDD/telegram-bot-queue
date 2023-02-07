@@ -1,6 +1,7 @@
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.utils.exceptions import BotBlocked
 
 from database import UserActions
 from enums import AdminCommands
@@ -35,10 +36,13 @@ async def send_messages(message: types.Message, state: FSMContext) -> None:
         await state.finish()
         return
     for user in users:
-        await bot.send_message(
-            user.id,
-            f"Сообщение от админа: \n{message.text}",
-        )
+        try:
+            await bot.send_message(
+                user.id,
+                f"Сообщение от админа: \n{message.text}",
+            )
+        except BotBlocked:
+            pass
     await state.finish()
     await message.answer(reply_markup=remove_cancel())
 
