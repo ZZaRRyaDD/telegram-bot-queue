@@ -2,7 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from database import QueueActions, UserActions, CompletedPracticesActions
+from database import CompletedPracticesActions, QueueActions, UserActions
 from enums import ClientCommands, UserActionsEnum
 from keywords import remove_cancel, select_cancel, user_actions
 from services import check_user, is_headman, print_info

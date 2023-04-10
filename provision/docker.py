@@ -36,7 +36,7 @@ def run_build(context, compose="dev"):
 @task
 def clean_volumes(context, compose="dev"):
     """Clean volumes."""
-    context.run(f"{CONTAINERS[compose]} down -v")
+    context.run(f"{CONTAINERS[compose]} down -v --remove-orphans")
 
 
 @task

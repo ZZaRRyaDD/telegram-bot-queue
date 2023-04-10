@@ -50,7 +50,6 @@ def nice_schedule(
     on_even_week: Optional[bool],
 ) -> bool:
     """Check schedule to exists."""
-    print(schedule)
     return not list(filter(
         lambda x: (
             x["date_number"] == int(day) and
@@ -272,7 +271,6 @@ async def input_action_schedule_delete(
     """Get schedule for delete."""
     schedule = (await state.get_data())["schedule"]
     if schedule:
-        await callback.message.answer(schedule)
         schedule_list = [
             ScheduleCompact(
                 name=get_schedule_name(item),
@@ -337,7 +335,7 @@ async def delete_schedule_action(
         if subject_id is not None:
             ScheduleActions.delete_schedule_by_id(int(callback.data))
         new_schedule = list(filter(
-            lambda x: str(x["id"]) != callback.data,
+            lambda x: x["id"] != int(callback.data),
             data.get("schedule"),
         ))
         await state.update_data({"schedule": new_schedule})
