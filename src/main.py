@@ -57,7 +57,7 @@ logging.basicConfig(
     filename="app.log",
     format="%(asctime)s - %(levelname)s -%(message)s",
 )
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+logging.getLogger('sqlalchemy.engine')
 dispatcher.middleware.setup(LoggingMiddleware())
 register_handlers_cancel_action(dispatcher)
 register_handlers_client(dispatcher)

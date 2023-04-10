@@ -35,8 +35,9 @@ class StayQueue(StatesGroup):
     number = State()
 
 
-def get_subject_info(positions: list) -> str:
+def get_subject_info(user_id: int) -> str:
     """Get info about subscribe subjects."""
+    positions = QueueActions.get_queue_info(user_id)
     if not positions:
         return "Вы не записаны ни на один предмет"
     info = "Вы записаны на следующие предметы:\n\n"
@@ -71,7 +72,7 @@ async def start_stay_queue(message: types.Message) -> None:
         await message.answer("Нет предметов, на которые можно записаться")
         return
     await message.answer(
-        get_subject_info(QueueActions.get_queue_info(message.from_user.id)),
+        get_subject_info(message.from_user.id),
     )
     await StayQueue.name.set()
     access_subjects_list = [
@@ -91,7 +92,7 @@ async def get_subject_name(
     """Input select of subjects."""
     await callback.answer()
     if callback.data == OtherCommands.CANCEL.command:
-        await callback.message.answer("Действие отменено")
+        await callback.message.delete()
         await state.finish()
         return
     await state.update_data(subject=callback.data)
@@ -100,8 +101,8 @@ async def get_subject_name(
     lab_works = [
         SubjectCompact(id=i, name=i) for i in range(1, subject.count + 1)
     ]
-    await callback.message.answer(
-        "Выберите номера лабораторных работ",
+    await callback.message.edit_text(
+        "Выберите номер лабораторной работы",
         reply_markup=get_list_of_numbers(lab_works),
     )
 
@@ -110,10 +111,10 @@ async def get_numbers_lab_subject(
     callback: types.CallbackQuery,
     state: FSMContext,
 ) -> None:
-    """Get numbers of lab of subject."""
+    """Get number of lab of subject."""
     await callback.answer()
     if callback.data == OtherCommands.CANCEL.command:
-        await callback.message.answer("Действие отменено")
+        await callback.message.delete()
         await state.finish()
         return
     params = {
@@ -126,8 +127,8 @@ async def get_numbers_lab_subject(
     message = f"{status} {params['number']} лабораторная работа"
     await callback.message.answer(message)
     await state.finish()
-    await callback.message.answer(
-        get_subject_info(QueueActions.get_queue_info(callback.from_user.id)),
+    await callback.message.edit_text(
+        get_subject_info(callback.from_user.id),
     )
 
 

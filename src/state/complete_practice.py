@@ -50,9 +50,9 @@ def info_practice(user_id: int) -> str:
     for subject, practices in status_subjects.items():
         info += f"{subject}:\n"
         for index, status in enumerate(practices, start=1):
-            emojize_type = ':white_check_mark:' if status else ':x:'
+            emoji_type = ':white_check_mark:' if status else ':x:'
             info += emoji.emojize(
-                f"\t\t{emojize_type} {index}\n",
+                f"\t\t{emoji_type} {index}\n",
                 language='alias',
             )
     return "".join(info)
@@ -65,6 +65,7 @@ async def start_complete_practice(message: types.Message) -> None:
         return
     subjects = GroupActions.get_group(
         UserActions.get_user(message.from_user.id).group,
+        subjects=True,
     ).subjects
     if not subjects:
         await message.answer("В группе нет предметов")
@@ -84,7 +85,7 @@ async def get_subject_name(
     """Input select of subjects."""
     await callback.answer()
     if callback.data == OtherCommands.CANCEL.command:
-        await callback.message.answer("Действие отменено")
+        await callback.message.delete()
         await state.finish()
         return
     await state.update_data(subject=callback.data)
@@ -93,8 +94,8 @@ async def get_subject_name(
     lab_works = [
         SubjectCompact(id=i, name=i) for i in range(1, subject.count + 1)
     ]
-    await callback.message.answer(
-        "Выберите номера лабораторных работ",
+    await callback.message.edit_text(
+        "Выберите номер лабораторной работы",
         reply_markup=get_list_of_numbers(lab_works),
     )
 
@@ -103,10 +104,10 @@ async def get_numbers_lab_subject(
     callback: types.CallbackQuery,
     state: FSMContext,
 ) -> None:
-    """Get numbers of lab of subject."""
+    """Get number of lab of subject."""
     await callback.answer()
     if callback.data == OtherCommands.CANCEL.command:
-        await callback.message.answer("Действие отменено")
+        await callback.message.delete()
         await state.finish()
         return
     params = {
@@ -119,7 +120,9 @@ async def get_numbers_lab_subject(
     message = f"{status} {params['number']} лабораторная работа"
     await callback.message.answer(message)
     await state.finish()
-    await callback.message.answer(info_practice(callback.from_user.id))
+    await callback.message.edit_text(
+        info_practice(callback.from_user.id),
+    )
 
 
 def register_handlers_complete_practice(dispatcher: Dispatcher) -> None:

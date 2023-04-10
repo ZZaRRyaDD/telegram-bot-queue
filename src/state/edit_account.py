@@ -2,7 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from database import QueueActions, UserActions
+from database import QueueActions, UserActions, CompletedPracticesActions
 from enums import ClientCommands, UserActionsEnum
 from keywords import remove_cancel, select_cancel, user_actions
 from services import check_user, is_headman, print_info
@@ -24,16 +24,18 @@ async def start_user(message: types.Message) -> None:
 
 async def input_action_update(callback: types.CallbackQuery) -> None:
     """Take second name and first name for update profile."""
+    await callback.message.delete()
     await callback.message.answer(
-        "Введи свое фамилию и имя",
+        "Введите свое фамилию и имя",
         reply_markup=select_cancel(),
     )
 
 
 async def input_action_delete(callback: types.CallbackQuery, user) -> None:
     """Take second name and first name for delete profile."""
+    await callback.message.delete()
     await callback.message.answer(
-        f"Введи свое фамилию и имя '{user.full_name}' без ковычек",
+        f"Введите свое фамилию и имя '{user.full_name}' без кавычек",
         reply_markup=select_cancel(),
     )
 
@@ -56,7 +58,7 @@ async def input_action(
         case UserActionsEnum.DELETE.action:
             await input_action_delete(callback, user)
         case UserActionsEnum.CANCEL.action:
-            await callback.message.answer("Действие отменено")
+            await callback.message.delete()
             await state.finish()
 
 
@@ -95,6 +97,7 @@ async def input_full_name_delete(
         return
     if message.text == full_name:
         QueueActions.cleaning_user(message.from_user.id)
+        CompletedPracticesActions.cleaning_user(message.from_user.id)
         UserActions.delete_user(message.from_user.id)
         await message.answer(
             "Успехов! Удачи! Спокойной ночи!",
@@ -113,7 +116,10 @@ async def input_full_name(message: types.Message, state: FSMContext) -> None:
     data = await state.get_data()
     match data["action"]:
         case UserActionsEnum.UPDATE.action:
-            await input_full_name_update(message, state)
+            await input_full_name_update(
+                message,
+                state,
+            )
         case UserActionsEnum.DELETE.action:
             await input_full_name_delete(
                 message,

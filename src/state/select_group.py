@@ -38,11 +38,12 @@ async def get_select_group(
     """Input select of group."""
     await callback.answer()
     if callback.data == OtherCommands.CANCEL.command:
-        await callback.message.answer("Действие отменено")
+        await callback.message.delete()
         await state.finish()
         return
     await state.update_data(group=callback.data)
     await SelectGroup.next()
+    await callback.message.delete()
     await callback.message.answer(
         "Введите секретное слово",
         reply_markup=select_cancel(),

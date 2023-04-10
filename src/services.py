@@ -89,7 +89,7 @@ def print_info(user_id: int) -> str:
     return info
 
 
-def get_schedule_name(item: models.Schedule) -> str:
+def get_schedule_name(item: dict) -> str:
     """Return info about day week and type of pass."""
     type_week = (
         "по четным неделям"

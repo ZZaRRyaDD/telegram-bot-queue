@@ -37,7 +37,7 @@ def get_status_group(group_id: Optional[int], action: str) -> str:
 
 
 class Group(StatesGroup):
-    """FSM for CRUD operrations with group."""
+    """FSM for CRUD operations with group."""
 
     action = State()
     name = State()
@@ -64,14 +64,15 @@ async def input_action_group_create(
     state: FSMContext,
     group,
 ) -> None:
-    """Take name of group or finish proccess."""
+    """Take name of group or finish process."""
     if group is None:
+        await callback.message.delete()
         await callback.message.answer(
             "Введите название группы",
             reply_markup=select_cancel(),
         )
         return
-    await callback.message.answer("У вас уже есть группа")
+    await callback.message.edit_text("У вас уже есть группа")
     await state.finish()
 
 
@@ -82,12 +83,13 @@ async def input_action_group_update_delete(
 ) -> None:
     """Take second name and first name for update profile."""
     if group is not None:
+        await callback.message.delete()
         await callback.message.answer(
             "Введите название группы",
             reply_markup=select_cancel(),
         )
         return
-    await callback.message.answer("У вас еще нет группы")
+    await callback.message.edit_text("У вас еще нет группы")
     await state.finish()
 
 
@@ -96,7 +98,6 @@ async def input_action_group(
     state: FSMContext,
 ) -> None:
     """Input action for group."""
-    await callback.answer()
     await state.update_data(action=callback.data)
     group = UserActions.get_user(callback.from_user.id).group
     await Group.name.set()
@@ -106,7 +107,7 @@ async def input_action_group(
         case GroupActionsEnum.UPDATE.action | GroupActionsEnum.DELETE.action:
             await input_action_group_update_delete(callback, state, group)
         case GroupActionsEnum.CANCEL.action:
-            await callback.message.answer("Действие отменено")
+            await callback.message.delete()
             await state.finish()
 
 
@@ -114,21 +115,34 @@ async def input_name_group(message: types.Message, state: FSMContext) -> None:
     """Input name of group."""
     group = GroupActions.get_group(message.text)
     user = UserActions.get_user(message.from_user.id)
-    name = (
-        all([user.is_headman, user.group == group.id])
-        if group is not None
-        else True
-    )
-    if not name:
-        await message.answer(
-            (
-                "Группа с таким названием уже есть, "
-                "либо название не корректно.\n"
-                "Введите другое название."
-            ),
-            reply_markup=select_cancel(),
-        )
-        return
+    action = (await state.get_data())["action"]
+    if action == GroupActionsEnum.CREATE.action:
+        if group is not None:
+            await message.answer(
+                (
+                    "Группа с таким названием уже есть. "
+                    "Введите другое название."
+                ),
+                reply_markup=select_cancel(),
+            )
+            return
+    elif action == GroupActionsEnum.UPDATE.action:
+        if group is not None and user.group != group.id:
+            await message.answer(
+                (
+                    "Группа с таким названием уже есть. "
+                    "Введите другое название."
+                ),
+                reply_markup=select_cancel(),
+            )
+            return
+    else:
+        if group is None or user.group != group.id:
+            await message.answer(
+                "Введите корректное название.",
+                reply_markup=select_cancel(),
+            )
+            return
     await state.update_data(name=message.text)
     await Group.next()
     await message.answer(

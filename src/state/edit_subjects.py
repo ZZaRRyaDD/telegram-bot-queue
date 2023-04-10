@@ -50,6 +50,7 @@ def nice_schedule(
     on_even_week: Optional[bool],
 ) -> bool:
     """Check schedule to exists."""
+    print(schedule)
     return not list(filter(
         lambda x: (
             x["date_number"] == int(day) and
@@ -85,14 +86,18 @@ async def start_subject(message: types.Message) -> None:
     """Entrypoint for subject."""
     await message.answer(START_MESSAGE)
     await Subject.action.set()
-    await message.answer("Выберите действие", reply_markup=subject_action())
+    await message.answer(
+        "Выберите действие",
+        reply_markup=subject_action(),
+    )
 
 
 async def input_action_subject_create(callback: types.CallbackQuery) -> None:
     """Take name for new subject."""
     await Subject.name_create.set()
+    await callback.message.delete()
     await callback.message.answer(
-        "Введите название дисциплины",
+        "Введите название группы",
         reply_markup=select_cancel(),
     )
 
@@ -106,6 +111,7 @@ async def input_action_subject_update_delete(
         subjects=True,
     ).subjects
     if not subjects:
+        await callback.message.delete()
         await callback.message.answer("Изменять нечего.")
         await Subject.action.set()
         await callback.message.answer(
@@ -114,7 +120,7 @@ async def input_action_subject_update_delete(
         )
         return
     await Subject.name_update_delete.set()
-    await callback.message.answer(
+    await callback.message.edit_text(
         "Выберите дисциплину",
         reply_markup=get_list_of_subjects(subjects),
     )
@@ -136,7 +142,7 @@ async def input_action_subject(
         ):
             await input_action_subject_update_delete(callback)
         case SubjectActionsEnum.CANCEL.action:
-            await callback.message.answer("Действие отменено")
+            await callback.message.delete()
             await state.finish()
 
 
@@ -145,10 +151,11 @@ async def input_name_update_delete_subject_update(
     subject_id: int,
 ) -> None:
     """Print schedule for subject and get action for it."""
+    await callback.message.delete()
     await callback.message.answer(get_info_schedule(subject_id))
     await Subject.schedule_action.set()
     await callback.message.answer(
-        "Выберите действие для расписания",
+        "Выберите действие для предмета",
         reply_markup=schedule_action(),
     )
 
@@ -163,7 +170,7 @@ async def input_name_update_delete_subject_delete(
     CompletedPracticesActions.cleaning_subject(subject_id)
     ScheduleActions.delete_schedule_by_subject(subject_id)
     SubjectActions.delete_subject(subject_id)
-    await callback.message.answer("Предмет успешно удален")
+    await callback.message.edit_text("Предмет успешно удален")
     await state.finish()
 
 
@@ -174,7 +181,7 @@ async def input_name_update_delete_subject(
     """Input name of subject."""
     await callback.answer()
     if callback.data == SubjectActionsEnum.CANCEL.action:
-        await callback.message.answer("Действие отменено")
+        await callback.message.delete()
         await state.finish()
         return
     group = GroupActions.get_group(
@@ -189,7 +196,8 @@ async def input_name_update_delete_subject(
         lambda x: x.__dict__,
         ScheduleActions.get_schedule(subject_id=subject.id),
     ))
-    [item.pop("_sa_instance_state") for item in schedule]
+    for item in schedule:
+        item.pop("_sa_instance_state")
     await state.update_data(
         name=subject.name,
         schedule=schedule,
@@ -241,7 +249,7 @@ async def input_name_subject(
         await message.answer(get_info_schedule(subject_id))
     await Subject.schedule_action.set()
     await message.answer(
-        "Выберите действие для расписания",
+        "Выберите действие для предмета",
         reply_markup=schedule_action(),
     )
 
@@ -251,7 +259,7 @@ async def input_action_schedule_add(
 ) -> None:
     """Take type of week."""
     await Subject.week.set()
-    await callback.message.answer(
+    await callback.message.edit_text(
         "Выберите, как будет проходить предмет",
         reply_markup=select_subject_passes(),
     )
@@ -264,6 +272,7 @@ async def input_action_schedule_delete(
     """Get schedule for delete."""
     schedule = (await state.get_data())["schedule"]
     if schedule:
+        await callback.message.answer(schedule)
         schedule_list = [
             ScheduleCompact(
                 name=get_schedule_name(item),
@@ -272,15 +281,16 @@ async def input_action_schedule_delete(
             for item in schedule
         ]
         await Subject.schedule_delete.set()
-        await callback.message.answer(
+        await callback.message.edit_text(
             "Выберите расписание, которое нужно удалить",
             reply_markup=choice_schedule(schedule_list),
         )
         return
+    await callback.message.delete()
     await callback.message.answer("Удалять нечего.")
     await Subject.schedule_action.set()
     await callback.message.answer(
-        "Выберите действие для расписания",
+        "Выберите действие для предмета",
         reply_markup=schedule_action(),
     )
 
@@ -290,6 +300,7 @@ async def input_action_schedule_next_action(
 ) -> None:
     """Take count lab work."""
     await Subject.count.set()
+    await callback.message.delete()
     await callback.message.answer(
         "Введите количество лабораторных работ",
         reply_markup=select_cancel(),
@@ -310,7 +321,7 @@ async def input_action_schedule(
         case ScheduleActionsEnum.NEXT_ACTION.action:
             await input_action_schedule_next_action(callback)
         case ScheduleActionsEnum.CANCEL.action:
-            await callback.message.answer("Действие отменено")
+            await callback.message.edit_text("Действие отменено")
             await state.finish()
 
 
@@ -319,7 +330,7 @@ async def delete_schedule_action(
     state: FSMContext,
 ) -> None:
     """Delete schedule."""
-    await callback.answer()
+    await callback.message.delete()
     if callback.data != SubjectActionsEnum.CANCEL.action:
         data = await state.get_data()
         subject_id = data.get("subject_id", None)
@@ -334,7 +345,7 @@ async def delete_schedule_action(
             await callback.message.answer(get_info_schedule(subject_id))
     await Subject.schedule_action.set()
     await callback.message.answer(
-        "Выберите действие для расписания",
+        "Выберите действие для предмета",
         reply_markup=schedule_action(),
     )
 
@@ -352,7 +363,7 @@ async def input_week_subject(
     )
     await state.update_data({"on_even_week": on_even_week})
     await Subject.days.set()
-    await callback.message.answer(
+    await callback.message.edit_text(
         "Выберите дни, в которые будет проходить предмет с выбранной неделей",
         reply_markup=select_days(),
     )
@@ -420,9 +431,9 @@ async def input_date_subject(
                         day,
                         on_even_week,
                     ):
-                        new_schedules.append(
-                            ScheduleActions.create_schedule(item)
-                        )
+                        new_schedule = ScheduleActions.create_schedule(item).__dict__
+                        new_schedule.pop("_sa_instance_state")
+                        new_schedules.append(new_schedule)
         await state.update_data(
             schedule=schedule + new_schedules,
             days=[],
@@ -430,6 +441,7 @@ async def input_date_subject(
         if subject_id is not None:
             await callback.message.answer(get_info_schedule(subject_id))
         await Subject.schedule_action.set()
+        await callback.message.delete()
         await callback.message.answer(
             "Выберите действие для расписания",
             reply_markup=schedule_action(),
