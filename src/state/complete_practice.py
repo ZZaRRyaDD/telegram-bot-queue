@@ -118,9 +118,10 @@ async def get_numbers_lab_subject(
     result = CompletedPracticesActions.action_user(params)
     status = 'Добавлена' if result else 'Удалена'
     message = f"{status} {params['number']} лабораторная работа"
+    await callback.message.delete()
     await callback.message.answer(message)
     await state.finish()
-    await callback.message.edit_text(
+    await callback.message.answer(
         info_practice(callback.from_user.id),
     )
 
