@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "bot_queue"
+version = "0.1.0"
+description = ""
+authors = ["Nazar <odddellarobea@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aiogram = "2.21"
+SQLAlchemy = "1.4.42"
+psycopg2-binary = "2.9.5"
+emoji = "2.1.0"
+alembic = "1.8.1"
+aioschedule = "0.5.2"
+
+[tool.poetry.group.dev.dependencies]
+invoke = "1.7.1"
+rich = "12.4.4"
+flake8 = "4.0.1"
+flake8-isort = "4.1.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

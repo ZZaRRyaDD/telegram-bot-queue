@@ -3,10 +3,11 @@ version: "3.10"
 services:
   bot:
     restart: always
-    container_name: telegram_bot
     build:
       context: .
-      dockerfile: ./src/Dockerfile
+      dockerfile: ./bot/Dockerfile
+      args:
+        APP_HOME: "/bot"
     depends_on:
       - postgres
     environment:
@@ -19,15 +20,14 @@ services:
       - WEBAPP_PORT=${WEBAPP_PORT}
       - DOMAIN=${DOMAIN}
       - DEBUG=False
-    command: python main.py
     expose:
       - 3001
     volumes:
-      - ./src:/src
+      - ./bot:/bot
+    command: python -m app
 
   postgres:
     restart: always
-    container_name: postgresql
     image: postgres:14.4
     volumes:
       - postgres_data:/var/lib/postgresql/data/
