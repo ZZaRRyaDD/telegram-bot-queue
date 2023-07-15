@@ -12,3 +12,5 @@ coverage
 .ipython/
 .idea
 .env
+certbot/
+dumps/
