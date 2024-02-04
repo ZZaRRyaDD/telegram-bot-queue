@@ -1,0 +1,57 @@
+name: Deploy
+
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+on:
+  push:
+    branches: [develop]
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  linter:
+    name: check linters
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10.5"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip wheel setuptools invoke rich
+          invoke project.install-tools
+          invoke project.install-requirements
+
+      - name: Run linters
+        run: inv linters.all
+
+  deploy:
+    name: deploy project
+    needs: [linter]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Executing remote command
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          script: |
+            cd ${{ secrets.PROJECT_PATH }}
+            sudo git pull --rebase origin develop
+            docker-compose -f docker-compose.prod.yml down --remove-orphans
+            docker-compose -f docker-compose.prod.yml up -d --build
