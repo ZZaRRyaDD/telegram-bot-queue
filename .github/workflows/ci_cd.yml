@@ -52,6 +52,7 @@ jobs:
           key: ${{ secrets.SSHKEY }}
           script: |
             cd ${{ secrets.PROJECT_PATH }}
-            sudo git pull --rebase origin develop
+            docker system prune -f
+            sudo git pull --rebase origin 
             docker-compose -f docker-compose.prod.yml down --remove-orphans
             docker-compose -f docker-compose.prod.yml up -d --build
