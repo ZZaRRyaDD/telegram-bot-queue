@@ -58,9 +58,10 @@ services:
 
   certbot:
     image: certbot/certbot
+    container_name: certbot
     volumes:
       - ./certbot/conf:/etc/letsencrypt
-    command: certonly --webroot --webroot-path=/etc/letsencrypt --force-renewal --email ${EMAIL} --agree-tos --no-eff-email -d ${DOMAIN}
+    command: certonly --webroot --webroot-path=/etc/letsencrypt --expand --agree-tos --no-eff-email -d ${DOMAIN}
 
   postgres-backup:
     image: rmiddle/pg_dump:latest
