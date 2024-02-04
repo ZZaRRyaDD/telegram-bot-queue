@@ -9,7 +9,7 @@ RUN apt-get update && \
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONBUFFERED 1
 
-COPY ./bot ${APP_HOME}
+COPY . ${APP_HOME}
 WORKDIR ${APP_HOME}
 
 RUN pip install poetry && \

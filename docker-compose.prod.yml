@@ -2,10 +2,11 @@ version: "3.10"
 
 services:
   bot:
+    container_name: bot
     restart: always
     build:
-      context: .
-      dockerfile: ./bot/Dockerfile
+      context: ./bot
+      dockerfile: Dockerfile
       args:
         APP_HOME: "/bot"
     depends_on:
@@ -22,13 +23,12 @@ services:
       - DEBUG=False
     expose:
       - 3001
-    volumes:
-      - ./bot:/bot
     command: python -m app
 
   postgres:
-    restart: always
     image: postgres:14.4
+    container_name: postgres
+    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data/
       - ./dumps:/dumps
@@ -40,8 +40,9 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
 
   nginx:
-    restart: always
     image: nginx
+    container_name: nginx
+    restart: always
     depends_on:
       - bot
       - certbot
@@ -50,6 +51,7 @@ services:
       - 443:443
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template
       - ./certbot/conf:/etc/letsencrypt
 
   certbot:
@@ -60,6 +62,8 @@ services:
 
   postgres-backup:
     image: rmiddle/pg_dump:latest
+    container_name: postgres-backup
+    restart: always
     links:
       - postgres
     environment:

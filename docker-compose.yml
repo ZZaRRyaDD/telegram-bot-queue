@@ -2,10 +2,11 @@ version: "3.1"
 
 services:
   bot:
+    container_name: bot
     restart: always
     build:
-      context: .
-      dockerfile: ./bot/Dockerfile
+      context: ./bot
+      dockerfile: Dockerfile
       args:
         MODE: "--with dev"
         APP_HOME: "/bot"
@@ -16,13 +17,12 @@ services:
       - TOKEN=${TOKEN}
       - ADMIN_ID=${ADMIN_ID}
       - ADMIN_URL=${ADMIN_URL}
-    volumes:
-      - ./bot:/bot
     command: python -m app
 
   postgres:
-    restart: always
     image: postgres:14.4
+    container_name: postgres
+    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     expose:

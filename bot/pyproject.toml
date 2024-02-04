@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "bot_queue"
+name = "telegram_bot_queue"
 version = "0.1.0"
 description = ""
 authors = ["Nazar <odddellarobea@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-aiogram = "2.21"
+aiogram = "2.25.2"
 SQLAlchemy = "1.4.42"
 psycopg2-binary = "2.9.5"
 emoji = "2.1.0"
