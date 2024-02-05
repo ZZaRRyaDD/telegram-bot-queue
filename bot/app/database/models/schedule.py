@@ -3,25 +3,26 @@ import enum
 from sqlalchemy import Boolean, Column, Date, Enum, ForeignKey, Integer, orm
 
 from ..connect import Base
+from app.enums import DaysOfWeekEnum, SubjectPassesEnum
 
 
 class Weekday(int, enum.Enum):
     """Model for number weekday."""
 
-    MONDAY = 0
-    TUESDAY = 1
-    WEDNESDAY = 2
-    THURSDAY = 3
-    FRIDAY = 4
-    SATURDAY = 5
+    MONDAY = DaysOfWeekEnum.MONDAY.number
+    TUESDAY = DaysOfWeekEnum.TUESDAY.number
+    WEDNESDAY = DaysOfWeekEnum.WEDNESDAY.number
+    THURSDAY = DaysOfWeekEnum.THURSDAY.number
+    FRIDAY = DaysOfWeekEnum.FRIDAY.number
+    SATURDAY = DaysOfWeekEnum.SATURDAY.number
 
 
-class Week(int, enum.Enum):
+class Week(str, enum.Enum):
     """Model for type week."""
 
-    EACH_WEEK = 0
-    EACH_ODD_WEEK = 1
-    EACH_EVEN_WEEK = 2
+    EACH_WEEK = SubjectPassesEnum.EACH_WEEK.value
+    EACH_ODD_WEEK = SubjectPassesEnum.EACH_ODD_WEEK.value
+    EACH_EVEN_WEEK = SubjectPassesEnum.EACH_EVEN_WEEK.value
 
 
 class Schedule(Base):

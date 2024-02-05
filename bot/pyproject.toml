@@ -8,10 +8,10 @@ authors = ["Nazar <odddellarobea@gmail.com>"]
 python = "^3.10"
 aiogram = "2.25.2"
 SQLAlchemy = {version="2.0.25", extras=["asyncio"]}
-psycopg2-binary = "2.9.5"
 emoji = "2.1.0"
 alembic = "1.8.1"
 aioschedule = "0.5.2"
+asyncpg = "^0.29.0"
 
 [tool.poetry.group.dev.dependencies]
 invoke = "1.7.1"
