@@ -11,7 +11,7 @@ class ScheduleActions:
     """Class with actions for schedule."""
 
     @staticmethod
-    def get_schedule(
+    async def get_schedule(
         subject_id: Optional[int] = None,
         can_select: Optional[bool] = None,
         date_number: Optional[int] = None,
@@ -27,14 +27,14 @@ class ScheduleActions:
             query = query.where(Schedule.date_number == date_number)
         if date_protection is not None:
             query = query.where(Schedule.date_protection == date_protection)
-        with connect.SessionLocal() as session:
-            schedule = session.execute(query).all()
+        with anext(connect.get_session()) as session:
+            schedule = await session.execute(query).all()
             return [date[0] for date in schedule] if schedule else []
 
     @staticmethod
-    def create_schedule(schedule: dict) -> None:
+    async def create_schedule(schedule: dict) -> None:
         """Create schedule."""
-        with connect.SessionLocal() as session:
+        with anext(connect.get_session()) as session:
             schedule = Schedule(**schedule)
             session.add(schedule)
             session.commit()
@@ -42,17 +42,17 @@ class ScheduleActions:
             return schedule
 
     @staticmethod
-    def delete_schedule_by_id(schedule_id: int) -> None:
+    async def delete_schedule_by_id(schedule_id: int) -> None:
         """Delete schedule."""
-        with connect.SessionLocal.begin() as session:
-            session.execute(
+        with anext(connect.get_session()) as session:
+            await session.execute(
                 delete(Schedule).where(
                     Schedule.id == schedule_id,
                 ),
             )
 
     @staticmethod
-    def change_status_subjects(
+    async def change_status_subjects(
         can_select: bool,
         schedule_id: int = None,
         can_select_to_change: bool = None,
@@ -73,6 +73,6 @@ class ScheduleActions:
                 )
             )
         query = query.values(can_select=can_select)
-        with connect.SessionLocal.begin() as session:
-            session.execute(query)
+        with anext(connect.get_session()) as session:
+            await session.execute(query)
             session.commit()

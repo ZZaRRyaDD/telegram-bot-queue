@@ -1,4 +1,4 @@
-from .connect import SQLALCHEMY_DATABASE_URL, Base, engine
+from .connect import SQLALCHEMY_DATABASE_URL, Base, SessionManager
 from .models import SubjectType
 from .repositories import (
     CompletedPracticesActions,
@@ -19,5 +19,5 @@ __all__ = (
     UserActions,
     SQLALCHEMY_DATABASE_URL,
     Base,
-    engine,
+    SessionManager,
 )

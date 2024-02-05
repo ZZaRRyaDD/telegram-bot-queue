@@ -10,7 +10,7 @@ class GroupActions:
     """Class with actions with group."""
 
     @staticmethod
-    def get_group(
+    async def get_group(
         group_id: Optional[int] = None,
         group_name: Optional[str] = None,
         subjects: bool = False,
@@ -32,12 +32,12 @@ class GroupActions:
             query = query.options(
                 orm.subqueryload(Group.students),
             )
-        with connect.SessionLocal() as session:
-            group = session.execute(query).first()
+        with anext(connect.get_session()) as session:
+            group = await session.execute(query).first()
             return group[0] if group else None
 
     @staticmethod
-    def get_group_by_user_id(
+    async def get_group_by_user_id(
         user_id: int,
         subjects: bool = False,
         students: bool = False,
@@ -56,14 +56,14 @@ class GroupActions:
                 orm.subqueryload(Group.students),
             )
         query = query.options(group)
-        with connect.SessionLocal() as session:
-            user = session.execute(query).first()
+        with anext(connect.get_session()) as session:
+            user = await session.execute(query).first()
             if user is None:
                 return None
             return user[0].group
 
     @staticmethod
-    def get_groups(
+    async def get_groups(
         subjects: bool = False,
         students: bool = False,
     ) -> list[Group]:
@@ -79,14 +79,14 @@ class GroupActions:
             query = query.options(
                 orm.subqueryload(Group.students),
             )
-        with connect.SessionLocal() as session:
-            groups = session.execute(query).all()
+        with anext(connect.get_session()) as session:
+            groups = await session.execute(query).all()
             return [group[0] for group in groups] if groups else []
 
     @staticmethod
-    def create_group(group: dict) -> Group:
+    async def create_group(group: dict) -> Group:
         """Create group."""
-        with connect.SessionLocal() as session:
+        with anext(connect.get_session()) as session:
             group = Group(**group)
             session.add(group)
             session.commit()
@@ -94,20 +94,20 @@ class GroupActions:
             return group
 
     @staticmethod
-    def edit_group(group_id: int, group: dict) -> None:
+    async def edit_group(group_id: int, group: dict) -> None:
         """Edit group."""
-        with connect.SessionLocal.begin() as session:
-            session.execute(
+        with anext(connect.get_session()) as session:
+            await session.execute(
                 update(Group).where(
                     Group.id == group_id
                 ).values(**group),
             )
 
     @staticmethod
-    def delete_group(group_id: int) -> None:
+    async def delete_group(group_id: int) -> None:
         """Delete group by id."""
-        with connect.SessionLocal.begin() as session:
-            session.execute(
+        with anext(connect.get_session()) as session:
+            await session.execute(
                 delete(Group).where(
                     Group.id == group_id,
                 ),
