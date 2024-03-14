@@ -20,22 +20,22 @@ class CompletePractice(StatesGroup):
     number = State()
 
 
-def info_practice(user_id: int) -> str:
+async def info_practice(user_id: int) -> str:
     """Get info about practices."""
     pass_practices = [
         practice
-        for practice in CompletedPracticesActions.get_completed_practices_info(
+        for practice in (await CompletedPracticesActions.get_completed_practices_info(
             user_id,
-        )
+        ))
     ]
-    all_subjects = set(map(lambda x: x.id, GroupActions.get_group_by_user_id(
+    all_subjects = set(map(lambda x: x.id, (await GroupActions.get_group_by_user_id(
             user_id,
             subjects=True,
-        ).subjects,
+        )).subjects,
     ))
     status_subjects = {}
     for subject_id in all_subjects:
-        subject = SubjectActions.get_subject(subject_id=subject_id)
+        subject = await SubjectActions.get_subject(subject_id=subject_id)
         status_subjects[subject.name] = [False]*subject.count_practices
         if subject_id in [item.subject_id for item in pass_practices]:
             completed = list(map(lambda x: x.number_practice, filter(
@@ -63,14 +63,14 @@ async def start_complete_practice(message: types.Message) -> None:
     if not member_group(message.from_user.id):
         await message.answer("Чтобы выбрать предмет, нужно выбрать группу")
         return
-    subjects = GroupActions.get_group_by_user_id(
+    subjects = (await GroupActions.get_group_by_user_id(
         message.from_user.id,
         subjects=True,
-    ).subjects
+    )).subjects
     if not subjects:
         await message.answer("В группе нет предметов")
         return
-    await message.answer(info_practice(message.from_user.id))
+    await message.answer(await info_practice(message.from_user.id))
     await CompletePractice.name.set()
     await message.answer(
         "Выберите предмет",
@@ -89,7 +89,7 @@ async def get_subject_name(
         await state.finish()
         return
     await state.update_data(subject=callback.data)
-    subject = SubjectActions.get_subject(int(callback.data))
+    subject = await SubjectActions.get_subject(int(callback.data))
     await CompletePractice.next()
     lab_works = [
         SubjectCompact(id=i, name=i)
@@ -116,14 +116,14 @@ async def get_numbers_lab_subject(
         "number_practice": callback.data,
         "subject_id": int((await state.get_data())["subject"])
     }
-    result = CompletedPracticesActions.action_user(params)
+    result = await CompletedPracticesActions.action_user(params)
     status = 'Добавлена' if result else 'Удалена'
     message = f"{status} {params['number_practice']} лабораторная работа"
     await callback.message.delete()
     await callback.message.answer(message)
     await state.finish()
     await callback.message.answer(
-        info_practice(callback.from_user.id),
+        await info_practice(callback.from_user.id),
     )
 
 

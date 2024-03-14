@@ -12,7 +12,7 @@ class CompletedPracticesActions:
         complete_practices_id: int,
     ) -> list[CompletedPractices]:
         """Get completed labs, where user stay."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             practices = await session.execute(
                 select(CompletedPractices).where(
                     CompletedPractices.user_id == complete_practices_id,
@@ -34,14 +34,14 @@ class CompletedPracticesActions:
                 CompletedPractices.number_practice == params["number_practice"],
             ),
         )
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             result = await session.execute(query).first()
             return result[0] if result else []
 
     @staticmethod
     async def append_completed_practices(params: dict) -> None:
         """Append user in completed practices."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 insert(CompletedPractices).values(**params),
             )
@@ -49,7 +49,7 @@ class CompletedPracticesActions:
     @staticmethod
     async def remove_completed_practices_labs(params: dict) -> None:
         """Remove user from completed practices."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 delete(CompletedPractices).where(
                     sql.and_(
@@ -62,7 +62,7 @@ class CompletedPracticesActions:
     @staticmethod
     async def remove_completed_practices(params: dict) -> None:
         """Remove user from completed practices."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 delete(CompletedPractices).where(
                     sql.and_(

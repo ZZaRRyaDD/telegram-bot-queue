@@ -32,7 +32,7 @@ class GroupActions:
             query = query.options(
                 orm.subqueryload(Group.students),
             )
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             group = await session.execute(query).first()
             return group[0] if group else None
 
@@ -56,7 +56,7 @@ class GroupActions:
                 orm.subqueryload(Group.students),
             )
         query = query.options(group)
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             user = await session.execute(query).first()
             if user is None:
                 return None
@@ -79,14 +79,14 @@ class GroupActions:
             query = query.options(
                 orm.subqueryload(Group.students),
             )
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             groups = await session.execute(query).all()
             return [group[0] for group in groups] if groups else []
 
     @staticmethod
     async def create_group(group: dict) -> Group:
         """Create group."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             group = Group(**group)
             session.add(group)
             session.commit()
@@ -96,7 +96,7 @@ class GroupActions:
     @staticmethod
     async def edit_group(group_id: int, group: dict) -> None:
         """Edit group."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 update(Group).where(
                     Group.id == group_id
@@ -106,7 +106,7 @@ class GroupActions:
     @staticmethod
     async def delete_group(group_id: int) -> None:
         """Delete group by id."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 delete(Group).where(
                     Group.id == group_id,

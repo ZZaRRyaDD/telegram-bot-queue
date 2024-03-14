@@ -46,7 +46,7 @@ async def input_action(
 ) -> None:
     """Entrypoint for edit account."""
     await callback.answer()
-    user = UserActions.get_user(callback.from_user.id)
+    user = await UserActions.get_user(callback.from_user.id)
     await state.update_data(
         action=callback.data,
         full_name=user.full_name,
@@ -71,7 +71,7 @@ async def input_full_name_update(
         "id": message.from_user.id,
         "full_name": message.text,
     }
-    UserActions.edit_user(message.from_user.id, new_info)
+    await UserActions.edit_user(message.from_user.id, new_info)
     await message.answer(
         "Ваши данные успешно заменены",
         reply_markup=remove_cancel(),
@@ -96,7 +96,7 @@ async def input_full_name_delete(
         await state.finish()
         return
     if message.text == full_name:
-        UserActions.delete_user(message.from_user.id)
+        await UserActions.delete_user(message.from_user.id)
         await message.answer(
             "Успехов! Удачи! Спокойной ночи!",
             reply_markup=remove_cancel(),

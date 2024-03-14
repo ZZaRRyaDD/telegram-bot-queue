@@ -28,7 +28,7 @@ def check_admin(id: int) -> bool:
     return id == int(os.getenv("ADMIN_ID"))
 
 
-def check_user(id: int) -> bool:
+async def check_user(id: int) -> bool:
     """Check register user or not."""
     return UserActions.get_user(id) is not None
 

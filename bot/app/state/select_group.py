@@ -20,7 +20,7 @@ async def start_select_group(message: types.Message) -> None:
     if is_headman(message.from_user.id):
         await message.answer("Староста не может выбирать, ибо он держит ее")
         return
-    groups = GroupActions.get_groups()
+    groups = await GroupActions.get_groups()
     if not groups:
         await message.answer("Пока нет ни одной группы")
         return
@@ -42,7 +42,7 @@ async def get_select_group(
         await state.finish()
         return
     await state.update_data(group=callback.data)
-    user = UserActions.get_user(callback.from_user.id, group=True)
+    user = await UserActions.get_user(callback.from_user.id, group=True)
     if int(callback.data) == user.group_id:
         await callback.message.answer(
             "На данный момент вы уже состоите в данной группе",
@@ -59,7 +59,7 @@ async def get_select_group(
 
 async def get_secret_word(message: types.Message, state: FSMContext) -> None:
     """Input secret word."""
-    group = GroupActions.get_group(
+    group = await GroupActions.get_group(
         group_id=int((await state.get_data())["group"]),
     )
     if int(group.secret_word) != int(polynomial_hash(message.text)):
@@ -68,8 +68,8 @@ async def get_secret_word(message: types.Message, state: FSMContext) -> None:
             reply_markup=select_cancel(),
         )
         return
-    UserActions.edit_user(message.from_user.id, {"group_id": group.id})
-    QueueActions.cleaning_user(message.from_user.id)
+    await UserActions.edit_user(message.from_user.id, {"group_id": group.id})
+    await QueueActions.cleaning_user(message.from_user.id)
     await message.answer(
         f"Теперь вы в группе {group.name}",
         reply_markup=remove_cancel(),

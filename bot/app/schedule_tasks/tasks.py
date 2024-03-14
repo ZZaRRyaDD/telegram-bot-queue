@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import random
 
@@ -21,17 +22,16 @@ DAYS_BEFORE_SUBJECT = 1
 
 async def send_message_users(message: str, bot: Bot) -> None:
     """Function for send message for users with group."""
-    schedules = ScheduleActions.get_schedule(can_select=True)
+    schedules = await ScheduleActions.get_schedule(can_select=True)
     if schedules:
-        groups = []
-        for schedule in schedules:
-            groups.append(
-                SubjectActions.get_subject(schedule.subject_id).group_id
-            )
-        groups = set(groups)
+        groups = [
+            asyncio.create_task(SubjectActions.get_subject(schedule.subject_id))
+            for schedule in schedules
+        ]
+        groups = {schedule.group_id for schedule in (await asyncio.gather(*groups))}
         if groups:
             for group_id in groups:
-                group = GroupActions.get_group(
+                group = await GroupActions.get_group(
                     group_id=group_id,
                     students=True,
                 )
@@ -52,20 +52,20 @@ async def activate_after_tomorrow_subjects() -> None:
     )
     dates = set([
         date.id
-        for date in ScheduleActions.get_schedule(
+        for date in (await ScheduleActions.get_schedule(
             date_number=after_tomorrow.weekday(),
-        )
+        ))
     ])
     dates_protection = set([
         date.id
-        for date in ScheduleActions.get_schedule(
+        for date in (await ScheduleActions.get_schedule(
             date_protection=after_tomorrow,
-        )
+        ))
     ])
     dates |= dates_protection
     for date in dates:
-        ScheduleActions.change_status_subjects(True, schedule_id=date)
-    ScheduleActions.change_status_subjects(
+        await ScheduleActions.change_status_subjects(True, schedule_id=date)
+    await ScheduleActions.change_status_subjects(
         False,
         on_even_week=str(not bool(is_event_week(after_tomorrow))),
     )
@@ -81,20 +81,20 @@ async def send_reminder(bot: Bot) -> None:
 
 async def send_top(bot: Bot) -> None:
     """Send result queue."""
-    QueueActions.cleaning_subject()
-    schedule = ScheduleActions.get_schedule(can_select=True)
+    await QueueActions.cleaning_subject()
+    schedule = await ScheduleActions.get_schedule(can_select=True)
     subject_template = "Очередь по дисциплине {0}\n{1}"
     lab_template = "Лабораторная работа №{0}\n{1}\n\n"
     event_template = "{0} {1}\n{2}\n\n"
     if schedule:
         for subject_id in [item.subject_id for item in schedule]:
-            subject = SubjectActions.get_subject(
+            subject = await SubjectActions.get_subject(
                 subject_id=subject_id,
                 users_practice=True,
             )
             if not subject.users_practice:
                 continue
-            group = GroupActions.get_group(
+            group = await GroupActions.get_group(
                 group_id=subject.group_id,
                 students=True,
             )
@@ -105,12 +105,12 @@ async def send_top(bot: Bot) -> None:
                     "subject_id": subject.id,
                     "number_practice": number,
                 }
-                users = QueueActions.get_users_by_number(params)
+                users = await QueueActions.get_users_by_number(params)
                 if users:
                     if group.random_queue:
                         random.shuffle(users)
                     list_queue = "".join([
-                        f"{index + 1}. {UserActions.get_user(id).full_name}\n"
+                        f"{index + 1}. {(await UserActions.get_user(id)).full_name}\n"
                         for index, id in enumerate(users)
                     ])
                     if subject.subject_type == SubjectType.LABORATORY_WORK:
@@ -128,7 +128,7 @@ async def send_top(bot: Bot) -> None:
                 for index, user in enumerate(users, 1):
                     params["number_in_list"] = index
                     params["user_id"] = user
-                    QueueActions.update_queue_info(params)
+                    await QueueActions.update_queue_info(params)
             for student in all_users:
                 try:
                     await bot.send_message(
@@ -140,7 +140,7 @@ async def send_top(bot: Bot) -> None:
                     )
                 except BotBlocked:
                     pass
-    ScheduleActions.change_status_subjects(False, can_select_to_change=True)
+    await ScheduleActions.change_status_subjects(False, can_select_to_change=True)
     await activate_after_tomorrow_subjects()
     await send_message_users(
         "Запись на следующие лабораторные работы доступна",

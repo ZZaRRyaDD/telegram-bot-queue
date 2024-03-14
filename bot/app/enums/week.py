@@ -12,7 +12,7 @@ class DaysOfWeekEnum(enum.Enum):
     SATURDAY = (5, "Суббота")
     STOP = ("Stop", "Завершить выбор")
 
-    def __init__(self, number: int, weekday: str) -> None:
+    def __init__(self, number: int | str, weekday: str) -> None:
         self.number = number
         self.weekday = weekday
 

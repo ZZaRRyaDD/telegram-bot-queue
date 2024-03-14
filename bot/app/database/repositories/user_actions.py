@@ -33,7 +33,7 @@ class UserActions:
             query = query.options(
                 orm.joinedload(User.group),
             )
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             user = await session.execute(query).first()
             return user[0] if user else None
 
@@ -52,21 +52,21 @@ class UserActions:
             query = query.where(
                 User.id != int(os.getenv("ADMIN_ID")),
             )
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             users = await session.execute(query).all()
             return [user[0] for user in users] if users else []
 
     @staticmethod
     async def create_user(user: dict) -> None:
         """Create user."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             session.add(User(**user))
             session.commit()
 
     @staticmethod
     async def edit_user(user_id: int, user: dict) -> None:
         """Edit user by id."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 update(User).where(
                     User.id == user_id,
@@ -76,7 +76,7 @@ class UserActions:
     @staticmethod
     async def delete_user(user_id: int) -> None:
         """Delete user by id."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 delete(User).where(
                     User.id == user_id,

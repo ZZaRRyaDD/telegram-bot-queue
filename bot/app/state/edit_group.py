@@ -41,13 +41,13 @@ class Group(StatesGroup):
 
 async def start_group(message: types.Message) -> None:
     """Entrypoint for group."""
-    group = UserActions.get_user(message.from_user.id, group=True).group
+    group = await UserActions.get_user(message.from_user.id, group=True).group
     if group is None:
         await message.answer("У вас нет группы")
     else:
         await message.answer(
             get_info_group(
-                GroupActions.get_group(
+                await GroupActions.get_group(
                     group_name=group.name,
                     subjects=True,
                     students=True,
@@ -98,7 +98,7 @@ async def input_action_group(
 ) -> None:
     """Input action for group."""
     await state.update_data(action=callback.data)
-    group = UserActions.get_user(callback.from_user.id, group=True).group
+    group = await UserActions.get_user(callback.from_user.id, group=True).group
     await Group.name.set()
     match callback.data:
         case GroupActionsEnum.CREATE.action:
@@ -112,8 +112,8 @@ async def input_action_group(
 
 async def input_name_group(message: types.Message, state: FSMContext) -> None:
     """Input name of group."""
-    group = GroupActions.get_group(group_name=message.text)
-    user = UserActions.get_user(message.from_user.id)
+    group = await GroupActions.get_group(group_name=message.text)
+    user = await UserActions.get_user(message.from_user.id)
     action = (await state.get_data())["action"]
     if action == GroupActionsEnum.CREATE.action:
         if group is not None:
@@ -177,18 +177,18 @@ async def input_secret_word_create(
     new_group: dict,
 ) -> None:
     """Create new group."""
-    group = GroupActions.create_group(new_group).id
-    UserActions.edit_user(message.from_user.id, {"group_id": group})
+    group = await GroupActions.create_group(new_group).id
+    await UserActions.edit_user(message.from_user.id, {"group_id": group})
 
 
 async def input_secret_word_update(group_id: int, new_group: dict) -> None:
     """Update group."""
-    GroupActions.edit_group(group_id, new_group)
+    await GroupActions.edit_group(group_id, new_group)
 
 
 async def input_secret_word_delete(group_id: int) -> int:
     """Delete group and subjects."""
-    GroupActions.delete_group(group_id)
+    await GroupActions.delete_group(group_id)
 
 
 async def input_secret_word(
@@ -203,7 +203,7 @@ async def input_secret_word(
         "secret_word": polynomial_hash(message.text),
         "random_queue": random_queue == "True",
     }
-    group_id = UserActions.get_user(message.from_user.id).group_id
+    group_id = await UserActions.get_user(message.from_user.id).group_id
     status = get_status_group(group_id, action)
     match action:
         case GroupActionsEnum.CREATE.action:

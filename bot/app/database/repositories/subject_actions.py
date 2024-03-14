@@ -22,7 +22,7 @@ class SubjectActions:
             query = query.options(
                 orm.subqueryload(Subject.users_practice),
             )
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             subject = await session.execute(query).first()
             return subject[0] if subject else None
 
@@ -36,14 +36,14 @@ class SubjectActions:
             query = query.options(
                 orm.subqueryload(Subject.users_practice),
             )
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             subjects = await session.execute(query).all()
             return [subject[0] for subject in subjects] if subjects else []
 
     @staticmethod
     async def create_subject(subject: dict) -> Subject:
         """Create subject."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             subject = Subject(**subject)
             session.add(subject)
             session.commit()
@@ -53,7 +53,7 @@ class SubjectActions:
     @staticmethod
     async def update_subject(subject_id: int, subject: dict) -> None:
         """Update subject."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 update(Subject).where(
                     Subject.id == subject_id,
@@ -63,7 +63,7 @@ class SubjectActions:
     @staticmethod
     async def delete_subject(subject_id: int) -> None:
         """Delete subject by id."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 delete(Subject).where(
                     Subject.id == subject_id,

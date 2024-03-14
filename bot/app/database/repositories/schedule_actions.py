@@ -27,14 +27,14 @@ class ScheduleActions:
             query = query.where(Schedule.date_number == date_number)
         if date_protection is not None:
             query = query.where(Schedule.date_protection == date_protection)
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             schedule = await session.execute(query).all()
             return [date[0] for date in schedule] if schedule else []
 
     @staticmethod
     async def create_schedule(schedule: dict) -> None:
         """Create schedule."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             schedule = Schedule(**schedule)
             session.add(schedule)
             session.commit()
@@ -44,7 +44,7 @@ class ScheduleActions:
     @staticmethod
     async def delete_schedule_by_id(schedule_id: int) -> None:
         """Delete schedule."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 delete(Schedule).where(
                     Schedule.id == schedule_id,
@@ -73,6 +73,6 @@ class ScheduleActions:
                 )
             )
         query = query.values(can_select=can_select)
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(query)
             session.commit()

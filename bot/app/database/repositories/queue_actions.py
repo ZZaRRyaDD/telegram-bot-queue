@@ -10,7 +10,7 @@ class QueueActions:
     @staticmethod
     async def get_queue_info(user_id: int) -> list[Queue]:
         """Get position, where user stay."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             positions = await session.execute(
                 select(Queue).where(
                     Queue.user_id == user_id,
@@ -24,7 +24,7 @@ class QueueActions:
 
     @staticmethod
     async def update_queue_info(params: dict) -> None:
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 update(Queue).where(
                     Queue.subject_id == params["subject_id"],
@@ -36,7 +36,7 @@ class QueueActions:
     @staticmethod
     async def cleaning_user(user_id: int) -> None:
         """Cleaning user queue."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 delete(Queue).where(
                     Queue.user_id == user_id,
@@ -46,7 +46,7 @@ class QueueActions:
     @staticmethod
     async def cleaning_subject() -> None:
         """Cleaning subject queue."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 delete(Queue).where(
                     Queue.number_in_list.is_not(None),
@@ -62,7 +62,7 @@ class QueueActions:
                 Queue.number_practice == params["number_practice"],
             ),
         ).order_by(Queue.id)
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             queues = await session.execute(query).all()
             return [queue[0].user_id for queue in queues] if queues else []
 
@@ -76,14 +76,14 @@ class QueueActions:
                 Queue.number_practice == params["number_practice"],
             ),
         )
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             result = await session.execute(query).first()
             return result[0] if result else None
 
     @staticmethod
     async def append_queue(params: dict) -> None:
         """Append user in queue."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 insert(Queue).values(**params),
             )
@@ -91,7 +91,7 @@ class QueueActions:
     @staticmethod
     async def remove_queue(params: dict) -> None:
         """Remove user from queue."""
-        with anext(connect.get_session()) as session:
+        async with anext(connect.get_session()) as session:
             await session.execute(
                 delete(Queue).where(
                     sql.and_(

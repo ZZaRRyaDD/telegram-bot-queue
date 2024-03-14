@@ -42,7 +42,7 @@ async def print_group_info(message: types.Message) -> None:
     """Print group info."""
     await message.answer(
         get_info_group(
-            GroupActions.get_group_by_user_id(
+            await GroupActions.get_group_by_user_id(
                 message.from_user.id,
                 subjects=True,
                 students=True,

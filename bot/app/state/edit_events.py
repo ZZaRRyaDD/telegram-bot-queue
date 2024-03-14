@@ -67,10 +67,10 @@ async def input_action_event_update_delete(
         SubjectType.GRADUATE_WORK,
         SubjectType.SUMMER_PRACTICE,
     ]
-    subjects = GroupActions.get_group_by_user_id(
+    subjects = (await GroupActions.get_group_by_user_id(
         callback.from_user.id,
         subjects=True,
-    ).subjects
+    )).subjects
     subjects = list(filter(
         lambda x: x.subject_type in subject_types,
         subjects,
@@ -116,7 +116,7 @@ async def input_name_event(
     state: FSMContext,
 ) -> None:
     """Get name of new event."""
-    group = GroupActions.get_group_by_user_id(
+    group = await GroupActions.get_group_by_user_id(
         message.from_user.id,
         subjects=True,
     )
@@ -157,7 +157,7 @@ async def input_name_update_delete_event_delete(
     subject_id: int,
 ) -> None:
     """Delete event and bounded this it items."""
-    SubjectActions.delete_subject(subject_id)
+    await SubjectActions.delete_subject(subject_id)
     await callback.message.edit_text("Событие успешно удалено")
     await state.finish()
 
@@ -172,7 +172,7 @@ async def input_name_update_delete_event(
         await callback.message.delete()
         await state.finish()
         return
-    group = GroupActions.get_group_by_user_id(
+    group = await GroupActions.get_group_by_user_id(
         callback.from_user.id,
         subjects=True,
     )
@@ -180,7 +180,7 @@ async def input_name_update_delete_event(
         lambda x: x.id == int(callback.data),
         group.subjects,
     ))[0]
-    schedule = ScheduleActions.get_schedule(subject_id=subject.id)
+    schedule = await ScheduleActions.get_schedule(subject_id=subject.id)
     await state.update_data(
         name=subject.name,
         subject_id=subject.id,
@@ -209,12 +209,12 @@ async def event_create(data, user, date_protection) -> None:
         "count_practices": 1,
         "subject_type": data['subject_type'],
     }
-    subject = SubjectActions.create_subject(subject_info)
+    subject = await SubjectActions.create_subject(subject_info)
     day = {
         "subject_id": subject.id,
         "date_protection": date_protection,
     }
-    ScheduleActions.create_schedule(day)
+    await ScheduleActions.create_schedule(day)
 
 
 async def event_update(data, user, date_protection) -> None:
@@ -223,9 +223,9 @@ async def event_update(data, user, date_protection) -> None:
         "group_id": user.group_id,
         "subject_type": data['subject_type'],
     }
-    SubjectActions.update_subject(data.get("subject_id"), subject_info)
-    subject = SubjectActions.get_subject(data.get("subject_id"))
-    schedule = ScheduleActions.get_schedule(
+    await SubjectActions.update_subject(data.get("subject_id"), subject_info)
+    subject = await SubjectActions.get_subject(data.get("subject_id"))
+    schedule = await ScheduleActions.get_schedule(
         subject_id=data.get("subject_id"),
         date_protection=date_protection,
     )
@@ -234,7 +234,7 @@ async def event_update(data, user, date_protection) -> None:
             "subject_id": subject.id,
             "date_protection": date_protection,
         }
-        ScheduleActions.create_schedule(day)
+        await ScheduleActions.create_schedule(day)
 
 
 async def input_type_event(
@@ -253,7 +253,7 @@ async def input_type_event(
                 "событию из-за отсутствия времени."
             ),
         )
-        user = UserActions.get_user(callback.from_user.id)
+        user = await UserActions.get_user(callback.from_user.id)
         await event_update(data, user, date_protection)
         action = "обновлен"
         await state.finish()
@@ -288,7 +288,7 @@ async def input_day_passage(
             ),
         )
         return
-    user = UserActions.get_user(message.from_user.id)
+    user = await UserActions.get_user(message.from_user.id)
     action, data = "", await state.get_data()
     match data.get("action"):
         case SubjectActionsEnum.CREATE.action:

@@ -12,7 +12,7 @@ services:
     depends_on:
       - postgres
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - DATABASE_URL=${POSTGRES_PROTOCOL}://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - TOKEN=${TOKEN}
       - ADMIN_ID=${ADMIN_ID}
       - ADMIN_URL=${ADMIN_URL}

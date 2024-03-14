@@ -108,10 +108,10 @@ async def input_action_subject_update_delete(
     subject_types = [
         SubjectType.LABORATORY_WORK,
     ]
-    subjects = GroupActions.get_group_by_user_id(
+    subjects = (await GroupActions.get_group_by_user_id(
         callback.from_user.id,
         subjects=True,
-    ).subjects
+    )).subjects
     subjects = list(filter(
         lambda x: x.subject_type in subject_types,
         subjects,
@@ -173,7 +173,7 @@ async def input_name_update_delete_subject_delete(
     subject_id: int,
 ) -> None:
     """Delete subject and bounded this it items."""
-    SubjectActions.delete_subject(subject_id)
+    await SubjectActions.delete_subject(subject_id)
     await callback.message.edit_text("Предмет успешно удален")
     await state.finish()
 
@@ -188,7 +188,7 @@ async def input_name_update_delete_subject(
         await callback.message.delete()
         await state.finish()
         return
-    group = GroupActions.get_group_by_user_id(
+    group = await GroupActions.get_group_by_user_id(
         callback.from_user.id,
         subjects=True,
     )
@@ -198,7 +198,7 @@ async def input_name_update_delete_subject(
     ))[0]
     schedule = list(map(
         lambda x: x.__dict__,
-        ScheduleActions.get_schedule(subject_id=subject.id),
+        await ScheduleActions.get_schedule(subject_id=subject.id),
     ))
     for item in schedule:
         item.pop("_sa_instance_state")
@@ -228,7 +228,7 @@ async def input_name_subject(
     state: FSMContext,
 ) -> None:
     """Get name of new or exists subject."""
-    group = GroupActions.get_group_by_user_id(
+    group = await GroupActions.get_group_by_user_id(
         message.from_user.id,
         subjects=True,
     )
@@ -251,7 +251,7 @@ async def input_name_subject(
     await state.update_data({"name": message.text})
     subject_id = data.get("subject_id", None)
     if subject_id is not None:
-        subject = SubjectActions.get_subject(subject_id=subject_id)
+        subject = await SubjectActions.get_subject(subject_id=subject_id)
         await message.answer(get_info_schedule(subject))
     await Subject.schedule_action.set()
     await message.answer(
@@ -348,8 +348,8 @@ async def delete_schedule_action(
                 break
         await state.update_data({"schedule": new_schedule})
         if subject_id is not None:
-            ScheduleActions.delete_schedule_by_id(int(callback.data))
-            subject = SubjectActions.get_subject(subject_id=subject_id)
+            await ScheduleActions.delete_schedule_by_id(int(callback.data))
+            subject = await SubjectActions.get_subject(subject_id=subject_id)
             await callback.message.answer(get_info_schedule(subject))
     await Subject.schedule_action.set()
     await callback.message.answer(
@@ -451,7 +451,7 @@ async def input_date_subject(
                         day,
                         on_even_week,
                     ):
-                        new_schedule = ScheduleActions.create_schedule(item).__dict__
+                        new_schedule = await ScheduleActions.create_schedule(item).__dict__
                         new_schedule.pop("_sa_instance_state")
                         new_schedule.pop("subject")
                         new_schedules.append(new_schedule)
@@ -460,7 +460,7 @@ async def input_date_subject(
             days=[],
         )
         if subject_id is not None:
-            subject = SubjectActions.get_subject(subject_id=subject_id)
+            subject = await SubjectActions.get_subject(subject_id=subject_id)
             await callback.message.answer(get_info_schedule(subject))
         await Subject.schedule_action.set()
         await callback.message.delete()
@@ -484,11 +484,11 @@ async def input_count_lab_subject_create(
         "count_practices": count,
         "subject_type": SubjectType.LABORATORY_WORK,
     }
-    subject = SubjectActions.create_subject(subject_info)
+    subject = await SubjectActions.create_subject(subject_info)
     for day in schedule:
         day.pop("id")
         day["subject_id"] = subject.id
-        ScheduleActions.create_schedule(day)
+        await ScheduleActions.create_schedule(day)
 
 
 async def input_count_lab_subject_update(
@@ -504,7 +504,7 @@ async def input_count_lab_subject_update(
         "count_practices": count,
         "subject_type": SubjectType.LABORATORY_WORK,
     }
-    SubjectActions.update_subject(subject_id, subject_info)
+    await SubjectActions.update_subject(subject_id, subject_info)
 
 
 async def input_count_lab_subject(
@@ -524,7 +524,7 @@ async def input_count_lab_subject(
             reply_markup=select_cancel(),
         )
         return
-    group = UserActions.get_user(message.from_user.id).group_id
+    group = await UserActions.get_user(message.from_user.id).group_id
     action, data = "", await state.get_data()
     name = data['name']
     count = int(message.text)
@@ -538,7 +538,7 @@ async def input_count_lab_subject(
             )
             action = "создан"
         case SubjectActionsEnum.UPDATE.action:
-            old_count = SubjectActions.get_subject(
+            old_count = await SubjectActions.get_subject(
                 data.get("subject_id")
             ).count_practices
             await input_count_lab_subject_update(
@@ -549,7 +549,7 @@ async def input_count_lab_subject(
             )
             if old_count > count:
                 for lab in range(count + 1, old_count + 1):
-                    CompletedPracticesActions.remove_completed_practices_labs(
+                    await CompletedPracticesActions.remove_completed_practices_labs(
                         {
                             "subject_id": data.get("subject_id"),
                             "number_practice": lab,
