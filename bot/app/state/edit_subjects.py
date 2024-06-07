@@ -1,16 +1,15 @@
 import datetime
-from typing import Optional, Union
+from typing import Union
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database import (
+from app.database.repositories import (
     CompletedPracticesActions,
     GroupActions,
     ScheduleActions,
     SubjectActions,
-    SubjectType,
     UserActions,
 )
 from app.enums import (
@@ -18,7 +17,9 @@ from app.enums import (
     ScheduleActionsEnum,
     ScheduleCompact,
     SubjectActionsEnum,
+    SubjectTypeEnum,
 )
+from app.filters import HasUser, IsHeadman
 from app.keywords import (
     choice_schedule,
     get_list_of_subjects,
@@ -29,11 +30,7 @@ from app.keywords import (
     select_subject_passes,
     subject_action,
 )
-from app.services import (
-    check_headman_of_group,
-    get_info_schedule,
-    get_schedule_name,
-)
+from app.services import get_info_schedule, get_schedule_name
 
 FIRST_DAY = datetime.datetime(1970, 1, 1)
 DAY_WEEKS_NUMBERS = list(range(0, 7))
@@ -47,13 +44,13 @@ START_MESSAGE = """
 def nice_schedule(
     schedule: list,
     day: int,
-    on_even_week: Optional[bool],
+    week: str,
 ) -> bool:
     """Check schedule to exists."""
     return not bool(list(filter(
         lambda x: (
             int(x["date_number"]) == int(day) and
-            x["on_even_week"] == on_even_week
+            x["week"] == week
         ),
         schedule,
     )))
@@ -106,7 +103,7 @@ async def input_action_subject_update_delete(
 ) -> None:
     """Get info for update/delete subject."""
     subject_types = [
-        SubjectType.LABORATORY_WORK,
+        SubjectTypeEnum.LABORATORY_WORK.value,
     ]
     subjects = (await GroupActions.get_group_by_user_id(
         callback.from_user.id,
@@ -364,17 +361,13 @@ async def input_week_subject(
 ) -> None:
     """Input type of week of subject."""
     await callback.answer()
-    on_even_week = (
-        True
-        if callback.data == "True"
-        else False if callback.data == "False" else None
-    )
-    await state.update_data({"on_even_week": on_even_week})
+    week = callback.data
+    await state.update_data({"week": week})
     data = await state.get_data()
     if data.get("to_update", False):
         schedule = data["schedule"]
         this_week = list(filter(
-            lambda x: x["on_even_week"] is on_even_week,
+            lambda x: x["week"] == week,
             schedule,
         ))
         if this_week:
@@ -406,7 +399,7 @@ async def input_date_subject(
                 if nice_schedule(
                     data.get("schedule"),
                     day,
-                    data.get("on_even_week"),
+                    data.get("week"),
                 ):
                     if day not in exists_days:
                         await state.update_data(
@@ -425,7 +418,7 @@ async def input_date_subject(
     await callback.message.answer(message)
     if callback.data == "Stop":
         subject_id = data.get("subject_id", None)
-        on_even_week = data.get("on_even_week")
+        week = data.get("week")
         schedule = data.get("schedule")
         for day in days:
             match data.get("action"):
@@ -437,19 +430,19 @@ async def input_date_subject(
                         {
                             "id": schedule_id,
                             "date_number": int(day),
-                            "on_even_week": on_even_week,
+                            "week": week,
                         }
                     )
                 case SubjectActionsEnum.UPDATE.action:
                     item = {
                         "date_number": int(day),
-                        "on_even_week": on_even_week,
+                        "week": week,
                         "subject_id": subject_id,
                     }
                     if nice_schedule(
                         schedule,
                         day,
-                        on_even_week,
+                        week,
                     ):
                         new_schedule = await ScheduleActions.create_schedule(item).__dict__
                         new_schedule.pop("_sa_instance_state")
@@ -482,7 +475,7 @@ async def input_count_lab_subject_create(
         "name": name,
         "group_id": group,
         "count_practices": count,
-        "subject_type": SubjectType.LABORATORY_WORK,
+        "subject_type": SubjectTypeEnum.LABORATORY_WORK.value,
     }
     subject = await SubjectActions.create_subject(subject_info)
     for day in schedule:
@@ -502,7 +495,7 @@ async def input_count_lab_subject_update(
         "name": name,
         "group_id": group,
         "count_practices": count,
-        "subject_type": SubjectType.LABORATORY_WORK,
+        "subject_type": SubjectTypeEnum.LABORATORY_WORK.value,
     }
     await SubjectActions.update_subject(subject_id, subject_info)
 
@@ -567,7 +560,8 @@ def register_handlers_subject(dispatcher: Dispatcher) -> None:
     """Register handlers for subject."""
     dispatcher.register_message_handler(
         start_subject,
-        lambda message: check_headman_of_group(message.from_user.id),
+        HasUser(),
+        IsHeadman(),
         commands=[HeadmanCommands.EDIT_SUBJECT.command],
         state=None,
     )

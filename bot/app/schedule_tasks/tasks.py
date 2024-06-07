@@ -5,16 +5,16 @@ import random
 from aiogram import Bot
 from aiogram.utils.exceptions import BotBlocked
 
-from app.database import (
+from app.database.repositories import (
     GroupActions,
     QueueActions,
     ScheduleActions,
     SubjectActions,
-    SubjectType,
     UserActions,
 )
+from app.enums import SubjectTypeEnum
 
-from .services import is_event_week
+from .services import is_even_week
 
 SATURDAY = 5
 DAYS_BEFORE_SUBJECT = 1
@@ -67,7 +67,7 @@ async def activate_after_tomorrow_subjects() -> None:
         await ScheduleActions.change_status_subjects(True, schedule_id=date)
     await ScheduleActions.change_status_subjects(
         False,
-        on_even_week=str(not bool(is_event_week(after_tomorrow))),
+        week=is_even_week(after_tomorrow).constant,
     )
 
 
@@ -113,7 +113,7 @@ async def send_top(bot: Bot) -> None:
                         f"{index + 1}. {(await UserActions.get_user(id)).full_name}\n"
                         for index, id in enumerate(users)
                     ])
-                    if subject.subject_type == SubjectType.LABORATORY_WORK:
+                    if subject.subject_type == SubjectTypeEnum.LABORATORY_WORK.value:
                         list_labs.append(
                             lab_template.format(number, list_queue)
                         )

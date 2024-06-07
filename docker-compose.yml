@@ -12,12 +12,13 @@ services:
         APP_HOME: "/bot"
     depends_on:
       - postgres
+    volumes:
+      - ./bot:/bot
     environment:
       - DATABASE_URL=${POSTGRES_PROTOCOL}://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - TOKEN=${TOKEN}
       - ADMIN_ID=${ADMIN_ID}
       - ADMIN_URL=${ADMIN_URL}
-    command: python -m app
 
   postgres:
     image: postgres:14.4

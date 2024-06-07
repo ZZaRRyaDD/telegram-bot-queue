@@ -153,17 +153,17 @@ def select_subject_passes() -> InlineKeyboardMarkup:
     keyboard.row(
         InlineKeyboardButton(
             text=SubjectPassesEnum.EACH_WEEK.description,
-            callback_data=SubjectPassesEnum.EACH_WEEK.bool_value,
+            callback_data=SubjectPassesEnum.EACH_WEEK.constant,
         ),
     ).row(
         InlineKeyboardButton(
             text=SubjectPassesEnum.EACH_ODD_WEEK.description,
-            callback_data=SubjectPassesEnum.EACH_ODD_WEEK.bool_value,
+            callback_data=SubjectPassesEnum.EACH_ODD_WEEK.constant,
         ),
     ).row(
         InlineKeyboardButton(
             text=SubjectPassesEnum.EACH_EVEN_WEEK.description,
-            callback_data=SubjectPassesEnum.EACH_EVEN_WEEK.bool_value,
+            callback_data=SubjectPassesEnum.EACH_EVEN_WEEK.constant,
         ),
     )
     return keyboard
@@ -202,17 +202,17 @@ def select_subject_type() -> InlineKeyboardMarkup:
     keyboard.row(
         InlineKeyboardButton(
             text=SubjectTypeEnum.COURSE_WORK.description,
-            callback_data=SubjectTypeEnum.COURSE_WORK.type,
+            callback_data=SubjectTypeEnum.COURSE_WORK.value,
         ),
     ).row(
         InlineKeyboardButton(
             text=SubjectTypeEnum.SUMMER_PRACTICE.description,
-            callback_data=SubjectTypeEnum.SUMMER_PRACTICE.type,
+            callback_data=SubjectTypeEnum.SUMMER_PRACTICE.value,
         ),
     ).row(
         InlineKeyboardButton(
             text=SubjectTypeEnum.GRADUATE_WORK.description,
-            callback_data=SubjectTypeEnum.GRADUATE_WORK.type,
+            callback_data=SubjectTypeEnum.GRADUATE_WORK.value,
         ),
     )
     return keyboard

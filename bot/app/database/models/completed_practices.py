@@ -1,6 +1,6 @@
 from sqlalchemy import BigInteger, Column, ForeignKey, Integer
 
-from ..connect import Base
+from app.database.connection import Base
 
 
 class CompletedPractices(Base):

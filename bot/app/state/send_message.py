@@ -3,11 +3,11 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils.exceptions import BotBlocked
 
-from app.database import UserActions
+from app.database.repositories import UserActions
 from app.enums import AdminCommands
+from app.filters import IsAdmin
 from app.initialize import bot
 from app.keywords import remove_cancel, select_cancel
-from app.services import check_admin
 
 
 class Message(StatesGroup):
@@ -51,7 +51,7 @@ def register_handlers_message(dispatcher: Dispatcher) -> None:
     """Register handlers for message."""
     dispatcher.register_message_handler(
         get_message,
-        lambda message: check_admin(message.from_user.id),
+        IsAdmin(),
         commands=[AdminCommands.SEND_MESSAGE.command],
         state=None,
     )

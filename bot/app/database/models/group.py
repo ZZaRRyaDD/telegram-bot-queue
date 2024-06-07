@@ -1,6 +1,14 @@
+import zoneinfo
+
 from sqlalchemy import Boolean, Column, Integer, String, orm
 
-from ..connect import Base
+from app.database.connection import Base
+
+AVAILABLE_TIMEZONES = sorted([
+    zone
+    for zone in zoneinfo.available_timezones()
+    if "Asia" in zone or "Europe" in zone
+])
 
 
 class Group(Base):
@@ -11,6 +19,8 @@ class Group(Base):
     name = Column(String(32), unique=True, nullable=False)
     secret_word = Column(String(128), nullable=False)
     random_queue = Column(Boolean, default=False)
+    time_zone = Column(String(32), default="Asia/Krasnoyarsk", nullable=False)
+
     students = orm.relationship(
         "User",
         lazy="subquery",

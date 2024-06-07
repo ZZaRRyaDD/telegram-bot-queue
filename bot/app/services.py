@@ -2,13 +2,9 @@ import os
 import random
 from datetime import date, datetime, time, timedelta
 
-from app.database import (
-    GroupActions,
-    ScheduleActions,
-    SubjectType,
-    UserActions,
-    models,
-)
+from app.database.models import Subject, Group
+from app.database.repositories import GroupActions, UserActions
+from app.enums import SubjectPassesEnum, SubjectTypeEnum
 
 DAY_WEEKS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]
 DIFFERENCE_TIME_HOURS = 7
@@ -23,17 +19,12 @@ def get_time(str_time: str) -> str:
     ).time().isoformat("minutes")
 
 
-def check_admin(id: int) -> bool:
+async def check_admin(id: int) -> bool:
     """Check for admin user."""
     return id == int(os.getenv("ADMIN_ID"))
 
 
-async def check_user(id: int) -> bool:
-    """Check register user or not."""
-    return UserActions.get_user(id) is not None
-
-
-def is_headman(id: int) -> bool:
+async def is_headman(id: int) -> bool:
     """Is user headman or not."""
     user = UserActions.get_user(id)
     if user:
@@ -41,7 +32,7 @@ def is_headman(id: int) -> bool:
     return False
 
 
-def member_group(id: int) -> bool:
+async def member_group(id: int) -> bool:
     """Check for member of some group."""
     user = UserActions.get_user(id)
     if user:
@@ -49,24 +40,7 @@ def member_group(id: int) -> bool:
     return False
 
 
-def check_empty_headman(id: int) -> bool:
-    """Check for empty headman."""
-    return is_headman(id) and not member_group(id)
-
-
-def check_headman_of_group(id: int) -> bool:
-    """Check headman how owner of group."""
-    return is_headman(id) and member_group(id)
-
-
-def check_count_subject_group(id: int) -> bool:
-    """Check for exists of subjects."""
-    group = GroupActions.get_group_by_user_id(id, subjects=True)
-    if group:
-        return bool(group.subjects if group else group)
-
-
-def polynomial_hash(string: str) -> int:
+async def polynomial_hash(string: str) -> int:
     """Calculate polinomial hash."""
     second_prime_const = 2 ** 64 - 59
     first_prime_const = random.randint(0, second_prime_const)
@@ -79,7 +53,7 @@ def polynomial_hash(string: str) -> int:
     return hash_code % second_prime_const
 
 
-def print_info(user_id: int) -> str:
+async def print_info(user_id: int) -> str:
     """Return info about user."""
     user = UserActions.get_user(user_id, group=True)
     info = f"ID: {user.id}\n"
@@ -94,27 +68,25 @@ def print_info(user_id: int) -> str:
     return info
 
 
-def get_schedule_name(item: dict) -> str:
+async def get_schedule_name(item: dict) -> str:
     """Return info about day week and type of pass."""
-    type_week = (
-        "по четным неделям"
-        if item["on_even_week"] is True
-        else "по нечетным неделям" if item["on_even_week"] is False
-        else "каждую неделю"
-    )
+    type_week = ""
+    for week in SubjectPassesEnum:
+        if week.value == item["week"]:
+            type_week = week.description.lower()
     return f"{DAY_WEEKS[int(item['date_number'])]}, {type_week}"
 
 
-def get_info_schedule(subject: models.Subject) -> str:
+async def get_info_schedule(subject: Subject) -> str:
     """Return info about schedule."""
-    schedule = ScheduleActions.get_schedule(subject_id=subject.id)
+    schedule = subject.days
     info = ""
     if not schedule:
         return "\t\tРасписание отсутствует\n"
-    if subject.subject_type == SubjectType.LABORATORY_WORK:
-        even_week = list(filter(lambda x: x.on_even_week is True, schedule))
-        odd_week = list(filter(lambda x: x.on_even_week is False, schedule))
-        every_week = list(filter(lambda x: x.on_even_week is None, schedule))
+    if subject.subject_type == SubjectTypeEnum.LABORATORY_WORK.value:
+        even_week = list(filter(lambda x: x.week == SubjectPassesEnum.EACH_EVEN_WEEK.constant, schedule))
+        odd_week = list(filter(lambda x: x.week == SubjectPassesEnum.EACH_ODD_WEEK.constant, schedule))
+        every_week = list(filter(lambda x: x.week == SubjectPassesEnum.EACH_WEEK.constant, schedule))
         info += "\t\tРасписание:\n"
         if even_week:
             days = " ".join(
@@ -146,26 +118,28 @@ def get_info_schedule(subject: models.Subject) -> str:
         month = f"0{month}" if len(month) == 1 else month
         data = f"{date_protection.day}.{month}.{date_protection.year}"
         info += f"\t\t\t\tВремя проведения - {data}\n"
-    can_select = ScheduleActions.get_schedule(
-        subject_id=subject.id,
-        can_select=True,
-    )
+
+    can_select = False
+    for day in subject.days:
+        if day.can_select:
+            can_select = True
+            break
     info += (
         f"\t\t\t\tСейчас {'можно' if can_select else 'нельзя'} выбрать\n"
     )
     return info
 
 
-def get_info_subject(subject: models.Subject) -> str:
+async def get_info_subject(subject: Subject) -> str:
     """Return info about subject."""
     info = f"\t\t{subject.name}\n"
-    if subject.subject_type == SubjectType.LABORATORY_WORK:
+    if subject.subject_type == SubjectTypeEnum.LABORATORY_WORK.value:
         info += f"\t\tКоличество лабораторных работ: {subject.count_practices}\n"
-    info += get_info_schedule(subject)
+    info += await get_info_schedule(subject)
     return info
 
 
-def get_info_group(group: models.Group) -> str:
+async def get_info_group(group: Group) -> str:
     """Return info about group."""
     info = ""
     info += f"ID: {group.id}\n"
@@ -173,7 +147,7 @@ def get_info_group(group: models.Group) -> str:
     if group.subjects:
         info += "Предметы:\n"
         for subject in group.subjects:
-            info += get_info_subject(subject)
+            info += await get_info_subject(subject)
     if group.students:
         info += "Состав группы:\n"
         info += "".join(
@@ -185,12 +159,12 @@ def get_info_group(group: models.Group) -> str:
     return info
 
 
-def get_all_info() -> str:
+async def get_all_info() -> str:
     """Get info about groups, subjects."""
     info = ""
-    groups = GroupActions.get_groups(subjects=True, students=True)
+    groups = await GroupActions.get_groups(subjects=True, students=True)
     if groups:
         for group in groups:
-            info += f"{get_info_group(group)}\n"
+            info += f"{await get_info_group(group)}\n"
         return info
     return "Ничего нет"

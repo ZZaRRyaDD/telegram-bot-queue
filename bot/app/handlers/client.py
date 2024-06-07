@@ -2,9 +2,10 @@ import os
 
 from aiogram import Dispatcher, types
 
-from app.database import UserActions
+from app.database.repositories import UserActions
 from app.enums import ClientCommands
-from app.services import check_user, print_info
+from app.filters import HasUser
+from app.services import print_info
 from app.state import (
     register_handlers_change_account,
     register_handlers_complete_practice,
@@ -102,7 +103,7 @@ def register_handlers_client(dispatcher: Dispatcher) -> None:
     register_handlers_complete_practice(dispatcher)
     dispatcher.register_message_handler(
         info_user,
-        lambda message: check_user(message.from_user.id),
+        HasUser(),
         commands=[ClientCommands.INFO_PROFILE.command],
     )
     dispatcher.register_message_handler(

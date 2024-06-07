@@ -4,7 +4,8 @@ ARG MODE
 ARG APP_HOME
 
 RUN apt-get update && \
-    apt-get install --no-install-recommends -y libpq-dev build-essential
+    apt-get install --no-install-recommends -y libpq-dev build-essential && \
+    apt-get clean
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONBUFFERED 1
@@ -15,3 +16,5 @@ WORKDIR ${APP_HOME}
 RUN pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry install ${MODE} --no-interaction --no-ansi
+
+ENTRYPOINT [ "make", "run" ]

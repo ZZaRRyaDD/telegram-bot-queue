@@ -4,8 +4,9 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database import GroupActions, UserActions
+from app.database.repositories import GroupActions, UserActions
 from app.enums import HeadmanCommands
+from app.filters import HasUser, IsHeadman
 from app.keywords import (
     GroupActionsEnum,
     group_action,
@@ -13,12 +14,7 @@ from app.keywords import (
     select_cancel,
     select_random_queue_group,
 )
-from app.services import (
-    check_empty_headman,
-    check_headman_of_group,
-    get_info_group,
-    polynomial_hash,
-)
+from app.services import get_info_group, polynomial_hash
 
 
 def get_status_group(group_id: Optional[int], action: str) -> str:
@@ -178,7 +174,7 @@ async def input_secret_word_create(
 ) -> None:
     """Create new group."""
     group = await GroupActions.create_group(new_group).id
-    await UserActions.edit_user(message.from_user.id, {"group_id": group})
+    await UserActions.update_user(message.from_user.id, {"group_id": group})
 
 
 async def input_secret_word_update(group_id: int, new_group: dict) -> None:
@@ -223,10 +219,8 @@ def register_handlers_group(dispatcher: Dispatcher) -> None:
     """Register handlers for group."""
     dispatcher.register_message_handler(
         start_group,
-        lambda message: (
-            check_empty_headman(message.from_user.id) |
-            check_headman_of_group(message.from_user.id)
-        ),
+        HasUser(),
+        IsHeadman(),
         commands=[HeadmanCommands.EDIT_GROUP.command],
         state=None,
     )

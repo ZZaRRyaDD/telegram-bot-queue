@@ -2,10 +2,11 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database import UserActions
+from app.database.repositories import UserActions
 from app.enums import ClientCommands, UserActionsEnum
+from app.filters import HasUser
 from app.keywords import remove_cancel, select_cancel, user_actions
-from app.services import check_user, is_headman, print_info
+from app.services import is_headman, print_info
 
 
 class User(StatesGroup):
@@ -71,7 +72,7 @@ async def input_full_name_update(
         "id": message.from_user.id,
         "full_name": message.text,
     }
-    await UserActions.edit_user(message.from_user.id, new_info)
+    await UserActions.update_user(message.from_user.id, new_info)
     await message.answer(
         "Ваши данные успешно заменены",
         reply_markup=remove_cancel(),
@@ -130,17 +131,17 @@ def register_handlers_change_account(dispatcher: Dispatcher) -> None:
     """Register handlers for change account."""
     dispatcher.register_message_handler(
         start_user,
-        lambda message: check_user(message.from_user.id),
+        HasUser(),
         commands=[ClientCommands.EDIT_PROFILE.command],
         state=None,
     )
     dispatcher.register_callback_query_handler(
         input_action,
-        lambda message: check_user(message.from_user.id),
+        HasUser(),
         state=User.action,
     )
     dispatcher.register_message_handler(
         input_full_name,
-        lambda message: check_user(message.from_user.id),
+        HasUser(),
         state=User.full_name,
     )

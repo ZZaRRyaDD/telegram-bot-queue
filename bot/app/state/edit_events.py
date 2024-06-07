@@ -4,14 +4,14 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database import (
+from app.database.repositories import (
     GroupActions,
     ScheduleActions,
     SubjectActions,
-    SubjectType,
     UserActions,
 )
-from app.enums import EventActionsEnum, HeadmanCommands, SubjectActionsEnum
+from app.enums import EventActionsEnum, HeadmanCommands, SubjectActionsEnum, SubjectTypeEnum
+from app.filters import HasUser, IsHeadman, IsMemberOfGroup
 from app.keywords import (
     event_action,
     get_list_of_subjects,
@@ -19,7 +19,6 @@ from app.keywords import (
     select_cancel,
     select_subject_type,
 )
-from app.services import check_headman_of_group
 
 START_MESSAGE = """
 Учтите, что при создании летней практики/курсовой работы/диплома
@@ -63,9 +62,9 @@ async def input_action_event_update_delete(
 ) -> None:
     """Get info for update/delete event."""
     subject_types = [
-        SubjectType.COURSE_WORK,
-        SubjectType.GRADUATE_WORK,
-        SubjectType.SUMMER_PRACTICE,
+        SubjectTypeEnum.COURSE_WORK.value,
+        SubjectTypeEnum.GRADUATE_WORK.value,
+        SubjectTypeEnum.SUMMER_PRACTICE.value,
     ]
     subjects = (await GroupActions.get_group_by_user_id(
         callback.from_user.id,
@@ -308,7 +307,9 @@ def register_handlers_event(dispatcher: Dispatcher) -> None:
     """Register handlers for event."""
     dispatcher.register_message_handler(
         start_event,
-        lambda message: check_headman_of_group(message.from_user.id),
+        HasUser(),
+        IsHeadman(),
+        IsMemberOfGroup(),
         commands=[HeadmanCommands.EDIT_EVENT.command],
         state=None,
     )

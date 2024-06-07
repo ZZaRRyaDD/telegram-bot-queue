@@ -2,8 +2,9 @@ import enum
 
 from sqlalchemy import Boolean, Column, Date, Enum, ForeignKey, Integer, orm
 
-from ..connect import Base
 from app.enums import DaysOfWeekEnum, SubjectPassesEnum
+
+from app.database.connection import Base
 
 
 class Weekday(int, enum.Enum):
@@ -20,9 +21,9 @@ class Weekday(int, enum.Enum):
 class Week(str, enum.Enum):
     """Model for type week."""
 
-    EACH_WEEK = SubjectPassesEnum.EACH_WEEK.value
-    EACH_ODD_WEEK = SubjectPassesEnum.EACH_ODD_WEEK.value
-    EACH_EVEN_WEEK = SubjectPassesEnum.EACH_EVEN_WEEK.value
+    EACH_WEEK = SubjectPassesEnum.EACH_WEEK.constant
+    EACH_ODD_WEEK = SubjectPassesEnum.EACH_ODD_WEEK.constant
+    EACH_EVEN_WEEK = SubjectPassesEnum.EACH_EVEN_WEEK.constant
 
 
 class Schedule(Base):
@@ -32,12 +33,13 @@ class Schedule(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     week = Column(Enum(Week), nullable=False)
     date_number = Column(Enum(Weekday), nullable=False)
+    can_select = Column(Boolean, default=False)
+    date_protection = Column(Date, default=None)
+
     subject_id = Column(
         Integer,
         ForeignKey("subjects.id", ondelete="CASCADE"),
     )
-    can_select = Column(Boolean, default=False)
-    date_protection = Column(Date, default=None)
     subject = orm.relationship(
         "Subject",
         lazy="joined",

@@ -3,8 +3,8 @@ from typing import Optional
 
 from sqlalchemy import delete, orm, select, update
 
-from .. import connect
-from ..models import Subject, User
+from app.database.connection import connect
+from app.database.models import Subject, User
 
 
 class UserActions:
@@ -34,8 +34,8 @@ class UserActions:
                 orm.joinedload(User.group),
             )
         async with anext(connect.get_session()) as session:
-            user = await session.execute(query).first()
-            return user[0] if user else None
+            result = await session.execute(query)
+            return result.scalar()
 
     @staticmethod
     async def get_users(
@@ -53,32 +53,29 @@ class UserActions:
                 User.id != int(os.getenv("ADMIN_ID")),
             )
         async with anext(connect.get_session()) as session:
-            users = await session.execute(query).all()
-            return [user[0] for user in users] if users else []
+            result = await session.execute(query)
+            return result.scalars().all()
 
     @staticmethod
-    async def create_user(user: dict) -> None:
+    async def create_user(user: dict) -> User:
         """Create user."""
+        user = User(**user)
         async with anext(connect.get_session()) as session:
-            session.add(User(**user))
+            session.add(user)
             session.commit()
+            session.refresh(user)
+            return user
 
     @staticmethod
-    async def edit_user(user_id: int, user: dict) -> None:
+    async def update_user(user_id: int, user: dict) -> None:
         """Edit user by id."""
+        query = update(User).where(User.id == user_id).values(**user)
         async with anext(connect.get_session()) as session:
-            await session.execute(
-                update(User).where(
-                    User.id == user_id,
-                ).values(**user),
-            )
+            await session.execute(query)
 
     @staticmethod
     async def delete_user(user_id: int) -> None:
         """Delete user by id."""
+        query = delete(User).where(User.id == user_id)
         async with anext(connect.get_session()) as session:
-            await session.execute(
-                delete(User).where(
-                    User.id == user_id,
-                ),
-            )
+            await session.execute(query)

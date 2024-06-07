@@ -2,8 +2,8 @@ from typing import Optional
 
 from sqlalchemy import delete, orm, select, update
 
-from .. import connect
-from ..models import Subject
+from app.database.connection import connect
+from app.database.models import Subject
 
 
 class SubjectActions:
@@ -23,8 +23,8 @@ class SubjectActions:
                 orm.subqueryload(Subject.users_practice),
             )
         async with anext(connect.get_session()) as session:
-            subject = await session.execute(query).first()
-            return subject[0] if subject else None
+            result = await session.execute(query)
+            return result.scalar()
 
     @staticmethod
     async def get_subjects(
@@ -37,14 +37,14 @@ class SubjectActions:
                 orm.subqueryload(Subject.users_practice),
             )
         async with anext(connect.get_session()) as session:
-            subjects = await session.execute(query).all()
-            return [subject[0] for subject in subjects] if subjects else []
+            result = await session.execute(query)
+            return result.scalars().all()
 
     @staticmethod
     async def create_subject(subject: dict) -> Subject:
         """Create subject."""
+        subject = Subject(**subject)
         async with anext(connect.get_session()) as session:
-            subject = Subject(**subject)
             session.add(subject)
             session.commit()
             session.refresh(subject)
@@ -53,19 +53,13 @@ class SubjectActions:
     @staticmethod
     async def update_subject(subject_id: int, subject: dict) -> None:
         """Update subject."""
+        query = update(Subject).where(Subject.id == subject_id).values(subject)
         async with anext(connect.get_session()) as session:
-            await session.execute(
-                update(Subject).where(
-                    Subject.id == subject_id,
-                ).values(subject),
-            )
+            await session.execute(query)
 
     @staticmethod
     async def delete_subject(subject_id: int) -> None:
         """Delete subject by id."""
+        query = delete(Subject).where(Subject.id == subject_id)
         async with anext(connect.get_session()) as session:
-            await session.execute(
-                delete(Subject).where(
-                    Subject.id == subject_id,
-                )
-            )
+            await session.execute(query)

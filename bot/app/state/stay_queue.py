@@ -2,15 +2,16 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database import (
+from app.database.repositories import (
     GroupActions,
     QueueActions,
     ScheduleActions,
     SubjectActions,
 )
 from app.enums import ClientCommands, OtherCommands, SubjectCompact
+from app.filters import HasUser
 from app.keywords import get_list_of_numbers, get_list_of_subjects
-from app.services import check_user, member_group
+from app.services import member_group
 
 QUEUE_TEXT = """
 Выберите предмет.
@@ -158,7 +159,7 @@ def register_handlers_stay_queue(dispatcher: Dispatcher) -> None:
     """Register handlers for select subjects."""
     dispatcher.register_message_handler(
         start_stay_queue,
-        lambda message: check_user(message.from_user.id),
+        HasUser(),
         commands=[ClientCommands.STAY_QUEUE.command],
         state=None,
     )

@@ -3,8 +3,8 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 
 from app.enums import OtherCommands
+from app.filters import HasUser
 from app.keywords import remove_cancel
-from app.services import check_user
 
 
 async def cancel_handler(message: types.Message, state: FSMContext) -> None:
@@ -23,13 +23,13 @@ def register_handlers_cancel_action(dispatcher: Dispatcher) -> None:
     """Register handlers for cancel action."""
     dispatcher.register_message_handler(
         cancel_handler,
-        lambda message: check_user(message.from_user.id),
+        HasUser(),
         state="*",
         commands=[OtherCommands.CANCEL.command],
     )
     dispatcher.register_message_handler(
         cancel_handler,
-        lambda message: check_user(message.from_user.id),
+        HasUser(),
         Text(equals="Cancel", ignore_case=True),
         state="*",
     )

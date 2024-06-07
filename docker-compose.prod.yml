@@ -23,7 +23,6 @@ services:
       - DEBUG=False
     expose:
       - 3001
-    command: python -m app
 
   postgres:
     image: postgres:14.4

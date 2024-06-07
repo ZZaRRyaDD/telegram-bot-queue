@@ -3,8 +3,8 @@ from typing import Optional
 
 from sqlalchemy import delete, select, update
 
-from .. import connect
-from ..models import Schedule
+from app.database.connection import connect
+from app.database.models import Schedule
 
 
 class ScheduleActions:
@@ -28,14 +28,14 @@ class ScheduleActions:
         if date_protection is not None:
             query = query.where(Schedule.date_protection == date_protection)
         async with anext(connect.get_session()) as session:
-            schedule = await session.execute(query).all()
-            return [date[0] for date in schedule] if schedule else []
+            result = await session.execute(query)
+            return result.scalars().all()
 
     @staticmethod
     async def create_schedule(schedule: dict) -> None:
         """Create schedule."""
+        schedule = Schedule(**schedule)
         async with anext(connect.get_session()) as session:
-            schedule = Schedule(**schedule)
             session.add(schedule)
             session.commit()
             session.refresh(schedule)
@@ -44,19 +44,16 @@ class ScheduleActions:
     @staticmethod
     async def delete_schedule_by_id(schedule_id: int) -> None:
         """Delete schedule."""
+        query = delete(Schedule).where(Schedule.id == schedule_id)
         async with anext(connect.get_session()) as session:
-            await session.execute(
-                delete(Schedule).where(
-                    Schedule.id == schedule_id,
-                ),
-            )
+            await session.execute(query)
 
     @staticmethod
     async def change_status_subjects(
         can_select: bool,
-        schedule_id: int = None,
-        can_select_to_change: bool = None,
-        on_even_week: str = None,
+        schedule_id: Optional[int] = None,
+        can_select_to_change: Optional[bool] = None,
+        week: Optional[str] = None,
     ) -> None:
         """Change field 'can_select' of subject."""
         query = update(Schedule)
@@ -64,14 +61,8 @@ class ScheduleActions:
             query = query.where(Schedule.id == schedule_id)
         elif can_select_to_change is not None:
             query = query.where(Schedule.can_select.is_(can_select_to_change))
-        elif on_even_week is not None:
-            query = query.where(
-                Schedule.on_even_week.is_(
-                    True
-                    if on_even_week == "True"
-                    else False if on_even_week == "False" else None
-                )
-            )
+        elif week is not None:
+            query = query.where(Schedule.week == week)
         query = query.values(can_select=can_select)
         async with anext(connect.get_session()) as session:
             await session.execute(query)

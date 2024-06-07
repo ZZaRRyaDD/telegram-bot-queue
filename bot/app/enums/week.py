@@ -24,6 +24,6 @@ class SubjectPassesEnum(enum.Enum):
     EACH_ODD_WEEK = ("each_odd_week", "По нечетным неделям")
     EACH_EVEN_WEEK = ("each_even_week", "По четным неделям")
 
-    def __init__(self, value: str, description: str) -> None:
-        self.value = value
+    def __init__(self, constant: str, description: str) -> None:
+        self.constant = constant
         self.description = description

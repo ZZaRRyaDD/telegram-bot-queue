@@ -2,10 +2,11 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database import GroupActions, QueueActions, UserActions
+from app.database.repositories import GroupActions, QueueActions, UserActions
 from app.enums import ClientCommands, OtherCommands
+from app.filters import HasUser
 from app.keywords import get_list_of_groups, remove_cancel, select_cancel
-from app.services import check_user, is_headman, polynomial_hash
+from app.services import is_headman, polynomial_hash
 
 
 class SelectGroup(StatesGroup):
@@ -68,7 +69,7 @@ async def get_secret_word(message: types.Message, state: FSMContext) -> None:
             reply_markup=select_cancel(),
         )
         return
-    await UserActions.edit_user(message.from_user.id, {"group_id": group.id})
+    await UserActions.update_user(message.from_user.id, {"group_id": group.id})
     await QueueActions.cleaning_user(message.from_user.id)
     await message.answer(
         f"Теперь вы в группе {group.name}",
@@ -81,7 +82,7 @@ def register_handlers_select_group(dispatcher: Dispatcher) -> None:
     """Register handlers for select group."""
     dispatcher.register_message_handler(
         start_select_group,
-        lambda message: check_user(message.from_user.id),
+        HasUser(),
         commands=[ClientCommands.CHOICE_GROUP.command],
         state=None,
     )
