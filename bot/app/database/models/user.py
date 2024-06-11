@@ -1,5 +1,4 @@
 from sqlalchemy import (
-    BigInteger,
     Boolean,
     Column,
     ForeignKey,
@@ -8,15 +7,16 @@ from sqlalchemy import (
     orm,
 )
 
-from app.database.connection import Base
+from .base import BaseTable
 
 
-class User(Base):
+class User(BaseTable):
     """Model for each user."""
     __tablename__ = "users"
 
-    id = Column(BigInteger, primary_key=True)
-    full_name = Column(String(256), nullable=False)
+    first_name = Column(String(128), nullable=False)
+    last_name = Column(String(128), nullable=False)
+    surname = Column(String(128), nullable=False)
     is_headman = Column(Boolean, default=False)
     subjects_practice = orm.relationship(
         "Subject",

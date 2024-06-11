@@ -1,8 +1,8 @@
 import zoneinfo
 
-from sqlalchemy import Boolean, Column, Integer, String, orm
+from sqlalchemy import Boolean, Column, String, orm
 
-from app.database.connection import Base
+from .base import BaseTable
 
 AVAILABLE_TIMEZONES = sorted([
     zone
@@ -11,11 +11,10 @@ AVAILABLE_TIMEZONES = sorted([
 ])
 
 
-class Group(Base):
+class Group(BaseTable):
     """Model for each group."""
     __tablename__ = "groups"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(32), unique=True, nullable=False)
     secret_word = Column(String(128), nullable=False)
     random_queue = Column(Boolean, default=False)

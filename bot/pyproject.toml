@@ -7,7 +7,7 @@ authors = ["Nazar <odddellarobea@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 aiogram = "2.25.2"
-SQLAlchemy = "1.4.52"
+SQLAlchemy = {version="1.4.52", extras=["asyncio"]}
 emoji = "2.1.0"
 alembic = "1.13.1"
 aioschedule = "0.5.2"

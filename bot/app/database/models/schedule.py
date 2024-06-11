@@ -2,7 +2,7 @@ import enum
 
 from sqlalchemy import Boolean, Column, Date, Enum, ForeignKey, Integer, orm
 
-from app.database.connection import Base
+from .base import BaseTable
 from app.enums import DaysOfWeekEnum, SubjectPassesEnum
 
 
@@ -25,11 +25,10 @@ class Week(str, enum.Enum):
     EACH_EVEN_WEEK = SubjectPassesEnum.EACH_EVEN_WEEK.constant
 
 
-class Schedule(Base):
+class Schedule(BaseTable):
     """Model for each subject."""
     __tablename__ = "schedule"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
     week = Column(Enum(Week), nullable=False)
     date_number = Column(Enum(Weekday), nullable=False)
     can_select = Column(Boolean, default=False)

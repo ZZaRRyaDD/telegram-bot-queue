@@ -32,7 +32,7 @@ class GroupActions:
             query = query.options(
                 orm.subqueryload(Group.students),
             )
-        async with get_session()() as session:
+        async with get_session() as session:
             result = await session.execute(query)
             return result.scalar()
 
@@ -56,7 +56,7 @@ class GroupActions:
                 orm.subqueryload(Group.students),
             )
         query = query.options(group)
-        async with get_session()() as session:
+        async with get_session() as session:
             result = await session.execute(query)
             user = result.scalar()
             if user is None:
@@ -80,7 +80,7 @@ class GroupActions:
             query = query.options(
                 orm.subqueryload(Group.students),
             )
-        async with get_session()() as session:
+        async with get_session() as session:
             result = await session.execute(query)
             return result.scalars().all()
 
@@ -88,7 +88,7 @@ class GroupActions:
     async def create_group(group: dict) -> Group:
         """Create group."""
         group = Group(**group)
-        async with get_session()() as session:
+        async with get_session() as session:
             session.add(group)
             session.commit()
             session.refresh(group)
@@ -98,12 +98,12 @@ class GroupActions:
     async def edit_group(group_id: int, group: dict) -> None:
         """Edit group."""
         query = update(Group).where(Group.id == group_id).values(**group)
-        async with get_session()() as session:
+        async with get_session() as session:
             await session.execute(query)
 
     @staticmethod
     async def delete_group(group_id: int) -> None:
         """Delete group by id."""
         query = delete(Group).where(Group.id == group_id)
-        async with get_session()() as session:
+        async with get_session() as session:
             await session.execute(query)

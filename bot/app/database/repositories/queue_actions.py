@@ -11,7 +11,7 @@ class QueueActions:
     async def get_queue_info(user_id: int) -> list[Queue]:
         """Get position, where user stay."""
         query = select(Queue).where(Queue.user_id == user_id)
-        async with get_session()() as session:
+        async with get_session() as session:
             result = await session.execute(query)
             return result.scalars().all()
 
@@ -22,21 +22,21 @@ class QueueActions:
             Queue.user_id == params["user_id"],
             Queue.number_practice == params["number_practice"],
         ).values(number_in_list=params["number_in_list"])
-        async with get_session()() as session:
+        async with get_session() as session:
             await session.execute(query)
 
     @staticmethod
     async def cleaning_user(user_id: int) -> None:
         """Cleaning user queue."""
         query = delete(Queue).where(Queue.user_id == user_id)
-        async with get_session()() as session:
+        async with get_session() as session:
             await session.execute(query)
 
     @staticmethod
     async def cleaning_subject() -> None:
         """Cleaning subject queue."""
         query = delete(Queue).where(Queue.number_in_list.is_not(None))
-        async with get_session()() as session:
+        async with get_session() as session:
             await session.execute(query)
 
     @staticmethod
@@ -48,7 +48,7 @@ class QueueActions:
                 Queue.number_practice == params["number_practice"],
             ),
         ).order_by(Queue.id)
-        async with get_session()() as session:
+        async with get_session() as session:
             result = await session.execute(query)
             queues = result.scalars().all()
             return [queue.user_id for queue in queues]
@@ -63,7 +63,7 @@ class QueueActions:
                 Queue.number_practice == params["number_practice"],
             ),
         )
-        async with get_session()() as session:
+        async with get_session() as session:
             result = await session.execute(query)
             return result.scalar()
 
@@ -71,7 +71,7 @@ class QueueActions:
     async def append_queue(params: dict) -> None:
         """Append user in queue."""
         query = insert(Queue).values(**params)
-        async with get_session()() as session:
+        async with get_session() as session:
             await session.execute(query)
 
     @staticmethod
@@ -84,7 +84,7 @@ class QueueActions:
                 Queue.number_practice == params["number_practice"],
             ),
         )
-        async with get_session()() as session:
+        async with get_session() as session:
             await session.execute(query)
 
     @staticmethod

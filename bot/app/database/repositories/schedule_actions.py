@@ -27,7 +27,7 @@ class ScheduleActions:
             query = query.where(Schedule.date_number == date_number)
         if date_protection is not None:
             query = query.where(Schedule.date_protection == date_protection)
-        async with get_session()() as session:
+        async with get_session() as session:
             result = await session.execute(query)
             return result.scalars().all()
 
@@ -35,7 +35,7 @@ class ScheduleActions:
     async def create_schedule(schedule: dict) -> None:
         """Create schedule."""
         schedule = Schedule(**schedule)
-        async with get_session()() as session:
+        async with get_session() as session:
             session.add(schedule)
             session.commit()
             session.refresh(schedule)
@@ -45,7 +45,7 @@ class ScheduleActions:
     async def delete_schedule_by_id(schedule_id: int) -> None:
         """Delete schedule."""
         query = delete(Schedule).where(Schedule.id == schedule_id)
-        async with get_session()() as session:
+        async with get_session() as session:
             await session.execute(query)
 
     @staticmethod
@@ -64,6 +64,6 @@ class ScheduleActions:
         elif week is not None:
             query = query.where(Schedule.week == week)
         query = query.values(can_select=can_select)
-        async with get_session()() as session:
+        async with get_session() as session:
             await session.execute(query)
             session.commit()

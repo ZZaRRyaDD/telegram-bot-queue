@@ -2,7 +2,7 @@ import enum
 
 from sqlalchemy import Column, Enum, ForeignKey, Integer, String, orm
 
-from app.database.connection import Base
+from .base import BaseTable
 from app.enums import SubjectTypeEnum
 
 
@@ -15,11 +15,10 @@ class SubjectType(str, enum.Enum):
     GRADUATE_WORK = SubjectTypeEnum.GRADUATE_WORK.value
 
 
-class Subject(Base):
+class Subject(BaseTable):
     """Model for each subject."""
     __tablename__ = "subjects"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(128), nullable=False)
     count_practices = Column(Integer)
     subject_type = Column(Enum(SubjectType), nullable=False)

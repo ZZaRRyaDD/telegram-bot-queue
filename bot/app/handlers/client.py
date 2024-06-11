@@ -68,7 +68,6 @@ async def set_commands_client(dispatcher: Dispatcher) -> None:
 
 async def start_command(message: types.Message) -> None:
     """Handler for start command."""
-    print(1)
     if not (await UserActions.get_user(message.from_user.id)):
         print("not found")
         await message.answer("Смотрю, ты еще не с нами. Давай это исправим!")

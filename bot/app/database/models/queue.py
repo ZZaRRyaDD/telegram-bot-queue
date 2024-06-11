@@ -1,19 +1,18 @@
 from sqlalchemy import BigInteger, Column, ForeignKey, Integer
 
-from app.database.connection import Base
+from .base import BaseTable
 
 
-class Queue(Base):
+class Queue(BaseTable):
     """Model for each queue."""
     __tablename__ = "queue"
 
-    id = Column(Integer, primary_key=True)
     user_id = Column(
         BigInteger,
         ForeignKey("users.id", ondelete="CASCADE"),
     )
     subject_id = Column(
-        Integer,
+        BigInteger,
         ForeignKey("subjects.id", ondelete="CASCADE"),
     )
     number_practice = Column(Integer, nullable=True)

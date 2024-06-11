@@ -23,10 +23,8 @@ class SessionManager:
         self.engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True, future=True)
 
 
-async def get_session() -> AsyncSession:
-    session_maker = SessionManager().get_session_maker()
-    async with session_maker() as session:
-        yield session
+def get_session() -> AsyncSession:
+    return (SessionManager().get_session_maker())()
 
 
 Base = declarative_base()
