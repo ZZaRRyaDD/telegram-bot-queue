@@ -1,6 +1,6 @@
 from sqlalchemy import delete, insert, select, sql
 
-from app.database.connection import connect
+from app.database.connection import get_session
 from app.database.models import CompletedPractices
 
 
@@ -11,7 +11,7 @@ class CompletedPracticesActions:
     async def get_completed_practices_info(complete_practices_id: int) -> list[CompletedPractices]:
         """Get completed labs, where user stay."""
         query = select(CompletedPractices).where(CompletedPractices.user_id == complete_practices_id)
-        async with anext(connect.get_session()) as session:
+        async with get_session()() as session:
             result = await session.execute(query)
             return result.scalars().all()
 
@@ -25,7 +25,7 @@ class CompletedPracticesActions:
                 CompletedPractices.number_practice == params["number_practice"],
             ),
         )
-        async with anext(connect.get_session()) as session:
+        async with get_session()() as session:
             result = await session.execute(query)
             return result.scalar()
 
@@ -33,7 +33,7 @@ class CompletedPracticesActions:
     async def append_completed_practices(params: dict) -> None:
         """Append user in completed practices."""
         query = insert(CompletedPractices).values(**params)
-        async with anext(connect.get_session()) as session:
+        async with get_session()() as session:
             await session.execute(query)
 
     @staticmethod
@@ -45,7 +45,7 @@ class CompletedPracticesActions:
                 CompletedPractices.number_practice == params["number_practice"],
             ),
         )
-        async with anext(connect.get_session()) as session:
+        async with get_session()() as session:
             await session.execute(query)
 
     @staticmethod
@@ -58,7 +58,7 @@ class CompletedPracticesActions:
                 CompletedPractices.number_practice == params["number_practice"],
             ),
         )
-        async with anext(connect.get_session()) as session:
+        async with get_session()() as session:
             await session.execute(query)
 
     @staticmethod

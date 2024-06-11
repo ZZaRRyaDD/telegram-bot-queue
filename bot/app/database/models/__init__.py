@@ -6,11 +6,11 @@ from .subject import Subject, SubjectType
 from .user import User
 
 __all__ = (
-    CompletedPractices,
-    Group,
-    Queue,
-    Schedule,
-    Subject,
-    SubjectType,
-    User,
+    "CompletedPractices",
+    "Group",
+    "Queue",
+    "Schedule",
+    "Subject",
+    "SubjectType",
+    "User",
 )

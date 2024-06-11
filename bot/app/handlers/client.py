@@ -68,7 +68,9 @@ async def set_commands_client(dispatcher: Dispatcher) -> None:
 
 async def start_command(message: types.Message) -> None:
     """Handler for start command."""
+    print(1)
     if not (await UserActions.get_user(message.from_user.id)):
+        print("not found")
         await message.answer("Смотрю, ты еще не с нами. Давай это исправим!")
         full_name = (
             f"{message.from_user.last_name} {message.from_user.first_name}"
@@ -78,6 +80,7 @@ async def start_command(message: types.Message) -> None:
             "full_name": full_name,
         }
         await UserActions.create_user(new_user)
+    print("hello")
     await message.answer(HELLO_TEXT)
 
 

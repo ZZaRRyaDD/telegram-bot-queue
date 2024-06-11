@@ -2,7 +2,7 @@ import os
 import random
 from datetime import date, datetime, time, timedelta
 
-from app.database.models import Subject, Group
+from app.database.models import Group, Subject
 from app.database.repositories import GroupActions, UserActions
 from app.enums import SubjectPassesEnum, SubjectTypeEnum
 

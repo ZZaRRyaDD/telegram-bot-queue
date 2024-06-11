@@ -47,6 +47,9 @@ linters:  ##@Linters Run linters
 migrate:  ##@Application Apply migrations
 	make docker-bot-run "make migrate"
 
+revision:  ##@Application Generate migrations
+	make docker-bot-run "make revision"
+
 open-db:  ##@Database Open database inside docker-image
 	docker exec -it postgres psql -d $(POSTGRES_DB) -U $(POSTGRES_USER) -p $(POSTGRES_PORT)
 

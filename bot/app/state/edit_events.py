@@ -10,7 +10,12 @@ from app.database.repositories import (
     SubjectActions,
     UserActions,
 )
-from app.enums import EventActionsEnum, HeadmanCommands, SubjectActionsEnum, SubjectTypeEnum
+from app.enums import (
+    EventActionsEnum,
+    HeadmanCommands,
+    SubjectActionsEnum,
+    SubjectTypeEnum,
+)
 from app.filters import HasUser, IsHeadman, IsMemberOfGroup
 from app.keywords import (
     event_action,

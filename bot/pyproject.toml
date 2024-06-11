@@ -7,11 +7,13 @@ authors = ["Nazar <odddellarobea@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 aiogram = "2.25.2"
-SQLAlchemy = {version="2.0.25", extras=["asyncio"]}
+SQLAlchemy = "1.4.52"
 emoji = "2.1.0"
-alembic = "1.8.1"
+alembic = "1.13.1"
 aioschedule = "0.5.2"
-asyncpg = "0.29.0"
+SQLAlchemy-Utils = "0.38.3"
+asyncpg = "0.26.0"
+psycopg2-binary = "^2.9.9"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "4.0.1"

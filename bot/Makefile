@@ -1,7 +1,3 @@
-ifeq ($(shell test -e '.env' && echo -n yes),yes)
-	include .env
-endif
-
 args := $(wordlist 2, 100, $(MAKECMDGOALS))
 ifndef args
 MESSAGE = "No such command (or you pass two or many targets to ). List of possible commands: make help"
@@ -20,15 +16,18 @@ help: ##@Help Show this help
 	@echo -e "Usage: make [target] ...\n"
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
 
-migrate:  ##@ApplicationDev Apply migrations
-	alembic revision --autogenerate
+revision:  ##@ApplicationDev Generate migrations
+	cd ./app/database && alembic revision --autogenerate
+
+migrate:  ##@ApplicationDev Generate migrations
+	cd ./app/database && alembic upgrade $(args)
 
 linters:  ##@Linters Run linters
 	isort . --settings-file=./setup.cfg
 	flake8 . --config=./setup.cfg
 
 run:  ##@ApplicationDev Run django
-	python -m app
+	make migrate head && python -m app
 
 %::
 	echo $(MESSAGE)

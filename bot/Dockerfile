@@ -17,4 +17,4 @@ RUN pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry install ${MODE} --no-interaction --no-ansi
 
-ENTRYPOINT [ "make", "run" ]
+CMD [ "make", "run" ]

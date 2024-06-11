@@ -2,9 +2,8 @@ import enum
 
 from sqlalchemy import Boolean, Column, Date, Enum, ForeignKey, Integer, orm
 
-from app.enums import DaysOfWeekEnum, SubjectPassesEnum
-
 from app.database.connection import Base
+from app.enums import DaysOfWeekEnum, SubjectPassesEnum
 
 
 class Weekday(int, enum.Enum):

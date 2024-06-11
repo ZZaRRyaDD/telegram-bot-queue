@@ -22,7 +22,7 @@ class SubjectActions:
             query = query.options(
                 orm.subqueryload(Subject.users_practice),
             )
-        async with anext(connect.get_session()) as session:
+        async with get_session()() as session:
             result = await session.execute(query)
             return result.scalar()
 
@@ -36,7 +36,7 @@ class SubjectActions:
             query = query.options(
                 orm.subqueryload(Subject.users_practice),
             )
-        async with anext(connect.get_session()) as session:
+        async with get_session()() as session:
             result = await session.execute(query)
             return result.scalars().all()
 
@@ -44,7 +44,7 @@ class SubjectActions:
     async def create_subject(subject: dict) -> Subject:
         """Create subject."""
         subject = Subject(**subject)
-        async with anext(connect.get_session()) as session:
+        async with get_session()() as session:
             session.add(subject)
             session.commit()
             session.refresh(subject)
@@ -54,12 +54,12 @@ class SubjectActions:
     async def update_subject(subject_id: int, subject: dict) -> None:
         """Update subject."""
         query = update(Subject).where(Subject.id == subject_id).values(subject)
-        async with anext(connect.get_session()) as session:
+        async with get_session()() as session:
             await session.execute(query)
 
     @staticmethod
     async def delete_subject(subject_id: int) -> None:
         """Delete subject by id."""
         query = delete(Subject).where(Subject.id == subject_id)
-        async with anext(connect.get_session()) as session:
+        async with get_session()() as session:
             await session.execute(query)
