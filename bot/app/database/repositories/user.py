@@ -3,11 +3,12 @@ from typing import Optional
 
 from sqlalchemy import delete, orm, select, update
 
+from .base import BaseRepository
 from app.database.connection import get_session
 from app.database.models import Subject, User
 
 
-class UserActions:
+class UserRepository(BaseRepository):
     """Class with actions with user."""
 
     @staticmethod

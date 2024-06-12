@@ -1,9 +1,9 @@
-from .completed_practices_actions import CompletedPracticesActions
-from .group_actions import GroupActions
-from .queue_actions import QueueActions
-from .schedule_actions import ScheduleActions
-from .subject_actions import SubjectActions
-from .user_actions import UserActions
+from .completed_practices import CompletedPracticesActions
+from .group import GroupActions
+from .queue import QueueActions
+from .schedule import ScheduleActions
+from .subject import SubjectActions
+from .user import UserRepository
 
 __all__ = (
     CompletedPracticesActions,
@@ -11,5 +11,5 @@ __all__ = (
     QueueActions,
     ScheduleActions,
     SubjectActions,
-    UserActions,
+    UserRepository,
 )
