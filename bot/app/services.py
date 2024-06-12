@@ -26,18 +26,14 @@ async def check_admin(id: int) -> bool:
 
 async def is_headman(id: int) -> bool:
     """Is user headman or not."""
-    user = UserActions.get_user(id)
-    if user:
-        return user.is_headman
-    return False
+    user = await UserActions.get_user(id)
+    return user.is_headman
 
 
 async def member_group(id: int) -> bool:
     """Check for member of some group."""
-    user = UserActions.get_user(id)
-    if user:
-        return user.group_id is not None
-    return False
+    user = await UserActions.get_user(id)
+    return user.group_id is not None
 
 
 async def polynomial_hash(string: str) -> int:
@@ -55,9 +51,9 @@ async def polynomial_hash(string: str) -> int:
 
 async def print_info(user_id: int) -> str:
     """Return info about user."""
-    user = UserActions.get_user(user_id, group=True)
+    user = await UserActions.get_user(user_id, group=True)
     info = f"ID: {user.id}\n"
-    info += f"Фамилия Имя: {user.full_name}\n"
+    info += f"Фамилия Имя: {user.last_name} {user.first_name}\n"
     group = (
         user.group.name
         if user.group is not None

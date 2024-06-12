@@ -3,7 +3,7 @@ from typing import Optional
 
 from sqlalchemy import delete, select, update
 
-from app.database.connection import connect
+from app.database.connection import get_session
 from app.database.models import Schedule
 
 
@@ -37,8 +37,8 @@ class ScheduleActions:
         schedule = Schedule(**schedule)
         async with get_session() as session:
             session.add(schedule)
-            session.commit()
-            session.refresh(schedule)
+            await session.commit()
+            await session.refresh(schedule)
             return schedule
 
     @staticmethod
@@ -66,4 +66,4 @@ class ScheduleActions:
         query = query.values(can_select=can_select)
         async with get_session() as session:
             await session.execute(query)
-            session.commit()
+            await session.commit()

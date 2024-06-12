@@ -18,7 +18,7 @@ class SelectGroup(StatesGroup):
 
 async def start_select_group(message: types.Message) -> None:
     """Entrypoint for select group."""
-    if is_headman(message.from_user.id):
+    if await is_headman(message.from_user.id):
         await message.answer("Староста не может выбирать, ибо он держит ее")
         return
     groups = await GroupActions.get_groups()

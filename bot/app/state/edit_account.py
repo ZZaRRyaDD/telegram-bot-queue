@@ -18,7 +18,7 @@ class User(StatesGroup):
 
 async def start_user(message: types.Message) -> None:
     """Entrypoint for user."""
-    await message.answer(print_info(message.from_user.id))
+    await message.answer(await print_info(message.from_user.id))
     await User.action.set()
     await message.answer("Выберите действие", reply_markup=user_actions())
 
@@ -27,7 +27,7 @@ async def input_action_update(callback: types.CallbackQuery) -> None:
     """Take second name and first name for update profile."""
     await callback.message.delete()
     await callback.message.answer(
-        "Введите свое фамилию и имя",
+        "Введите свое фамилию и имя разделенные пробелом",
         reply_markup=select_cancel(),
     )
 
@@ -36,7 +36,7 @@ async def input_action_delete(callback: types.CallbackQuery, user) -> None:
     """Take second name and first name for delete profile."""
     await callback.message.delete()
     await callback.message.answer(
-        f"Введите свое фамилию и имя '{user.full_name}' без кавычек",
+        f"Введите свое фамилию и имя '{user.last_name} {user.first_name}' без кавычек",
         reply_markup=select_cancel(),
     )
 
@@ -50,7 +50,7 @@ async def input_action(
     user = await UserActions.get_user(callback.from_user.id)
     await state.update_data(
         action=callback.data,
-        full_name=user.full_name,
+        full_name=f"{user.last_name} {user.first_name}",
     )
     await User.full_name.set()
     match callback.data:
@@ -68,9 +68,17 @@ async def input_full_name_update(
     state: FSMContext,
 ) -> None:
     """Update profile."""
+    text = message.text
+    if len(text.split()) != 2:
+        await message.answer(
+            "Введите корректные фамилию и имя через пробел",
+            reply_markup=remove_cancel(),
+        )
+        return
+    last_name, first_name = text.split()
     new_info = {
-        "id": message.from_user.id,
-        "full_name": message.text,
+        "last_name": last_name,
+        "first_name": first_name,
     }
     await UserActions.update_user(message.from_user.id, new_info)
     await message.answer(
@@ -86,7 +94,7 @@ async def input_full_name_delete(
     full_name: str,
 ) -> None:
     """Delete profile."""
-    if is_headman(message.from_user.id):
+    if await is_headman(message.from_user.id):
         await message.answer(
             (
                 "Чтобы удалиться старосте - напишите админу. "
@@ -105,7 +113,7 @@ async def input_full_name_delete(
         await state.finish()
         return
     await message.answer(
-        "Введите корректное имя и фамилию",
+        "Введите корректное фамилию и имя",
         reply_markup=select_cancel(),
     )
 
@@ -137,11 +145,9 @@ def register_handlers_change_account(dispatcher: Dispatcher) -> None:
     )
     dispatcher.register_callback_query_handler(
         input_action,
-        HasUser(),
         state=User.action,
     )
     dispatcher.register_message_handler(
         input_full_name,
-        HasUser(),
         state=User.full_name,
     )

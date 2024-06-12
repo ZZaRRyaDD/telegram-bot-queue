@@ -19,7 +19,7 @@ from app.enums import (
     SubjectActionsEnum,
     SubjectTypeEnum,
 )
-from app.filters import HasUser, IsHeadman
+from app.filters import HasUser, IsHeadman, IsMemberOfGroup
 from app.keywords import (
     choice_schedule,
     get_list_of_subjects,
@@ -562,6 +562,7 @@ def register_handlers_subject(dispatcher: Dispatcher) -> None:
         start_subject,
         HasUser(),
         IsHeadman(),
+        IsMemberOfGroup(),
         commands=[HeadmanCommands.EDIT_SUBJECT.command],
         state=None,
     )

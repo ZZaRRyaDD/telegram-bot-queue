@@ -2,7 +2,7 @@ from typing import Optional
 
 from sqlalchemy import delete, orm, select, update
 
-from app.database.connection import connect
+from app.database.connection import get_session
 from app.database.models import Group, Subject, User
 
 
@@ -90,8 +90,8 @@ class GroupActions:
         group = Group(**group)
         async with get_session() as session:
             session.add(group)
-            session.commit()
-            session.refresh(group)
+            await session.commit()
+            await session.refresh(group)
             return group
 
     @staticmethod

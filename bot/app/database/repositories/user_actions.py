@@ -62,8 +62,8 @@ class UserActions:
         user = User(**user)
         async with get_session() as session:
             session.add(user)
-            session.commit()
-            session.refresh(user)
+            await session.commit()
+            await session.refresh(user)
             return user
 
     @staticmethod

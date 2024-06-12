@@ -1,6 +1,6 @@
 from sqlalchemy import delete, insert, select, sql, update
 
-from app.database.connection import connect
+from app.database.connection import get_session
 from app.database.models import Queue
 
 

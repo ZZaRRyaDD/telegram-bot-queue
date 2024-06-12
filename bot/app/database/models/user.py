@@ -16,7 +16,6 @@ class User(BaseTable):
 
     first_name = Column(String(128), nullable=False)
     last_name = Column(String(128), nullable=False)
-    surname = Column(String(128), nullable=False)
     is_headman = Column(Boolean, default=False)
     subjects_practice = orm.relationship(
         "Subject",

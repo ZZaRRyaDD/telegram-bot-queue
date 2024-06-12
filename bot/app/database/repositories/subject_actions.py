@@ -2,7 +2,7 @@ from typing import Optional
 
 from sqlalchemy import delete, orm, select, update
 
-from app.database.connection import connect
+from app.database.connection import get_session
 from app.database.models import Subject
 
 
@@ -46,8 +46,8 @@ class SubjectActions:
         subject = Subject(**subject)
         async with get_session() as session:
             session.add(subject)
-            session.commit()
-            session.refresh(subject)
+            await session.commit()
+            await session.refresh(subject)
             return subject
 
     @staticmethod

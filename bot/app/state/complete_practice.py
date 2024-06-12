@@ -9,7 +9,7 @@ from app.database.repositories import (
     SubjectActions,
 )
 from app.enums import ClientCommands, OtherCommands, SubjectCompact
-from app.filters import HasUser
+from app.filters import HasUser, IsMemberOfGroup
 from app.keywords import get_list_of_numbers, get_list_of_subjects
 from app.services import member_group
 
@@ -133,6 +133,7 @@ def register_handlers_complete_practice(dispatcher: Dispatcher) -> None:
     dispatcher.register_message_handler(
         start_complete_practice,
         HasUser(),
+        IsMemberOfGroup(),
         commands=[ClientCommands.PASS_PRACTICES.command],
         state=None,
     )
