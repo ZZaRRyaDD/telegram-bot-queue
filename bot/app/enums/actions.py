@@ -9,7 +9,7 @@ class BaseActions(enum.Enum):
         self.description = description
 
 
-class SubjectActionsEnum(BaseActions):
+class SubjectRepositoryEnum(BaseActions):
     """Class choices of subject actions."""
 
     CREATE = ("Create", "Добавить предмет")
@@ -27,7 +27,7 @@ class EventActionsEnum(BaseActions):
     CANCEL = ("Cancel", "Отмена действия")
 
 
-class GroupActionsEnum(BaseActions):
+class GroupRepositoryEnum(BaseActions):
     """Class choices of group actions."""
 
     CREATE = ("Create", "Создать группу")
@@ -36,7 +36,7 @@ class GroupActionsEnum(BaseActions):
     CANCEL = ("Cancel", "Отмена действия")
 
 
-class ScheduleActionsEnum(BaseActions):
+class ScheduleRepositoryEnum(BaseActions):
     """Class choices of schedule actions."""
 
     ADD = ("Add", "Добавить расписание")

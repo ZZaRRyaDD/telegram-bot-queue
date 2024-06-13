@@ -1,6 +1,6 @@
 from aiogram import Dispatcher, types
 
-from app.database.repositories import GroupActions
+from app.database.repositories import GroupRepository
 from app.enums import AdminCommands, HeadmanCommands
 from app.filters import HasUser, IsAdmin, IsHeadman, IsMemberOfGroup
 from app.services import check_admin, get_all_info, get_info_group
@@ -37,7 +37,7 @@ async def print_group_info(message: types.Message) -> None:
     """Print group info."""
     await message.answer(
         await get_info_group(
-            await GroupActions.get_group_by_user_id(
+            await GroupRepository.get_group_by_user_id(
                 message.from_user.id,
                 subjects=True,
                 students=True,

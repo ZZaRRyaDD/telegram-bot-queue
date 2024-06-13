@@ -9,7 +9,7 @@ from app.database.models import Schedule
 from .base import BaseRepository
 
 
-class ScheduleActions(BaseRepository):
+class ScheduleRepository(BaseRepository):
     model = Schedule
 
     @classmethod

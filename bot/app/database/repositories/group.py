@@ -8,7 +8,7 @@ from app.database.models import Group, Subject, User
 from .base import BaseRepository
 
 
-class GroupActions(BaseRepository):
+class GroupRepository(BaseRepository):
     model = Group
 
     @classmethod

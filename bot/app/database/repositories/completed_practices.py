@@ -6,7 +6,7 @@ from app.database.models import CompletedPractices
 from .base import BaseRepository
 
 
-class CompletedPracticesActions(BaseRepository):
+class CompletedPracticesRepository(BaseRepository):
     model = CompletedPractices
 
     @classmethod
@@ -61,8 +61,8 @@ class CompletedPracticesActions(BaseRepository):
     @classmethod
     async def action_user(cls, params: dict) -> None:
         """Append/remove user to subject."""
-        if not (await CompletedPracticesActions.exists_completed_practices(params)):
-            await CompletedPracticesActions.create(params)
+        if not (await CompletedPracticesRepository.exists_completed_practices(params)):
+            await CompletedPracticesRepository.create(params)
             return True
-        await CompletedPracticesActions.remove_completed_practices(params)
+        await CompletedPracticesRepository.remove_completed_practices(params)
         return False

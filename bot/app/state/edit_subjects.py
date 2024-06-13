@@ -6,17 +6,17 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.database.repositories import (
-    CompletedPracticesActions,
-    GroupActions,
-    ScheduleActions,
-    SubjectActions,
+    CompletedPracticesRepository,
+    GroupRepository,
+    ScheduleRepository,
+    SubjectRepository,
     UserRepository,
 )
 from app.enums import (
     HeadmanCommands,
-    ScheduleActionsEnum,
+    ScheduleRepositoryEnum,
     ScheduleCompact,
-    SubjectActionsEnum,
+    SubjectRepositoryEnum,
     SubjectTypeEnum,
 )
 from app.filters import HasUser, IsHeadman, IsMemberOfGroup
@@ -105,7 +105,7 @@ async def input_action_subject_update_delete(
     subject_types = [
         SubjectTypeEnum.LABORATORY_WORK.value,
     ]
-    subjects = (await GroupActions.get_group_by_user_id(
+    subjects = (await GroupRepository.get_group_by_user_id(
         callback.from_user.id,
         subjects=True,
     )).subjects
@@ -136,14 +136,14 @@ async def input_action_subject(
     """Input action for subject."""
     await state.update_data(action=callback.data)
     match callback.data:
-        case SubjectActionsEnum.CREATE.action:
+        case SubjectRepositoryEnum.CREATE.action:
             await input_action_subject_create(callback)
         case (
-            SubjectActionsEnum.DELETE.action |
-            SubjectActionsEnum.UPDATE.action
+            SubjectRepositoryEnum.DELETE.action |
+            SubjectRepositoryEnum.UPDATE.action
         ):
             await input_action_subject_update_delete(callback)
-        case SubjectActionsEnum.CANCEL.action:
+        case SubjectRepositoryEnum.CANCEL.action:
             await callback.message.delete()
             await state.finish()
 
@@ -170,7 +170,7 @@ async def input_name_update_delete_subject_delete(
     subject_id: int,
 ) -> None:
     """Delete subject and bounded this it items."""
-    await SubjectActions.delete_subject(subject_id)
+    await SubjectRepository.delete_subject(subject_id)
     await callback.message.edit_text("Предмет успешно удален")
     await state.finish()
 
@@ -181,11 +181,11 @@ async def input_name_update_delete_subject(
 ) -> None:
     """Input name of subject."""
     await callback.answer()
-    if callback.data == SubjectActionsEnum.CANCEL.action:
+    if callback.data == SubjectRepositoryEnum.CANCEL.action:
         await callback.message.delete()
         await state.finish()
         return
-    group = await GroupActions.get_group_by_user_id(
+    group = await GroupRepository.get_group_by_user_id(
         callback.from_user.id,
         subjects=True,
     )
@@ -195,7 +195,7 @@ async def input_name_update_delete_subject(
     ))[0]
     schedule = list(map(
         lambda x: x.__dict__,
-        await ScheduleActions.get_schedule(subject_id=subject.id),
+        await ScheduleRepository.get_schedule(subject_id=subject.id),
     ))
     for item in schedule:
         item.pop("_sa_instance_state")
@@ -207,12 +207,12 @@ async def input_name_update_delete_subject(
         to_update=True,
     )
     match (await state.get_data())["action"]:
-        case SubjectActionsEnum.UPDATE.action:
+        case SubjectRepositoryEnum.UPDATE.action:
             await input_name_update_delete_subject_update(
                 callback,
                 subject,
             )
-        case SubjectActionsEnum.DELETE.action:
+        case SubjectRepositoryEnum.DELETE.action:
             await input_name_update_delete_subject_delete(
                 callback,
                 state,
@@ -225,7 +225,7 @@ async def input_name_subject(
     state: FSMContext,
 ) -> None:
     """Get name of new or exists subject."""
-    group = await GroupActions.get_group_by_user_id(
+    group = await GroupRepository.get_group_by_user_id(
         message.from_user.id,
         subjects=True,
     )
@@ -248,7 +248,7 @@ async def input_name_subject(
     await state.update_data({"name": message.text})
     subject_id = data.get("subject_id", None)
     if subject_id is not None:
-        subject = await SubjectActions.get_subject(subject_id=subject_id)
+        subject = await SubjectRepository.get_subject(subject_id=subject_id)
         await message.answer(get_info_schedule(subject))
     await Subject.schedule_action.set()
     await message.answer(
@@ -318,13 +318,13 @@ async def input_action_schedule(
     """Input action of schedule."""
     await callback.answer()
     match callback.data:
-        case ScheduleActionsEnum.ADD.action:
+        case ScheduleRepositoryEnum.ADD.action:
             await input_action_schedule_add(callback)
-        case ScheduleActionsEnum.DELETE.action:
+        case ScheduleRepositoryEnum.DELETE.action:
             await input_action_schedule_delete(callback, state)
-        case ScheduleActionsEnum.NEXT_ACTION.action:
+        case ScheduleRepositoryEnum.NEXT_ACTION.action:
             await input_action_schedule_next_action(callback)
-        case ScheduleActionsEnum.CANCEL.action:
+        case ScheduleRepositoryEnum.CANCEL.action:
             await callback.message.edit_text("Действие отменено")
             await state.finish()
 
@@ -335,7 +335,7 @@ async def delete_schedule_action(
 ) -> None:
     """Delete schedule."""
     await callback.message.delete()
-    if callback.data != SubjectActionsEnum.CANCEL.action:
+    if callback.data != SubjectRepositoryEnum.CANCEL.action:
         data = await state.get_data()
         subject_id = data.get("subject_id", None)
         new_schedule = data["schedule"][::]
@@ -345,8 +345,8 @@ async def delete_schedule_action(
                 break
         await state.update_data({"schedule": new_schedule})
         if subject_id is not None:
-            await ScheduleActions.delete_schedule_by_id(int(callback.data))
-            subject = await SubjectActions.get_subject(subject_id=subject_id)
+            await ScheduleRepository.delete_schedule_by_id(int(callback.data))
+            subject = await SubjectRepository.get_subject(subject_id=subject_id)
             await callback.message.answer(get_info_schedule(subject))
     await Subject.schedule_action.set()
     await callback.message.answer(
@@ -422,7 +422,7 @@ async def input_date_subject(
         schedule = data.get("schedule")
         for day in days:
             match data.get("action"):
-                case SubjectActionsEnum.CREATE.action:
+                case SubjectRepositoryEnum.CREATE.action:
                     schedule_id = str((
                         datetime.datetime.now() - FIRST_DAY
                     ).total_seconds())
@@ -433,7 +433,7 @@ async def input_date_subject(
                             "week": week,
                         }
                     )
-                case SubjectActionsEnum.UPDATE.action:
+                case SubjectRepositoryEnum.UPDATE.action:
                     item = {
                         "date_number": int(day),
                         "week": week,
@@ -444,7 +444,7 @@ async def input_date_subject(
                         day,
                         week,
                     ):
-                        new_schedule = await ScheduleActions.create_schedule(item).__dict__
+                        new_schedule = await ScheduleRepository.create_schedule(item).__dict__
                         new_schedule.pop("_sa_instance_state")
                         new_schedule.pop("subject")
                         new_schedules.append(new_schedule)
@@ -453,7 +453,7 @@ async def input_date_subject(
             days=[],
         )
         if subject_id is not None:
-            subject = await SubjectActions.get_subject(subject_id=subject_id)
+            subject = await SubjectRepository.get_subject(subject_id=subject_id)
             await callback.message.answer(get_info_schedule(subject))
         await Subject.schedule_action.set()
         await callback.message.delete()
@@ -477,11 +477,11 @@ async def input_count_lab_subject_create(
         "count_practices": count,
         "subject_type": SubjectTypeEnum.LABORATORY_WORK.value,
     }
-    subject = await SubjectActions.create_subject(subject_info)
+    subject = await SubjectRepository.create_subject(subject_info)
     for day in schedule:
         day.pop("id")
         day["subject_id"] = subject.id
-        await ScheduleActions.create_schedule(day)
+        await ScheduleRepository.create_schedule(day)
 
 
 async def input_count_lab_subject_update(
@@ -497,7 +497,7 @@ async def input_count_lab_subject_update(
         "count_practices": count,
         "subject_type": SubjectTypeEnum.LABORATORY_WORK.value,
     }
-    await SubjectActions.update_subject(subject_id, subject_info)
+    await SubjectRepository.update_subject(subject_id, subject_info)
 
 
 async def input_count_lab_subject(
@@ -522,7 +522,7 @@ async def input_count_lab_subject(
     name = data['name']
     count = int(message.text)
     match data.get("action"):
-        case SubjectActionsEnum.CREATE.action:
+        case SubjectRepositoryEnum.CREATE.action:
             await input_count_lab_subject_create(
                 name,
                 group,
@@ -530,8 +530,8 @@ async def input_count_lab_subject(
                 data.get("schedule"),
             )
             action = "создан"
-        case SubjectActionsEnum.UPDATE.action:
-            old_count = await SubjectActions.get_subject(
+        case SubjectRepositoryEnum.UPDATE.action:
+            old_count = await SubjectRepository.get_subject(
                 data.get("subject_id")
             ).count_practices
             await input_count_lab_subject_update(
@@ -542,7 +542,7 @@ async def input_count_lab_subject(
             )
             if old_count > count:
                 for lab in range(count + 1, old_count + 1):
-                    await CompletedPracticesActions.remove_completed_practices_labs(
+                    await CompletedPracticesRepository.remove_completed_practices_labs(
                         {
                             "subject_id": data.get("subject_id"),
                             "number_practice": lab,

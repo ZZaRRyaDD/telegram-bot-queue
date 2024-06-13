@@ -5,15 +5,15 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.database.repositories import (
-    GroupActions,
-    ScheduleActions,
-    SubjectActions,
+    GroupRepository,
+    ScheduleRepository,
+    SubjectRepository,
     UserRepository,
 )
 from app.enums import (
     EventActionsEnum,
     HeadmanCommands,
-    SubjectActionsEnum,
+    SubjectRepositoryEnum,
     SubjectTypeEnum,
 )
 from app.filters import HasUser, IsHeadman, IsMemberOfGroup
@@ -71,7 +71,7 @@ async def input_action_event_update_delete(
         SubjectTypeEnum.GRADUATE_WORK.value,
         SubjectTypeEnum.SUMMER_PRACTICE.value,
     ]
-    subjects = (await GroupActions.get_group_by_user_id(
+    subjects = (await GroupRepository.get_group_by_user_id(
         callback.from_user.id,
         subjects=True,
     )).subjects
@@ -120,7 +120,7 @@ async def input_name_event(
     state: FSMContext,
 ) -> None:
     """Get name of new event."""
-    group = await GroupActions.get_group_by_user_id(
+    group = await GroupRepository.get_group_by_user_id(
         message.from_user.id,
         subjects=True,
     )
@@ -161,7 +161,7 @@ async def input_name_update_delete_event_delete(
     subject_id: int,
 ) -> None:
     """Delete event and bounded this it items."""
-    await SubjectActions.delete_subject(subject_id)
+    await SubjectRepository.delete_subject(subject_id)
     await callback.message.edit_text("Событие успешно удалено")
     await state.finish()
 
@@ -172,11 +172,11 @@ async def input_name_update_delete_event(
 ) -> None:
     """Input name of event."""
     await callback.answer()
-    if callback.data == SubjectActionsEnum.CANCEL.action:
+    if callback.data == SubjectRepositoryEnum.CANCEL.action:
         await callback.message.delete()
         await state.finish()
         return
-    group = await GroupActions.get_group_by_user_id(
+    group = await GroupRepository.get_group_by_user_id(
         callback.from_user.id,
         subjects=True,
     )
@@ -184,7 +184,7 @@ async def input_name_update_delete_event(
         lambda x: x.id == int(callback.data),
         group.subjects,
     ))[0]
-    schedule = await ScheduleActions.get_schedule(subject_id=subject.id)
+    schedule = await ScheduleRepository.get_schedule(subject_id=subject.id)
     await state.update_data(
         name=subject.name,
         subject_id=subject.id,
@@ -213,12 +213,12 @@ async def event_create(data, user, date_protection) -> None:
         "count_practices": 1,
         "subject_type": data['subject_type'],
     }
-    subject = await SubjectActions.create_subject(subject_info)
+    subject = await SubjectRepository.create_subject(subject_info)
     day = {
         "subject_id": subject.id,
         "date_protection": date_protection,
     }
-    await ScheduleActions.create_schedule(day)
+    await ScheduleRepository.create_schedule(day)
 
 
 async def event_update(data, user, date_protection) -> None:
@@ -227,9 +227,9 @@ async def event_update(data, user, date_protection) -> None:
         "group_id": user.group_id,
         "subject_type": data['subject_type'],
     }
-    await SubjectActions.update_subject(data.get("subject_id"), subject_info)
-    subject = await SubjectActions.get_subject(data.get("subject_id"))
-    schedule = await ScheduleActions.get_schedule(
+    await SubjectRepository.update_subject(data.get("subject_id"), subject_info)
+    subject = await SubjectRepository.get_subject(data.get("subject_id"))
+    schedule = await ScheduleRepository.get_schedule(
         subject_id=data.get("subject_id"),
         date_protection=date_protection,
     )
@@ -238,7 +238,7 @@ async def event_update(data, user, date_protection) -> None:
             "subject_id": subject.id,
             "date_protection": date_protection,
         }
-        await ScheduleActions.create_schedule(day)
+        await ScheduleRepository.create_schedule(day)
 
 
 async def input_type_event(
@@ -295,10 +295,10 @@ async def input_day_passage(
     user = await UserRepository.get_user(message.from_user.id)
     action, data = "", await state.get_data()
     match data.get("action"):
-        case SubjectActionsEnum.CREATE.action:
+        case SubjectRepositoryEnum.CREATE.action:
             await event_create(data, user, date_protection)
             action = "создан"
-        case SubjectActionsEnum.UPDATE.action:
+        case SubjectRepositoryEnum.UPDATE.action:
             await event_update(data, user, date_protection)
             action = "обновлен"
     await state.finish()

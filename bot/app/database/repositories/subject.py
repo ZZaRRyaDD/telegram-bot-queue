@@ -8,7 +8,7 @@ from app.database.models import Subject
 from .base import BaseRepository
 
 
-class SubjectActions(BaseRepository):
+class SubjectRepository(BaseRepository):
     model = Subject
 
     @classmethod

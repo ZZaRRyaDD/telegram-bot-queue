@@ -3,8 +3,8 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.database.repositories import (
-    GroupActions,
-    QueueActions,
+    GroupRepository,
+    QueueRepository,
     UserRepository,
 )
 from app.enums import ClientCommands, OtherCommands
@@ -25,7 +25,7 @@ async def start_select_group(message: types.Message) -> None:
     if await is_headman(message.from_user.id):
         await message.answer("Староста не может выбирать, ибо он держит ее")
         return
-    groups = await GroupActions.get_groups()
+    groups = await GroupRepository.get_groups()
     if not groups:
         await message.answer("Пока нет ни одной группы")
         return
@@ -64,7 +64,7 @@ async def get_select_group(
 
 async def get_secret_word(message: types.Message, state: FSMContext) -> None:
     """Input secret word."""
-    group = await GroupActions.get_group(
+    group = await GroupRepository.get_group(
         group_id=int((await state.get_data())["group"]),
     )
     if int(group.secret_word) != int(polynomial_hash(message.text)):
@@ -74,7 +74,7 @@ async def get_secret_word(message: types.Message, state: FSMContext) -> None:
         )
         return
     await UserRepository.update_user(message.from_user.id, {"group_id": group.id})
-    await QueueActions.cleaning_user(message.from_user.id)
+    await QueueRepository.cleaning_user(message.from_user.id)
     await message.answer(
         f"Теперь вы в группе {group.name}",
         reply_markup=remove_cancel(),

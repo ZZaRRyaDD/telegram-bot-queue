@@ -6,7 +6,7 @@ from app.database.models import Queue
 from .base import BaseRepository
 
 
-class QueueActions(BaseRepository):
+class QueueRepository(BaseRepository):
     model = Queue
 
     @classmethod
@@ -88,11 +88,11 @@ class QueueActions(BaseRepository):
     @classmethod
     async def action_user(cls, params: dict) -> bool:
         """Append/remove user to subject."""
-        item = await QueueActions.exists_queue(params)
+        item = await QueueRepository.exists_queue(params)
         if item is None:
-            await QueueActions.create(params)
+            await QueueRepository.create(params)
             return True
         if item and item.number_in_list is None:
-            await QueueActions.remove_queue(params)
+            await QueueRepository.remove_queue(params)
             return False
         return None

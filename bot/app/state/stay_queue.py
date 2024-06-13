@@ -3,10 +3,10 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.database.repositories import (
-    GroupActions,
-    QueueActions,
-    ScheduleActions,
-    SubjectActions,
+    GroupRepository,
+    QueueRepository,
+    ScheduleRepository,
+    SubjectRepository,
 )
 from app.enums import ClientCommands, OtherCommands, SubjectCompact
 from app.filters import HasUser, IsMemberOfGroup
@@ -29,7 +29,7 @@ class StayQueue(StatesGroup):
 
 async def get_subject_info(user_id: int) -> str:
     """Get info about subscribe subjects."""
-    positions = await QueueActions.get_queue_info(user_id)
+    positions = await QueueRepository.get_queue_info(user_id)
     if not positions:
         return "Вы не записаны ни на один предмет"
     info = "Вы записаны на следующие предметы:\n\n"
@@ -38,7 +38,7 @@ async def get_subject_info(user_id: int) -> str:
         subject_id = position.subject_id
         if subject_id in processes:
             continue
-        subject = await SubjectActions.get_subject(subject_id)
+        subject = await SubjectRepository.get_subject(subject_id)
         numbers = sorted(
             filter(lambda x: x.subject_id == subject_id, positions),
             key=lambda x: x.number_practice,
@@ -76,14 +76,14 @@ async def start_stay_queue(message: types.Message) -> None:
         await message.answer("Чтобы выбрать предмет, нужно выбрать группу")
         return
     subjects = set(
-        subject.id for subject in (await GroupActions.get_group_by_user_id(
+        subject.id for subject in (await GroupRepository.get_group_by_user_id(
             message.from_user.id,
             subjects=True,
         )).subjects
     )
     schedule = set(
         schedule.subject_id
-        for schedule in (await ScheduleActions.get_schedule(can_select=True))
+        for schedule in (await ScheduleRepository.get_schedule(can_select=True))
     )
     access_subjects = subjects.intersection(schedule)
     if not access_subjects:
@@ -92,7 +92,7 @@ async def start_stay_queue(message: types.Message) -> None:
     await message.answer(await get_subject_info(message.from_user.id))
     await StayQueue.name.set()
     access_subjects_list = [
-        (await SubjectActions.get_subject(subject_id=subject_id))
+        (await SubjectRepository.get_subject(subject_id=subject_id))
         for subject_id in access_subjects
     ]
     await message.answer(
@@ -113,7 +113,7 @@ async def get_subject_name(
         return
     subject_id = callback.data
     await state.update_data(subject=subject_id)
-    subject = await SubjectActions.get_subject(int(subject_id))
+    subject = await SubjectRepository.get_subject(int(subject_id))
     await StayQueue.next()
     lab_works = [
         SubjectCompact(id=i, name=i)
@@ -140,7 +140,7 @@ async def get_numbers_lab_subject(
         "number_practice": callback.data,
         "subject_id": int((await state.get_data())["subject"]),
     }
-    result = await QueueActions.action_user(params)
+    result = await QueueRepository.action_user(params)
     message = ""
     if result is None:
         message = "В данный момент вы уже записаны в очередь на данную работу"

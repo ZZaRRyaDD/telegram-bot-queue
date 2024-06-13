@@ -3,7 +3,7 @@ import random
 from datetime import date, datetime, time, timedelta
 
 from app.database.models import Group, Subject
-from app.database.repositories import GroupActions, UserRepository
+from app.database.repositories import GroupRepository, UserRepository
 from app.enums import SubjectPassesEnum, SubjectTypeEnum
 
 DAY_WEEKS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]
@@ -158,7 +158,7 @@ async def get_info_group(group: Group) -> str:
 async def get_all_info() -> str:
     """Get info about groups, subjects."""
     info = ""
-    groups = await GroupActions.get_groups(subjects=True, students=True)
+    groups = await GroupRepository.get_groups(subjects=True, students=True)
     if groups:
         for group in groups:
             info += f"{await get_info_group(group)}\n"

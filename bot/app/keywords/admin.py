@@ -3,10 +3,10 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from app.enums import (
     DaysOfWeekEnum,
     EventActionsEnum,
-    GroupActionsEnum,
+    GroupRepositoryEnum,
     GroupRandomQueueEnum,
-    ScheduleActionsEnum,
-    SubjectActionsEnum,
+    ScheduleRepositoryEnum,
+    SubjectRepositoryEnum,
     SubjectPassesEnum,
     SubjectTypeEnum,
 )
@@ -58,23 +58,23 @@ def subject_action() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
         InlineKeyboardButton(
-            text=SubjectActionsEnum.CREATE.description,
-            callback_data=SubjectActionsEnum.CREATE.action,
+            text=SubjectRepositoryEnum.CREATE.description,
+            callback_data=SubjectRepositoryEnum.CREATE.action,
         ),
     ).row(
         InlineKeyboardButton(
-            text=SubjectActionsEnum.UPDATE.description,
-            callback_data=SubjectActionsEnum.UPDATE.action,
+            text=SubjectRepositoryEnum.UPDATE.description,
+            callback_data=SubjectRepositoryEnum.UPDATE.action,
         ),
     ).row(
         InlineKeyboardButton(
-            text=SubjectActionsEnum.DELETE.description,
-            callback_data=SubjectActionsEnum.DELETE.action,
+            text=SubjectRepositoryEnum.DELETE.description,
+            callback_data=SubjectRepositoryEnum.DELETE.action,
         ),
     ).row(
         InlineKeyboardButton(
-            text=SubjectActionsEnum.CANCEL.description,
-            callback_data=SubjectActionsEnum.CANCEL.action,
+            text=SubjectRepositoryEnum.CANCEL.description,
+            callback_data=SubjectRepositoryEnum.CANCEL.action,
         ),
     )
     return keyboard
@@ -97,23 +97,23 @@ def group_action() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
         InlineKeyboardButton(
-            text=GroupActionsEnum.CREATE.description,
-            callback_data=GroupActionsEnum.CREATE.action,
+            text=GroupRepositoryEnum.CREATE.description,
+            callback_data=GroupRepositoryEnum.CREATE.action,
         ),
     ).row(
         InlineKeyboardButton(
-            text=GroupActionsEnum.UPDATE.description,
-            callback_data=GroupActionsEnum.UPDATE.action,
+            text=GroupRepositoryEnum.UPDATE.description,
+            callback_data=GroupRepositoryEnum.UPDATE.action,
         ),
     ).row(
         InlineKeyboardButton(
-            text=GroupActionsEnum.DELETE.description,
-            callback_data=GroupActionsEnum.DELETE.action,
+            text=GroupRepositoryEnum.DELETE.description,
+            callback_data=GroupRepositoryEnum.DELETE.action,
         ),
     ).row(
         InlineKeyboardButton(
-            text=GroupActionsEnum.CANCEL.description,
-            callback_data=GroupActionsEnum.CANCEL.action,
+            text=GroupRepositoryEnum.CANCEL.description,
+            callback_data=GroupRepositoryEnum.CANCEL.action,
         ),
     )
     return keyboard
@@ -124,24 +124,24 @@ def schedule_action() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
         InlineKeyboardButton(
-            text=ScheduleActionsEnum.ADD.description,
-            callback_data=ScheduleActionsEnum.ADD.action,
+            text=ScheduleRepositoryEnum.ADD.description,
+            callback_data=ScheduleRepositoryEnum.ADD.action,
         ),
         InlineKeyboardButton(
-            text=ScheduleActionsEnum.DELETE.description,
-            callback_data=ScheduleActionsEnum.DELETE.action,
+            text=ScheduleRepositoryEnum.DELETE.description,
+            callback_data=ScheduleRepositoryEnum.DELETE.action,
         )
     )
     keyboard.row(
             InlineKeyboardButton(
-                text=ScheduleActionsEnum.NEXT_ACTION.description,
-                callback_data=ScheduleActionsEnum.NEXT_ACTION.action,
+                text=ScheduleRepositoryEnum.NEXT_ACTION.description,
+                callback_data=ScheduleRepositoryEnum.NEXT_ACTION.action,
             ),
         )
     keyboard.row(
         InlineKeyboardButton(
-            text=ScheduleActionsEnum.CANCEL.description,
-            callback_data=ScheduleActionsEnum.CANCEL.action,
+            text=ScheduleRepositoryEnum.CANCEL.description,
+            callback_data=ScheduleRepositoryEnum.CANCEL.action,
         ),
     )
     return keyboard

@@ -4,9 +4,9 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.database.repositories import (
-    CompletedPracticesActions,
-    GroupActions,
-    SubjectActions,
+    CompletedPracticesRepository,
+    GroupRepository,
+    SubjectRepository,
 )
 from app.enums import ClientCommands, OtherCommands, SubjectCompact
 from app.filters import HasUser, IsMemberOfGroup
@@ -25,18 +25,18 @@ async def info_practice(user_id: int) -> str:
     """Get info about practices."""
     pass_practices = [
         practice
-        for practice in (await CompletedPracticesActions.get_completed_practices_info(
+        for practice in (await CompletedPracticesRepository.get_completed_practices_info(
             user_id,
         ))
     ]
-    all_subjects = set(map(lambda x: x.id, (await GroupActions.get_group_by_user_id(
+    all_subjects = set(map(lambda x: x.id, (await GroupRepository.get_group_by_user_id(
             user_id,
             subjects=True,
         )).subjects,
     ))
     status_subjects = {}
     for subject_id in all_subjects:
-        subject = await SubjectActions.get_subject(subject_id=subject_id)
+        subject = await SubjectRepository.get_subject(subject_id=subject_id)
         status_subjects[subject.name] = [False]*subject.count_practices
         if subject_id in [item.subject_id for item in pass_practices]:
             completed = list(map(lambda x: x.number_practice, filter(
@@ -64,7 +64,7 @@ async def start_complete_practice(message: types.Message) -> None:
     if not member_group(message.from_user.id):
         await message.answer("Чтобы выбрать предмет, нужно выбрать группу")
         return
-    subjects = (await GroupActions.get_group_by_user_id(
+    subjects = (await GroupRepository.get_group_by_user_id(
         message.from_user.id,
         subjects=True,
     )).subjects
@@ -90,7 +90,7 @@ async def get_subject_name(
         await state.finish()
         return
     await state.update_data(subject=callback.data)
-    subject = await SubjectActions.get_subject(int(callback.data))
+    subject = await SubjectRepository.get_subject(int(callback.data))
     await CompletePractice.next()
     lab_works = [
         SubjectCompact(id=i, name=i)
@@ -117,7 +117,7 @@ async def get_numbers_lab_subject(
         "number_practice": callback.data,
         "subject_id": int((await state.get_data())["subject"])
     }
-    result = await CompletedPracticesActions.action_user(params)
+    result = await CompletedPracticesRepository.action_user(params)
     status = 'Добавлена' if result else 'Удалена'
     message = f"{status} {params['number_practice']} лабораторная работа"
     await callback.message.delete()
