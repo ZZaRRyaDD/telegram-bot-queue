@@ -8,7 +8,7 @@ from app.database.repositories import (
     GroupActions,
     ScheduleActions,
     SubjectActions,
-    UserActions,
+    UserRepository,
 )
 from app.enums import (
     EventActionsEnum,
@@ -257,7 +257,7 @@ async def input_type_event(
                 "событию из-за отсутствия времени."
             ),
         )
-        user = await UserActions.get_user(callback.from_user.id)
+        user = await UserRepository.get_user(callback.from_user.id)
         await event_update(data, user, date_protection)
         action = "обновлен"
         await state.finish()
@@ -292,7 +292,7 @@ async def input_day_passage(
             ),
         )
         return
-    user = await UserActions.get_user(message.from_user.id)
+    user = await UserRepository.get_user(message.from_user.id)
     action, data = "", await state.get_data()
     match data.get("action"):
         case SubjectActionsEnum.CREATE.action:

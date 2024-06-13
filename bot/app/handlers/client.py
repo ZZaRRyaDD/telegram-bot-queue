@@ -2,7 +2,7 @@ import os
 
 from aiogram import Dispatcher, types
 
-from app.database.repositories import UserActions
+from app.database.repositories import UserRepository
 from app.enums import ClientCommands
 from app.filters import HasUser
 from app.services import print_info
@@ -68,14 +68,14 @@ async def set_commands_client(dispatcher: Dispatcher) -> None:
 
 async def start_command(message: types.Message) -> None:
     """Handler for start command."""
-    if not (await UserActions.get_user(message.from_user.id)):
+    if not (await UserRepository.get_user(message.from_user.id)):
         await message.answer("Смотрю, ты еще не с нами. Давай это исправим!")
         new_user = {
             "id": message.from_user.id,
             "first_name": message.from_user.first_name,
             "last_name": message.from_user.last_name,
         }
-        await UserActions.create_user(new_user)
+        await UserRepository.create(obj_in=new_user)
     await message.answer(HELLO_TEXT)
 
 

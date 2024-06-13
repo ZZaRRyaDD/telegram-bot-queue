@@ -3,7 +3,7 @@ import random
 from datetime import date, datetime, time, timedelta
 
 from app.database.models import Group, Subject
-from app.database.repositories import GroupActions, UserActions
+from app.database.repositories import GroupActions, UserRepository
 from app.enums import SubjectPassesEnum, SubjectTypeEnum
 
 DAY_WEEKS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]
@@ -26,13 +26,13 @@ async def check_admin(id: int) -> bool:
 
 async def is_headman(id: int) -> bool:
     """Is user headman or not."""
-    user = await UserActions.get_user(id)
+    user = await UserRepository.get_user(id)
     return user.is_headman
 
 
 async def member_group(id: int) -> bool:
     """Check for member of some group."""
-    user = await UserActions.get_user(id)
+    user = await UserRepository.get_user(id)
     return user.group_id is not None
 
 
@@ -51,7 +51,7 @@ async def polynomial_hash(string: str) -> int:
 
 async def print_info(user_id: int) -> str:
     """Return info about user."""
-    user = await UserActions.get_user(user_id, group=True)
+    user = await UserRepository.get_user(user_id, group=True)
     info = f"ID: {user.id}\n"
     info += f"Фамилия Имя: {user.last_name} {user.first_name}\n"
     group = (

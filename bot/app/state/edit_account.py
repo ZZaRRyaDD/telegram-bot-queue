@@ -2,8 +2,8 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database.repositories import UserActions
-from app.enums import ClientCommands, UserActionsEnum
+from app.database.repositories import UserRepository
+from app.enums import ClientCommands, UserRepositoryEnum
 from app.filters import HasUser
 from app.keywords import remove_cancel, select_cancel, user_actions
 from app.services import is_headman, print_info
@@ -47,18 +47,18 @@ async def input_action(
 ) -> None:
     """Entrypoint for edit account."""
     await callback.answer()
-    user = await UserActions.get_user(callback.from_user.id)
+    user = await UserRepository.get_user(callback.from_user.id)
     await state.update_data(
         action=callback.data,
         full_name=f"{user.last_name} {user.first_name}",
     )
     await User.full_name.set()
     match callback.data:
-        case UserActionsEnum.UPDATE.action:
+        case UserRepositoryEnum.UPDATE.action:
             await input_action_update(callback)
-        case UserActionsEnum.DELETE.action:
+        case UserRepositoryEnum.DELETE.action:
             await input_action_delete(callback, user)
-        case UserActionsEnum.CANCEL.action:
+        case UserRepositoryEnum.CANCEL.action:
             await callback.message.delete()
             await state.finish()
 
@@ -80,7 +80,7 @@ async def input_full_name_update(
         "last_name": last_name,
         "first_name": first_name,
     }
-    await UserActions.update_user(message.from_user.id, new_info)
+    await UserRepository.update_user(message.from_user.id, new_info)
     await message.answer(
         "Ваши данные успешно заменены",
         reply_markup=remove_cancel(),
@@ -105,7 +105,7 @@ async def input_full_name_delete(
         await state.finish()
         return
     if message.text == full_name:
-        await UserActions.delete_user(message.from_user.id)
+        await UserRepository.delete_user(message.from_user.id)
         await message.answer(
             "Успехов! Удачи! Спокойной ночи!",
             reply_markup=remove_cancel(),
@@ -122,12 +122,12 @@ async def input_full_name(message: types.Message, state: FSMContext) -> None:
     """Get info about first and last name."""
     data = await state.get_data()
     match data["action"]:
-        case UserActionsEnum.UPDATE.action:
+        case UserRepositoryEnum.UPDATE.action:
             await input_full_name_update(
                 message,
                 state,
             )
-        case UserActionsEnum.DELETE.action:
+        case UserRepositoryEnum.DELETE.action:
             await input_full_name_delete(
                 message,
                 state,

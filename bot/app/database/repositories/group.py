@@ -1,43 +1,47 @@
 from typing import Optional
 
-from sqlalchemy import delete, orm, select, update
+from sqlalchemy import orm, select
 
 from app.database.connection import get_session
 from app.database.models import Group, Subject, User
 
+from .base import BaseRepository
 
-class GroupActions:
-    """Class with actions with group."""
 
-    @staticmethod
+class GroupActions(BaseRepository):
+    model = Group
+
+    @classmethod
     async def get_group(
+        cls,
         group_id: Optional[int] = None,
         group_name: Optional[str] = None,
         subjects: bool = False,
         students: bool = False,
     ) -> Optional[Group]:
         """Get group."""
-        query = select(Group)
+        query = select(cls.model)
         if group_id is not None:
-            query = query.where(Group.id == group_id)
+            query = query.where(cls.model.id == group_id)
         if group_name is not None:
-            query = query.where(Group.name == group_name)
+            query = query.where(cls.model.name == group_name)
         if subjects:
             query = query.options(
-                orm.subqueryload(Group.subjects).options(
+                orm.subqueryload(cls.model.subjects).options(
                     orm.subqueryload(Subject.days),
                 ),
             )
         if students:
             query = query.options(
-                orm.subqueryload(Group.students),
+                orm.subqueryload(cls.model.students),
             )
         async with get_session() as session:
             result = await session.execute(query)
             return result.scalar()
 
-    @staticmethod
+    @classmethod
     async def get_group_by_user_id(
+        cls,
         user_id: int,
         subjects: bool = False,
         students: bool = False,
@@ -47,13 +51,13 @@ class GroupActions:
         group = orm.joinedload(User.group, innerjoin=True)
         if subjects:
             group = group.options(
-                orm.subqueryload(Group.subjects).options(
+                orm.subqueryload(cls.model.subjects).options(
                     orm.subqueryload(Subject.days),
                 ),
             )
         if students:
             group = group.options(
-                orm.subqueryload(Group.students),
+                orm.subqueryload(cls.model.students),
             )
         query = query.options(group)
         async with get_session() as session:
@@ -63,47 +67,24 @@ class GroupActions:
                 return None
             return user.group
 
-    @staticmethod
+    @classmethod
     async def get_groups(
+        cls,
         subjects: bool = False,
         students: bool = False,
     ) -> list[Group]:
         """Get all groups."""
-        query = select(Group)
+        query = select(cls.model)
         if subjects:
             query = query.options(
-                orm.subqueryload(Group.subjects).options(
+                orm.subqueryload(cls.model.subjects).options(
                     orm.subqueryload(Subject.days),
                 ),
             )
         if students:
             query = query.options(
-                orm.subqueryload(Group.students),
+                orm.subqueryload(cls.model.students),
             )
         async with get_session() as session:
             result = await session.execute(query)
             return result.scalars().all()
-
-    @staticmethod
-    async def create_group(group: dict) -> Group:
-        """Create group."""
-        group = Group(**group)
-        async with get_session() as session:
-            session.add(group)
-            await session.commit()
-            await session.refresh(group)
-            return group
-
-    @staticmethod
-    async def edit_group(group_id: int, group: dict) -> None:
-        """Edit group."""
-        query = update(Group).where(Group.id == group_id).values(**group)
-        async with get_session() as session:
-            await session.execute(query)
-
-    @staticmethod
-    async def delete_group(group_id: int) -> None:
-        """Delete group by id."""
-        query = delete(Group).where(Group.id == group_id)
-        async with get_session() as session:
-            await session.execute(query)

@@ -4,7 +4,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database.repositories import GroupActions, UserActions
+from app.database.repositories import GroupActions, UserRepository
 from app.enums import HeadmanCommands
 from app.filters import HasUser, IsHeadman
 from app.keywords import (
@@ -37,7 +37,7 @@ class Group(StatesGroup):
 
 async def start_group(message: types.Message) -> None:
     """Entrypoint for group."""
-    group = await UserActions.get_user(message.from_user.id, group=True).group
+    group = await UserRepository.get_user(message.from_user.id, group=True).group
     if group is None:
         await message.answer("У вас нет группы")
     else:
@@ -94,7 +94,7 @@ async def input_action_group(
 ) -> None:
     """Input action for group."""
     await state.update_data(action=callback.data)
-    group = await UserActions.get_user(callback.from_user.id, group=True).group
+    group = await UserRepository.get_user(callback.from_user.id, group=True).group
     await Group.name.set()
     match callback.data:
         case GroupActionsEnum.CREATE.action:
@@ -109,7 +109,7 @@ async def input_action_group(
 async def input_name_group(message: types.Message, state: FSMContext) -> None:
     """Input name of group."""
     group = await GroupActions.get_group(group_name=message.text)
-    user = await UserActions.get_user(message.from_user.id)
+    user = await UserRepository.get_user(message.from_user.id)
     action = (await state.get_data())["action"]
     if action == GroupActionsEnum.CREATE.action:
         if group is not None:
@@ -174,7 +174,7 @@ async def input_secret_word_create(
 ) -> None:
     """Create new group."""
     group = await GroupActions.create_group(new_group).id
-    await UserActions.update_user(message.from_user.id, {"group_id": group})
+    await UserRepository.update_user(message.from_user.id, {"group_id": group})
 
 
 async def input_secret_word_update(group_id: int, new_group: dict) -> None:
@@ -199,7 +199,7 @@ async def input_secret_word(
         "secret_word": polynomial_hash(message.text),
         "random_queue": random_queue == "True",
     }
-    group_id = await UserActions.get_user(message.from_user.id).group_id
+    group_id = await UserRepository.get_user(message.from_user.id).group_id
     status = get_status_group(group_id, action)
     match action:
         case GroupActionsEnum.CREATE.action:

@@ -2,8 +2,9 @@ import enum
 
 from sqlalchemy import Column, Enum, ForeignKey, Integer, String, orm
 
-from .base import BaseTable
 from app.enums import SubjectTypeEnum
+
+from .base import BaseTable
 
 
 class SubjectType(str, enum.Enum):

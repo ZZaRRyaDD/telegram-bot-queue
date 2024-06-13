@@ -3,7 +3,7 @@ from .actions import (
     GroupActionsEnum,
     ScheduleActionsEnum,
     SubjectActionsEnum,
-    UserActionsEnum,
+    UserRepositoryEnum,
 )
 from .classes import ScheduleCompact, SubjectCompact
 from .commands import (
@@ -21,7 +21,7 @@ __all__ = (
     GroupActionsEnum,
     ScheduleActionsEnum,
     SubjectActionsEnum,
-    UserActionsEnum,
+    UserRepositoryEnum,
     ScheduleCompact,
     SubjectCompact,
     AdminCommands,

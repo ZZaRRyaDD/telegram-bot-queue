@@ -10,7 +10,7 @@ from app.database.repositories import (
     QueueActions,
     ScheduleActions,
     SubjectActions,
-    UserActions,
+    UserRepository,
 )
 from app.enums import SubjectTypeEnum
 
@@ -110,7 +110,7 @@ async def send_top(bot: Bot) -> None:
                     if group.random_queue:
                         random.shuffle(users)
                     list_queue = "".join([
-                        f"{index + 1}. {(await UserActions.get_user(id)).full_name}\n"
+                        f"{index + 1}. {(await UserRepository.get_user(id)).full_name}\n"
                         for index, id in enumerate(users)
                     ])
                     if subject.subject_type == SubjectTypeEnum.LABORATORY_WORK.value:

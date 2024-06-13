@@ -1,7 +1,4 @@
-from sqlalchemy import (
-    BigInteger,
-    Column,
-)
+from sqlalchemy import BigInteger, Column
 
 from app.database.connection import Base
 

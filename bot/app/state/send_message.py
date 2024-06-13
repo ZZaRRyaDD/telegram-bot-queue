@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils.exceptions import BotBlocked
 
-from app.database.repositories import UserActions
+from app.database.repositories import UserRepository
 from app.enums import AdminCommands
 from app.filters import IsAdmin
 from app.initialize import bot
@@ -27,7 +27,7 @@ async def get_message(message: types.Message) -> None:
 
 async def send_messages(message: types.Message, state: FSMContext) -> None:
     """Input message and send it."""
-    users = await UserActions.get_users(without_admin=True)
+    users = await UserRepository.get_users(without_admin=True)
     if not users:
         await message.answer(
             "Пользователей нет",

@@ -1,26 +1,29 @@
 from typing import Optional
 
-from sqlalchemy import delete, orm, select, update
+from sqlalchemy import orm, select
 
 from app.database.connection import get_session
 from app.database.models import Subject
 
+from .base import BaseRepository
 
-class SubjectActions:
-    """Class with actions with subject."""
 
-    @staticmethod
+class SubjectActions(BaseRepository):
+    model = Subject
+
+    @classmethod
     async def get_subject(
+        cls,
         subject_id: Optional[int] = None,
         users_practice: bool = False,
     ) -> Optional[Subject]:
         """Get subject."""
-        query = select(Subject)
+        query = select(cls.model)
         if subject_id is not None:
-            query = query.where(Subject.id == subject_id)
+            query = query.where(cls.model.id == subject_id)
         if users_practice:
             query = query.options(
-                orm.subqueryload(Subject.users_practice),
+                orm.subqueryload(cls.model.users_practice),
             )
         async with get_session() as session:
             result = await session.execute(query)
@@ -28,38 +31,15 @@ class SubjectActions:
 
     @staticmethod
     async def get_subjects(
+        cls,
         users_practice: bool = False,
     ) -> list[Subject]:
         """Get all subjects."""
-        query = select(Subject)
+        query = select(cls.model)
         if users_practice:
             query = query.options(
-                orm.subqueryload(Subject.users_practice),
+                orm.subqueryload(cls.model.users_practice),
             )
         async with get_session() as session:
             result = await session.execute(query)
             return result.scalars().all()
-
-    @staticmethod
-    async def create_subject(subject: dict) -> Subject:
-        """Create subject."""
-        subject = Subject(**subject)
-        async with get_session() as session:
-            session.add(subject)
-            await session.commit()
-            await session.refresh(subject)
-            return subject
-
-    @staticmethod
-    async def update_subject(subject_id: int, subject: dict) -> None:
-        """Update subject."""
-        query = update(Subject).where(Subject.id == subject_id).values(subject)
-        async with get_session() as session:
-            await session.execute(query)
-
-    @staticmethod
-    async def delete_subject(subject_id: int) -> None:
-        """Delete subject by id."""
-        query = delete(Subject).where(Subject.id == subject_id)
-        async with get_session() as session:
-            await session.execute(query)

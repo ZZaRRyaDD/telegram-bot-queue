@@ -45,7 +45,7 @@ class ScheduleActionsEnum(BaseActions):
     CANCEL = ("Cancel", "Отмена действия")
 
 
-class UserActionsEnum(BaseActions):
+class UserRepositoryEnum(BaseActions):
     """Class choices of user actions."""
 
     UPDATE = ("Update", "Редактирование профиля")

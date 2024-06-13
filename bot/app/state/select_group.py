@@ -2,7 +2,11 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database.repositories import GroupActions, QueueActions, UserActions
+from app.database.repositories import (
+    GroupActions,
+    QueueActions,
+    UserRepository,
+)
 from app.enums import ClientCommands, OtherCommands
 from app.filters import HasUser
 from app.keywords import get_list_of_groups, remove_cancel, select_cancel
@@ -43,7 +47,7 @@ async def get_select_group(
         await state.finish()
         return
     await state.update_data(group=callback.data)
-    user = await UserActions.get_user(callback.from_user.id, group=True)
+    user = await UserRepository.get_user(callback.from_user.id, group=True)
     if int(callback.data) == user.group_id:
         await callback.message.answer(
             "На данный момент вы уже состоите в данной группе",
@@ -69,7 +73,7 @@ async def get_secret_word(message: types.Message, state: FSMContext) -> None:
             reply_markup=select_cancel(),
         )
         return
-    await UserActions.update_user(message.from_user.id, {"group_id": group.id})
+    await UserRepository.update_user(message.from_user.id, {"group_id": group.id})
     await QueueActions.cleaning_user(message.from_user.id)
     await message.answer(
         f"Теперь вы в группе {group.name}",

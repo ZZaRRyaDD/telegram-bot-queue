@@ -2,7 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database.repositories import UserActions
+from app.database.repositories import UserRepository
 from app.enums import AdminCommands
 from app.filters import IsAdmin
 from app.initialize import bot
@@ -46,7 +46,7 @@ async def input_id_headman(message: types.Message, state: FSMContext) -> None:
             reply_markup=select_cancel(),
         )
         return
-    user = await UserActions.get_user(int(message.text))
+    user = await UserRepository.get_user(int(message.text))
     if user is None:
         await message.answer(
             "Такого пользователя нет. Введите корректный id",
@@ -54,7 +54,7 @@ async def input_id_headman(message: types.Message, state: FSMContext) -> None:
         )
         return
     new_status = not user.is_headman
-    await UserActions.update_user(user.id, {"is_headman": new_status})
+    await UserRepository.update_user(user.id, {"is_headman": new_status})
     await message.answer(
         f"Пользователь {user.full_name} {get_situation(new_status)}",
         reply_markup=remove_cancel(),

@@ -10,7 +10,7 @@ from app.database.repositories import (
     GroupActions,
     ScheduleActions,
     SubjectActions,
-    UserActions,
+    UserRepository,
 )
 from app.enums import (
     HeadmanCommands,
@@ -517,7 +517,7 @@ async def input_count_lab_subject(
             reply_markup=select_cancel(),
         )
         return
-    group = await UserActions.get_user(message.from_user.id).group_id
+    group = await UserRepository.get_user(message.from_user.id).group_id
     action, data = "", await state.get_data()
     name = data['name']
     count = int(message.text)
