@@ -36,7 +36,7 @@ async def input_action_delete(callback: types.CallbackQuery, user) -> None:
     """Take second name and first name for delete profile."""
     await callback.message.delete()
     await callback.message.answer(
-        f"Введите свое фамилию и имя '{user.last_name} {user.first_name}' без кавычек",
+        f"Введите свое фамилию и имя '{user.full_name}' без кавычек",
         reply_markup=select_cancel(),
     )
 
@@ -50,7 +50,7 @@ async def input_action(
     user = await UserRepository.get_user(callback.from_user.id)
     await state.update_data(
         action=callback.data,
-        full_name=f"{user.last_name} {user.first_name}",
+        full_name=user.full_name,
     )
     await User.full_name.set()
     match callback.data:
@@ -80,7 +80,8 @@ async def input_full_name_update(
         "last_name": last_name,
         "first_name": first_name,
     }
-    await UserRepository.update_user(message.from_user.id, new_info)
+    user = await UserRepository.get(message.from_user.id)
+    await UserRepository.update(db_obj=user, obj_in=new_info)
     await message.answer(
         "Ваши данные успешно заменены",
         reply_markup=remove_cancel(),
@@ -105,7 +106,7 @@ async def input_full_name_delete(
         await state.finish()
         return
     if message.text == full_name:
-        await UserRepository.delete_user(message.from_user.id)
+        await UserRepository.remove(obj_id=message.from_user.id)
         await message.answer(
             "Успехов! Удачи! Спокойной ночи!",
             reply_markup=remove_cancel(),

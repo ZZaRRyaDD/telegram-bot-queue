@@ -53,7 +53,7 @@ async def print_info(user_id: int) -> str:
     """Return info about user."""
     user = await UserRepository.get_user(user_id, group=True)
     info = f"ID: {user.id}\n"
-    info += f"Фамилия Имя: {user.last_name} {user.first_name}\n"
+    info += f"Фамилия Имя: {user.full_name}\n"
     group = (
         user.group.name
         if user.group is not None
@@ -146,12 +146,8 @@ async def get_info_group(group: Group) -> str:
             info += await get_info_subject(subject)
     if group.students:
         info += "Состав группы:\n"
-        info += "".join(
-            [
-                f"\t\t{index + 1}. {user.full_name}\n"
-                for index, user in enumerate(group.students)
-            ]
-        )
+        for index, user in enumerate(group.students):
+            info += f"\t\t{index + 1}. {user.full_name}\n"
     return info
 
 

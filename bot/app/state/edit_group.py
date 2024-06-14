@@ -173,18 +173,19 @@ async def input_secret_word_create(
     new_group: dict,
 ) -> None:
     """Create new group."""
-    group = await GroupRepository.create_group(new_group).id
-    await UserRepository.update_user(message.from_user.id, {"group_id": group})
+    group = await GroupRepository.create(new_group).id
+    user = await UserRepository.get(message.from_user.id)
+    await UserRepository.update(db_obj=user, obj_in={"group_id": group})
 
 
-async def input_secret_word_update(group_id: int, new_group: dict) -> None:
+async def input_secret_word_update(group, new_group: dict) -> None:
     """Update group."""
-    await GroupRepository.edit_group(group_id, new_group)
+    await GroupRepository.update(db_obj=group, obj_in=new_group)
 
 
-async def input_secret_word_delete(group_id: int) -> int:
+async def input_secret_word_delete(group) -> int:
     """Delete group and subjects."""
-    await GroupRepository.delete_group(group_id)
+    await GroupRepository.remove(group.id)
 
 
 async def input_secret_word(
@@ -199,15 +200,15 @@ async def input_secret_word(
         "secret_word": polynomial_hash(message.text),
         "random_queue": random_queue == "True",
     }
-    group_id = await UserRepository.get_user(message.from_user.id).group_id
-    status = get_status_group(group_id, action)
+    group = await UserRepository.get_user(message.from_user.id).group
+    status = get_status_group(group.id, action)
     match action:
         case GroupRepositoryEnum.CREATE.action:
             await input_secret_word_create(message, new_group)
         case GroupRepositoryEnum.UPDATE.action:
-            await input_secret_word_update(group_id, new_group)
+            await input_secret_word_update(group, new_group)
         case GroupRepositoryEnum.DELETE.action:
-            await input_secret_word_delete(group_id)
+            await input_secret_word_delete(group)
     await message.answer(
         f"Группа {name} успешно {status}",
         reply_markup=remove_cancel(),

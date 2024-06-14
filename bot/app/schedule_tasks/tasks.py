@@ -109,10 +109,10 @@ async def send_top(bot: Bot) -> None:
                 if users:
                     if group.random_queue:
                         random.shuffle(users)
-                    list_queue = "".join([
-                        f"{index + 1}. {(await UserRepository.get_user(id)).full_name}\n"
-                        for index, id in enumerate(users)
-                    ])
+                    list_queue = []
+                    for index, user_id in enumerate(users):
+                        user = await UserRepository.get_user(user_id)
+                        list_queue.append(f"{index + 1}. {user.full_name}\n")
                     if subject.subject_type == SubjectTypeEnum.LABORATORY_WORK.value:
                         list_labs.append(
                             lab_template.format(number, list_queue)

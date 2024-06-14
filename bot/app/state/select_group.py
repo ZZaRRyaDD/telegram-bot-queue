@@ -73,7 +73,8 @@ async def get_secret_word(message: types.Message, state: FSMContext) -> None:
             reply_markup=select_cancel(),
         )
         return
-    await UserRepository.update_user(message.from_user.id, {"group_id": group.id})
+    user = await UserRepository.get(message.from_user.id)
+    await UserRepository.update(db_obj=user, obj_in={"group_id": group.id})
     await QueueRepository.cleaning_user(message.from_user.id)
     await message.answer(
         f"Теперь вы в группе {group.name}",

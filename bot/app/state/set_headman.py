@@ -54,7 +54,7 @@ async def input_id_headman(message: types.Message, state: FSMContext) -> None:
         )
         return
     new_status = not user.is_headman
-    await UserRepository.update_user(user.id, {"is_headman": new_status})
+    await UserRepository.update(db_obj=user, obj_in={"is_headman": new_status})
     await message.answer(
         f"Пользователь {user.full_name} {get_situation(new_status)}",
         reply_markup=remove_cancel(),

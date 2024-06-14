@@ -32,3 +32,9 @@ class User(BaseTable):
         back_populates="students",
         lazy="joined",
     )
+
+    @property
+    def full_name(self):
+        last_name = f"{self.last_name} " if self.last_name else ""
+        first_name = self.first_name if self.first_name else ""
+        return f"{last_name}{first_name}"
