@@ -32,6 +32,7 @@ class Group(StatesGroup):
     action = State()
     name = State()
     random_queue = State()
+    time_zone = State()
     secret_word = State()
 
 
@@ -173,7 +174,7 @@ async def input_secret_word_create(
     new_group: dict,
 ) -> None:
     """Create new group."""
-    group = await GroupRepository.create(new_group).id
+    group = await GroupRepository.create(obj_in=new_group).id
     user = await UserRepository.get(message.from_user.id)
     await UserRepository.update(db_obj=user, obj_in={"group_id": group})
 
@@ -185,7 +186,7 @@ async def input_secret_word_update(group, new_group: dict) -> None:
 
 async def input_secret_word_delete(group) -> int:
     """Delete group and subjects."""
-    await GroupRepository.remove(group.id)
+    await GroupRepository.remove(obj_id=group.id)
 
 
 async def input_secret_word(
