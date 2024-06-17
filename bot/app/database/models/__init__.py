@@ -1,5 +1,5 @@
 from .completed_practices import CompletedPractices
-from .group import Group
+from .group import Group, AVAILABLE_TIMEZONES
 from .queue import Queue
 from .schedule import Schedule
 from .subject import Subject, SubjectType
@@ -13,4 +13,5 @@ __all__ = (
     "Subject",
     "SubjectType",
     "User",
+    "AVAILABLE_TIMEZONES",
 )

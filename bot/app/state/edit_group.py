@@ -4,6 +4,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
+from app.database.models import AVAILABLE_TIMEZONES
 from app.database.repositories import GroupRepository, UserRepository
 from app.enums import HeadmanCommands
 from app.filters import HasUser, IsHeadman
@@ -164,6 +165,25 @@ async def input_random_queue(
     await Group.next()
     await callback.message.delete()
     await callback.message.answer(
+        "Введите временную зону, по умолчанию - Asia/Krasnoyarsk",
+        reply_markup=select_cancel(),
+    )
+
+
+async def input_time_zone(
+    message: types.Message,
+    state: FSMContext,
+) -> None:
+    time_zone = message.text
+    if time_zone not in AVAILABLE_TIMEZONES:
+        await message.answer(
+            "Введите корректную временную зону",
+            reply_markup=select_cancel(),
+        )
+        return
+    await state.update_data(time_zone=time_zone)
+    await Group.next()
+    await message.answer(
         "Введите секретное слово для входа в группу",
         reply_markup=select_cancel(),
     )
@@ -195,9 +215,15 @@ async def input_secret_word(
 ) -> None:
     """Input secret word."""
     data = await state.get_data()
-    name, action, random_queue = data["name"], data["action"], data["random_queue"]
+    name, action, random_queue, time_zone = (
+        data["name"],
+        data["action"],
+        data["random_queue"],
+        data["time_zone"],
+    )
     new_group = {
         "name": name,
+        "time_zone": time_zone,
         "secret_word": polynomial_hash(message.text),
         "random_queue": random_queue == "True",
     }
@@ -237,6 +263,10 @@ def register_handlers_group(dispatcher: Dispatcher) -> None:
     dispatcher.register_callback_query_handler(
         input_random_queue,
         state=Group.random_queue,
+    )
+    dispatcher.register_message_handler(
+        input_time_zone,
+        state=Group.time_zone,
     )
     dispatcher.register_message_handler(
         input_secret_word,
