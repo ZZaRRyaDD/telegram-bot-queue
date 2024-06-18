@@ -64,10 +64,10 @@ async def start_complete_practice(message: types.Message) -> None:
     if not member_group(message.from_user.id):
         await message.answer("Чтобы выбрать предмет, нужно выбрать группу")
         return
-    subjects = (await GroupRepository.get_group_by_user_id(
+    group = await GroupRepository.get_group_by_user_id(
         message.from_user.id,
         subjects=True,
-    )).subjects
+    )
     if not subjects:
         await message.answer("В группе нет предметов")
         return
@@ -75,7 +75,7 @@ async def start_complete_practice(message: types.Message) -> None:
     await CompletePractice.name.set()
     await message.answer(
         "Выберите предмет",
-        reply_markup=get_list_of_subjects(subjects),
+        reply_markup=get_list_of_subjects(group.subjects),
     )
 
 

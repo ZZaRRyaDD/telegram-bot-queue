@@ -39,7 +39,8 @@ class Group(StatesGroup):
 
 async def start_group(message: types.Message) -> None:
     """Entrypoint for group."""
-    group = await UserRepository.get_user(message.from_user.id, group=True).group
+    user = await UserRepository.get_user(message.from_user.id, group=True)
+    group = user.group
     if group is None:
         await message.answer("У вас нет группы")
     else:
@@ -96,7 +97,8 @@ async def input_action_group(
 ) -> None:
     """Input action for group."""
     await state.update_data(action=callback.data)
-    group = await UserRepository.get_user(callback.from_user.id, group=True).group
+    user = await UserRepository.get_user(callback.from_user.id, group=True)
+    group = user.group
     await Group.name.set()
     match callback.data:
         case GroupRepositoryEnum.CREATE.action:
@@ -194,9 +196,9 @@ async def input_secret_word_create(
     new_group: dict,
 ) -> None:
     """Create new group."""
-    group = await GroupRepository.create(obj_in=new_group).id
+    group = await GroupRepository.create(obj_in=new_group)
     user = await UserRepository.get(message.from_user.id)
-    await UserRepository.update(db_obj=user, obj_in={"group_id": group})
+    await UserRepository.update(db_obj=user, obj_in={"group_id": group.id})
 
 
 async def input_secret_word_update(group, new_group: dict) -> None:

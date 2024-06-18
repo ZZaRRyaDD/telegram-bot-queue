@@ -40,7 +40,7 @@ class UserRepository(BaseRepository):
             result = await session.execute(query)
             return result.scalar()
 
-    @staticmethod
+    @classmethod
     async def get_users(
         cls,
         with_group: bool = False,

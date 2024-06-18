@@ -140,6 +140,7 @@ async def get_info_group(group: Group) -> str:
     info = ""
     info += f"ID: {group.id}\n"
     info += f"Название: {group.name}\n"
+    info += f"Временная зона: {group.time_zone}\n"
     if group.subjects:
         info += "Предметы:\n"
         for subject in group.subjects:

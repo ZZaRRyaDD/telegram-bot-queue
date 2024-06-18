@@ -105,13 +105,13 @@ async def input_action_subject_update_delete(
     subject_types = [
         SubjectTypeEnum.LABORATORY_WORK.value,
     ]
-    subjects = (await GroupRepository.get_group_by_user_id(
+    group = await GroupRepository.get_group_by_user_id(
         callback.from_user.id,
         subjects=True,
-    )).subjects
+    )
     subjects = list(filter(
         lambda x: x.subject_type in subject_types,
-        subjects,
+        group.subjects,
     ))
     if not subjects:
         await callback.message.delete()
@@ -170,7 +170,7 @@ async def input_name_update_delete_subject_delete(
     subject_id: int,
 ) -> None:
     """Delete subject and bounded this it items."""
-    await SubjectRepository.delete_subject(subject_id)
+    await SubjectRepository.remove(obj_id=subject_id)
     await callback.message.edit_text("Предмет успешно удален")
     await state.finish()
 
@@ -249,7 +249,7 @@ async def input_name_subject(
     subject_id = data.get("subject_id", None)
     if subject_id is not None:
         subject = await SubjectRepository.get_subject(subject_id=subject_id)
-        await message.answer(get_info_schedule(subject))
+        await message.answer(await get_info_schedule(subject))
     await Subject.schedule_action.set()
     await message.answer(
         "Выберите действие для предмета",
@@ -347,7 +347,7 @@ async def delete_schedule_action(
         if subject_id is not None:
             await ScheduleRepository.delete_schedule_by_id(int(callback.data))
             subject = await SubjectRepository.get_subject(subject_id=subject_id)
-            await callback.message.answer(get_info_schedule(subject))
+            await callback.message.answer(await get_info_schedule(subject))
     await Subject.schedule_action.set()
     await callback.message.answer(
         "Выберите действие для предмета",
@@ -444,17 +444,18 @@ async def input_date_subject(
                         day,
                         week,
                     ):
-                        new_schedule = await ScheduleRepository.create_schedule(item).__dict__
-                        new_schedule.pop("_sa_instance_state")
-                        new_schedule.pop("subject")
-                        new_schedules.append(new_schedule)
+                        new_schedule = await ScheduleRepository.create(obj_in=item)
+                        new_schedule_dict = new_schedule.__dict__
+                        new_schedule_dict.pop("_sa_instance_state")
+                        new_schedule_dict.pop("subject")
+                        new_schedules.append(new_schedule_dict)
         await state.update_data(
             schedule=schedule + new_schedules,
             days=[],
         )
         if subject_id is not None:
             subject = await SubjectRepository.get_subject(subject_id=subject_id)
-            await callback.message.answer(get_info_schedule(subject))
+            await callback.message.answer(await get_info_schedule(subject))
         await Subject.schedule_action.set()
         await callback.message.delete()
         await callback.message.answer(
@@ -477,18 +478,18 @@ async def input_count_lab_subject_create(
         "count_practices": count,
         "subject_type": SubjectTypeEnum.LABORATORY_WORK.value,
     }
-    subject = await SubjectRepository.create_subject(subject_info)
+    subject = await SubjectRepository.create(obj_in=subject_info)
     for day in schedule:
         day.pop("id")
         day["subject_id"] = subject.id
-        await ScheduleRepository.create_schedule(day)
+        await ScheduleRepository.create(obj_in=day)
 
 
 async def input_count_lab_subject_update(
     name: str,
     group: int,
     count: int,
-    subject_id: int,
+    subject: Subject,
 ) -> None:
     """Add schedule when update subject."""
     subject_info = {
@@ -497,7 +498,7 @@ async def input_count_lab_subject_update(
         "count_practices": count,
         "subject_type": SubjectTypeEnum.LABORATORY_WORK.value,
     }
-    await SubjectRepository.update_subject(subject_id, subject_info)
+    await SubjectRepository.update(db_obj=subject, obj_in=subject_info)
 
 
 async def input_count_lab_subject(
@@ -531,14 +532,13 @@ async def input_count_lab_subject(
             )
             action = "создан"
         case SubjectRepositoryEnum.UPDATE.action:
-            old_count = await SubjectRepository.get_subject(
-                data.get("subject_id")
-            ).count_practices
+            subject = await SubjectRepository.get_subject(data.get("subject_id"))
+            old_count = subject.count_practices
             await input_count_lab_subject_update(
                 name,
                 group,
                 count,
-                data.get("subject_id"),
+                subject,
             )
             if old_count > count:
                 for lab in range(count + 1, old_count + 1):

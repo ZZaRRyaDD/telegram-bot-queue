@@ -71,13 +71,13 @@ async def input_action_event_update_delete(
         SubjectTypeEnum.GRADUATE_WORK.value,
         SubjectTypeEnum.SUMMER_PRACTICE.value,
     ]
-    subjects = (await GroupRepository.get_group_by_user_id(
+    group = await GroupRepository.get_group_by_user_id(
         callback.from_user.id,
         subjects=True,
-    )).subjects
+    )
     subjects = list(filter(
         lambda x: x.subject_type in subject_types,
-        subjects,
+        group.subjects,
     ))
     if not subjects:
         await callback.message.delete()
@@ -161,7 +161,7 @@ async def input_name_update_delete_event_delete(
     subject_id: int,
 ) -> None:
     """Delete event and bounded this it items."""
-    await SubjectRepository.delete_subject(subject_id)
+    await SubjectRepository.remove(obj_id=subject_id)
     await callback.message.edit_text("Событие успешно удалено")
     await state.finish()
 
@@ -213,12 +213,12 @@ async def event_create(data, user, date_protection) -> None:
         "count_practices": 1,
         "subject_type": data['subject_type'],
     }
-    subject = await SubjectRepository.create_subject(subject_info)
+    subject = await SubjectRepository.create(obj_in=subject_info)
     day = {
         "subject_id": subject.id,
         "date_protection": date_protection,
     }
-    await ScheduleRepository.create_schedule(day)
+    await ScheduleRepository.create(obj_in=day)
 
 
 async def event_update(data, user, date_protection) -> None:
@@ -227,10 +227,10 @@ async def event_update(data, user, date_protection) -> None:
         "group_id": user.group_id,
         "subject_type": data['subject_type'],
     }
-    await SubjectRepository.update_subject(data.get("subject_id"), subject_info)
     subject = await SubjectRepository.get_subject(data.get("subject_id"))
+    await SubjectRepository.update(db_obj=subject, obj_in=subject_info)
     schedule = await ScheduleRepository.get_schedule(
-        subject_id=data.get("subject_id"),
+        subject_id=subject.id,
         date_protection=date_protection,
     )
     if not schedule:
@@ -238,7 +238,7 @@ async def event_update(data, user, date_protection) -> None:
             "subject_id": subject.id,
             "date_protection": date_protection,
         }
-        await ScheduleRepository.create_schedule(day)
+        await ScheduleRepository.create(obj_in=day)
 
 
 async def input_type_event(

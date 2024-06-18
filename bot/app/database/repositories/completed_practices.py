@@ -62,7 +62,7 @@ class CompletedPracticesRepository(BaseRepository):
     async def action_user(cls, params: dict) -> None:
         """Append/remove user to subject."""
         if not (await CompletedPracticesRepository.exists_completed_practices(params)):
-            await CompletedPracticesRepository.create(params)
+            await CompletedPracticesRepository.create(obj_in=params)
             return True
         await CompletedPracticesRepository.remove_completed_practices(params)
         return False

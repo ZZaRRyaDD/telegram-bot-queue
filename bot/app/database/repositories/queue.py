@@ -90,7 +90,7 @@ class QueueRepository(BaseRepository):
         """Append/remove user to subject."""
         item = await QueueRepository.exists_queue(params)
         if item is None:
-            await QueueRepository.create(params)
+            await QueueRepository.create(obj_in=params)
             return True
         if item and item.number_in_list is None:
             await QueueRepository.remove_queue(params)
