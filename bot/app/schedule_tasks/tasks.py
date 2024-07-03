@@ -1,10 +1,12 @@
 import asyncio
 import datetime
+import itertools
 import random
 
 from aiogram import Bot
 from aiogram.utils.exceptions import BotBlocked
 
+from app.database.models import Weekday
 from app.database.repositories import (
     GroupRepository,
     QueueRepository,
@@ -50,21 +52,26 @@ async def activate_after_tomorrow_subjects() -> None:
     after_tomorrow = datetime.date.today() + datetime.timedelta(
         days=DAYS_BEFORE_SUBJECT,
     )
-    dates = set([
-        date.id
-        for date in (await ScheduleRepository.get_schedule(
-            date_number=after_tomorrow.weekday(),
-        ))
-    ])
-    dates_protection = set([
-        date.id
-        for date in (await ScheduleRepository.get_schedule(
-            date_protection=after_tomorrow,
-        ))
-    ])
-    dates |= dates_protection
-    for date in dates:
-        await ScheduleRepository.change_status_subjects(True, schedule_id=date)
+    weekday = ""
+    for item in Weekday:
+        if item.value == after_tomorrow.weekday():
+            weekday = item.name
+            break
+
+    date_protection_schedule = await ScheduleRepository.get_schedule(
+        date_protection=after_tomorrow,
+    )
+    date_number_schedule = await ScheduleRepository.get_schedule(
+        date_number=weekday,
+    )
+
+    dates = set()
+    for date in itertools.chain(date_protection_schedule, date_number_schedule):
+        date_id = date.id
+        if date_id not in dates:
+            dates.add(date_id)
+            await ScheduleRepository.change_status_subjects(True, schedule_id=date_id)
+
     await ScheduleRepository.change_status_subjects(
         False,
         week=is_even_week(after_tomorrow).constant,
@@ -83,7 +90,7 @@ async def send_top(bot: Bot) -> None:
     """Send result queue."""
     await QueueRepository.cleaning_subject()
     schedule = await ScheduleRepository.get_schedule(can_select=True)
-    subject_template = "Очередь по дисциплине {0}\n{1}"
+    subject_template = "Очередь по дисциплине '{0}'\n{1}"
     lab_template = "Лабораторная работа №{0}\n{1}\n\n"
     event_template = "{0} {1}\n{2}\n\n"
     if schedule:
@@ -112,17 +119,17 @@ async def send_top(bot: Bot) -> None:
                     list_queue = []
                     for index, user_id in enumerate(users):
                         user = await UserRepository.get_user(user_id)
-                        list_queue.append(f"{index + 1}. {user.full_name}\n")
+                        list_queue.append(f"{index + 1}. {user.full_name}")
                     if subject.subject_type == SubjectTypeEnum.LABORATORY_WORK.value:
                         list_labs.append(
-                            lab_template.format(number, list_queue)
+                            lab_template.format(number, "\n".join(list_queue))
                         )
                     else:
                         list_labs.append(
                             event_template.format(
                                 subject.subject_type,
                                 subject.name,
-                                list_queue,
+                                "\n".join(list_queue),
                             )
                         )
                 for index, user in enumerate(users, 1):
@@ -136,7 +143,7 @@ async def send_top(bot: Bot) -> None:
                         subject_template.format(
                             subject.name,
                             "".join(list_labs),
-                        )
+                        ),
                     )
                 except BotBlocked:
                     pass

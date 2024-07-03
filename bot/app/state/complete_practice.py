@@ -68,7 +68,7 @@ async def start_complete_practice(message: types.Message) -> None:
         message.from_user.id,
         subjects=True,
     )
-    if not subjects:
+    if not group.subjects:
         await message.answer("В группе нет предметов")
         return
     await message.answer(await info_practice(message.from_user.id))
@@ -114,7 +114,7 @@ async def get_numbers_lab_subject(
         return
     params = {
         "user_id": callback.from_user.id,
-        "number_practice": callback.data,
+        "number_practice": int(callback.data),
         "subject_id": int((await state.get_data())["subject"])
     }
     result = await CompletedPracticesRepository.action_user(params)

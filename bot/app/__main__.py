@@ -24,8 +24,8 @@ SEND_TOP_TIME = "08:00:00"
 async def scheduler():
     """Activate periodic tasks"""
     aioschedule.every().day.at(get_time(SEND_TOP_TIME)).do(send_top, bot=bot)
-    for remide in REMINDER_TIME:
-        aioschedule.every().day.at(get_time(remide)).do(send_reminder, bot=bot)
+    for reminder in REMINDER_TIME:
+        aioschedule.every().day.at(get_time(reminder)).do(send_reminder, bot=bot)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)

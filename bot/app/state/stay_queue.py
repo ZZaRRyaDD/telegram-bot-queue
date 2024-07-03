@@ -137,7 +137,7 @@ async def get_numbers_lab_subject(
         return
     params = {
         "user_id": callback.from_user.id,
-        "number_practice": callback.data,
+        "number_practice": int(callback.data),
         "subject_id": int((await state.get_data())["subject"]),
     }
     result = await QueueRepository.action_user(params)
