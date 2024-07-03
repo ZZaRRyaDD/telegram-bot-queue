@@ -154,9 +154,7 @@ async def input_name_update_delete_subject_update(
 ) -> None:
     """Print schedule for subject and get action for it."""
     await callback.message.delete()
-    await callback.message.answer(
-        get_info_schedule(subject),
-    )
+    await callback.message.answer(await get_info_schedule(subject))
     await Subject.schedule_action.set()
     await callback.message.answer(
         "Выберите действие для предмета",
@@ -345,7 +343,7 @@ async def delete_schedule_action(
                 break
         await state.update_data({"schedule": new_schedule})
         if subject_id is not None:
-            await ScheduleRepository.delete_schedule_by_id(int(callback.data))
+            await ScheduleRepository.remove(obj_id=int(callback.data))
             subject = await SubjectRepository.get_subject(subject_id=subject_id)
             await callback.message.answer(await get_info_schedule(subject))
     await Subject.schedule_action.set()
@@ -518,7 +516,7 @@ async def input_count_lab_subject(
             reply_markup=select_cancel(),
         )
         return
-    group = await UserRepository.get_user(message.from_user.id).group_id
+    user = await UserRepository.get_user(message.from_user.id)
     action, data = "", await state.get_data()
     name = data['name']
     count = int(message.text)
@@ -526,7 +524,7 @@ async def input_count_lab_subject(
         case SubjectRepositoryEnum.CREATE.action:
             await input_count_lab_subject_create(
                 name,
-                group,
+                user.group_id,
                 count,
                 data.get("schedule"),
             )
@@ -536,7 +534,7 @@ async def input_count_lab_subject(
             old_count = subject.count_practices
             await input_count_lab_subject_update(
                 name,
-                group,
+                user.group_id,
                 count,
                 subject,
             )
@@ -551,7 +549,7 @@ async def input_count_lab_subject(
             action = "обновлен"
     await state.finish()
     await message.answer(
-        f"Предмет {name} успешно {action}.",
+        f"Предмет '{name}' успешно {action}.",
         reply_markup=remove_cancel(),
     )
 

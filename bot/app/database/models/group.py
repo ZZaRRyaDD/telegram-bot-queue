@@ -1,6 +1,6 @@
 import zoneinfo
 
-from sqlalchemy import Boolean, Column, String, orm
+from sqlalchemy import Boolean, Column, String, orm, BigInteger
 
 from .base import BaseTable
 
@@ -16,7 +16,7 @@ class Group(BaseTable):
     __tablename__ = "groups"
 
     name = Column(String(32), unique=True, nullable=False)
-    secret_word = Column(String(128), nullable=False)
+    secret_word = Column(BigInteger, nullable=False)
     random_queue = Column(Boolean, default=False)
     time_zone = Column(String(32), default="Asia/Krasnoyarsk", nullable=False)
 

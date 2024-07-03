@@ -45,7 +45,7 @@ async def start_group(message: types.Message) -> None:
         await message.answer("У вас нет группы")
     else:
         await message.answer(
-            get_info_group(
+            await get_info_group(
                 await GroupRepository.get_group(
                     group_name=group.name,
                     subjects=True,
@@ -145,7 +145,7 @@ async def input_name_group(message: types.Message, state: FSMContext) -> None:
     await state.update_data(name=message.text)
     if action == GroupRepositoryEnum.DELETE.action:
         await Group.secret_word.set()
-        await state.update_data(random_queue=None)
+        await state.update_data(random_queue=None, time_zone="")
         await message.answer(
             "Введите секретное слово для входа в группу",
             reply_markup=select_cancel(),
@@ -167,7 +167,7 @@ async def input_random_queue(
     await Group.next()
     await callback.message.delete()
     await callback.message.answer(
-        "Введите временную зону, по умолчанию - Asia/Krasnoyarsk",
+        "Введите временную зону",
         reply_markup=select_cancel(),
     )
 
@@ -226,20 +226,20 @@ async def input_secret_word(
     new_group = {
         "name": name,
         "time_zone": time_zone,
-        "secret_word": polynomial_hash(message.text),
+        "secret_word": await polynomial_hash(message.text),
         "random_queue": random_queue == "True",
     }
-    group = await UserRepository.get_user(message.from_user.id).group
-    status = get_status_group(group.id, action)
+    user = await UserRepository.get_user(message.from_user.id)
+    status = get_status_group(user.group_id, action)
     match action:
         case GroupRepositoryEnum.CREATE.action:
             await input_secret_word_create(message, new_group)
         case GroupRepositoryEnum.UPDATE.action:
-            await input_secret_word_update(group, new_group)
+            await input_secret_word_update(user.group, new_group)
         case GroupRepositoryEnum.DELETE.action:
-            await input_secret_word_delete(group)
+            await input_secret_word_delete(user.group)
     await message.answer(
-        f"Группа {name} успешно {status}",
+        f"Группа '{name}' успешно {status}",
         reply_markup=remove_cancel(),
     )
     await state.finish()

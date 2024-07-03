@@ -67,7 +67,8 @@ async def get_secret_word(message: types.Message, state: FSMContext) -> None:
     group = await GroupRepository.get_group(
         group_id=int((await state.get_data())["group"]),
     )
-    if int(group.secret_word) != int(polynomial_hash(message.text)):
+    secret_word_hash = await polynomial_hash(message.text)
+    if group.secret_word != secret_word_hash:
         await message.answer(
             "Секретное слово не верно. Введите его заново.",
             reply_markup=select_cancel(),

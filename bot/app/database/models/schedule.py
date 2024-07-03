@@ -30,10 +30,10 @@ class Schedule(BaseTable):
     """Model for each subject."""
     __tablename__ = "schedule"
 
-    week = Column(Enum(Week), nullable=False)
-    date_number = Column(Enum(Weekday), nullable=False)
+    week = Column(Enum(Week), nullable=True)
+    date_number = Column(Enum(Weekday), nullable=True)
     can_select = Column(Boolean, default=False)
-    date_protection = Column(Date, default=None)
+    date_protection = Column(Date, nullable=True)
 
     subject_id = Column(
         Integer,

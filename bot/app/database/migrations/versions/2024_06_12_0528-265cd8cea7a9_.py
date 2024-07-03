@@ -20,7 +20,7 @@ def upgrade() -> None:
     op.create_table('groups',
     sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(length=32), nullable=False),
-    sa.Column('secret_word', sa.String(length=128), nullable=False),
+    sa.Column('secret_word', sa.BigInteger(), nullable=False),
     sa.Column('random_queue', sa.Boolean(), nullable=True),
     sa.Column('time_zone', sa.String(length=32), nullable=False),
     sa.PrimaryKeyConstraint('id'),

@@ -64,12 +64,13 @@ async def print_info(user_id: int) -> str:
     return info
 
 
-async def get_schedule_name(item: dict) -> str:
+def get_schedule_name(item: dict) -> str:
     """Return info about day week and type of pass."""
     type_week = ""
     for week in SubjectPassesEnum:
-        if week.value == item["week"]:
+        if week.constant == item["week"]:
             type_week = week.description.lower()
+            break
     return f"{DAY_WEEKS[int(item['date_number'])]}, {type_week}"
 
 

@@ -39,7 +39,7 @@ class Event(StatesGroup):
     name_update_delete = State()
     name_create = State()
     type_event = State()
-    day_passage = State()
+    date_protection = State()
 
 
 async def start_event(message: types.Message) -> None:
@@ -262,17 +262,17 @@ async def input_type_event(
         action = "обновлен"
         await state.finish()
         await callback.message.answer(
-            f"Событие {data['name']} успешно {action}.",
+            f"Событие '{data['name']} успешно {action}.",
             reply_markup=remove_cancel(),
         )
         return
-    await Event.day_passage.set()
+    await Event.date_protection.set()
     await callback.message.answer(
         "Введите дату проведения мероприятия в формате: дд.мм.гггг",
     )
 
 
-async def input_day_passage(
+async def input_date_protection(
     message: types.Message,
     state: FSMContext,
 ) -> None:
@@ -303,7 +303,7 @@ async def input_day_passage(
             action = "обновлен"
     await state.finish()
     await message.answer(
-        f"Событие {data['name']} успешно {action}.",
+        f"Событие '{data['name']}' успешно {action}.",
         reply_markup=remove_cancel(),
     )
 
@@ -335,6 +335,6 @@ def register_handlers_event(dispatcher: Dispatcher) -> None:
         state=Event.type_event,
     )
     dispatcher.register_message_handler(
-        input_day_passage,
-        state=Event.day_passage,
+        input_date_protection,
+        state=Event.date_protection,
     )

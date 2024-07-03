@@ -201,17 +201,17 @@ def select_subject_type() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
         InlineKeyboardButton(
-            text=SubjectTypeEnum.COURSE_WORK.description,
+            text=SubjectTypeEnum.COURSE_WORK.value,
             callback_data=SubjectTypeEnum.COURSE_WORK.value,
         ),
     ).row(
         InlineKeyboardButton(
-            text=SubjectTypeEnum.SUMMER_PRACTICE.description,
+            text=SubjectTypeEnum.SUMMER_PRACTICE.value,
             callback_data=SubjectTypeEnum.SUMMER_PRACTICE.value,
         ),
     ).row(
         InlineKeyboardButton(
-            text=SubjectTypeEnum.GRADUATE_WORK.description,
+            text=SubjectTypeEnum.GRADUATE_WORK.value,
             callback_data=SubjectTypeEnum.GRADUATE_WORK.value,
         ),
     )
