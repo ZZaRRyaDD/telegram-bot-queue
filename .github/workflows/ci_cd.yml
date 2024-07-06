@@ -3,6 +3,11 @@ name: Deploy
 env:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: 5432
+  POSTGRES_DB: postgres
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
 
 on:
   push:
@@ -26,14 +31,8 @@ jobs:
         with:
           python-version: "3.10.5"
 
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip wheel setuptools invoke rich
-          invoke project.install-tools
-          invoke project.install-requirements
-
       - name: Run linters
-        run: inv linters.all
+        run: make linters
 
   deploy:
     name: deploy project
