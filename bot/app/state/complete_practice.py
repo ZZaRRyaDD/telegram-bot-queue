@@ -3,14 +3,15 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database import (
-    CompletedPracticesActions,
-    GroupActions,
-    SubjectActions,
+from app.database.repositories import (
+    CompletedPracticesRepository,
+    GroupRepository,
+    SubjectRepository,
 )
 from app.enums import ClientCommands, OtherCommands, SubjectCompact
+from app.filters import HasUser, IsMemberOfGroup
 from app.keywords import get_list_of_numbers, get_list_of_subjects
-from app.services import check_user, member_group
+from app.services import member_group
 
 
 class CompletePractice(StatesGroup):
@@ -20,22 +21,22 @@ class CompletePractice(StatesGroup):
     number = State()
 
 
-def info_practice(user_id: int) -> str:
+async def info_practice(user_id: int) -> str:
     """Get info about practices."""
     pass_practices = [
         practice
-        for practice in CompletedPracticesActions.get_completed_practices_info(
+        for practice in (await CompletedPracticesRepository.get_completed_practices_info(
             user_id,
-        )
+        ))
     ]
-    all_subjects = set(map(lambda x: x.id, GroupActions.get_group_by_user_id(
+    all_subjects = set(map(lambda x: x.id, (await GroupRepository.get_group_by_user_id(
             user_id,
             subjects=True,
-        ).subjects,
+        )).subjects,
     ))
     status_subjects = {}
     for subject_id in all_subjects:
-        subject = SubjectActions.get_subject(subject_id=subject_id)
+        subject = await SubjectRepository.get_subject(subject_id=subject_id)
         status_subjects[subject.name] = [False]*subject.count_practices
         if subject_id in [item.subject_id for item in pass_practices]:
             completed = list(map(lambda x: x.number_practice, filter(
@@ -63,18 +64,18 @@ async def start_complete_practice(message: types.Message) -> None:
     if not member_group(message.from_user.id):
         await message.answer("Чтобы выбрать предмет, нужно выбрать группу")
         return
-    subjects = GroupActions.get_group_by_user_id(
+    group = await GroupRepository.get_group_by_user_id(
         message.from_user.id,
         subjects=True,
-    ).subjects
-    if not subjects:
+    )
+    if not group.subjects:
         await message.answer("В группе нет предметов")
         return
-    await message.answer(info_practice(message.from_user.id))
+    await message.answer(await info_practice(message.from_user.id))
     await CompletePractice.name.set()
     await message.answer(
         "Выберите предмет",
-        reply_markup=get_list_of_subjects(subjects),
+        reply_markup=get_list_of_subjects(group.subjects),
     )
 
 
@@ -89,7 +90,7 @@ async def get_subject_name(
         await state.finish()
         return
     await state.update_data(subject=callback.data)
-    subject = SubjectActions.get_subject(int(callback.data))
+    subject = await SubjectRepository.get_subject(int(callback.data))
     await CompletePractice.next()
     lab_works = [
         SubjectCompact(id=i, name=i)
@@ -113,17 +114,17 @@ async def get_numbers_lab_subject(
         return
     params = {
         "user_id": callback.from_user.id,
-        "number_practice": callback.data,
+        "number_practice": int(callback.data),
         "subject_id": int((await state.get_data())["subject"])
     }
-    result = CompletedPracticesActions.action_user(params)
+    result = await CompletedPracticesRepository.action_user(params)
     status = 'Добавлена' if result else 'Удалена'
     message = f"{status} {params['number_practice']} лабораторная работа"
     await callback.message.delete()
     await callback.message.answer(message)
     await state.finish()
     await callback.message.answer(
-        info_practice(callback.from_user.id),
+        await info_practice(callback.from_user.id),
     )
 
 
@@ -131,7 +132,8 @@ def register_handlers_complete_practice(dispatcher: Dispatcher) -> None:
     """Register handlers for select subjects."""
     dispatcher.register_message_handler(
         start_complete_practice,
-        lambda message: check_user(message.from_user.id),
+        HasUser(),
+        IsMemberOfGroup(),
         commands=[ClientCommands.PASS_PRACTICES.command],
         state=None,
     )

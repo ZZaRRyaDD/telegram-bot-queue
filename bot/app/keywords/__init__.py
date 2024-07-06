@@ -1,7 +1,7 @@
 from .admin import (
-    GroupActionsEnum,
-    ScheduleActionsEnum,
-    SubjectActionsEnum,
+    GroupRepositoryEnum,
+    ScheduleRepositoryEnum,
+    SubjectRepositoryEnum,
     choice_schedule,
     event_action,
     group_action,
@@ -21,9 +21,9 @@ from .client import (
 from .other import remove_cancel, select_cancel
 
 __all__ = (
-    GroupActionsEnum,
-    ScheduleActionsEnum,
-    SubjectActionsEnum,
+    GroupRepositoryEnum,
+    ScheduleRepositoryEnum,
+    SubjectRepositoryEnum,
     choice_schedule,
     group_action,
     schedule_action,

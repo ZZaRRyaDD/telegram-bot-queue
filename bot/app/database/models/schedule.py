@@ -1,21 +1,44 @@
-from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, orm
+import enum
 
-from ..connect import Base
+from sqlalchemy import Boolean, Column, Date, Enum, ForeignKey, Integer, orm
+
+from app.enums import DaysOfWeekEnum, SubjectPassesEnum
+
+from .base import BaseTable
 
 
-class Schedule(Base):
+class Weekday(int, enum.Enum):
+    """Model for number weekday."""
+
+    MONDAY = DaysOfWeekEnum.MONDAY.number
+    TUESDAY = DaysOfWeekEnum.TUESDAY.number
+    WEDNESDAY = DaysOfWeekEnum.WEDNESDAY.number
+    THURSDAY = DaysOfWeekEnum.THURSDAY.number
+    FRIDAY = DaysOfWeekEnum.FRIDAY.number
+    SATURDAY = DaysOfWeekEnum.SATURDAY.number
+
+
+class Week(str, enum.Enum):
+    """Model for type week."""
+
+    EACH_WEEK = SubjectPassesEnum.EACH_WEEK.constant
+    EACH_ODD_WEEK = SubjectPassesEnum.EACH_ODD_WEEK.constant
+    EACH_EVEN_WEEK = SubjectPassesEnum.EACH_EVEN_WEEK.constant
+
+
+class Schedule(BaseTable):
     """Model for each subject."""
     __tablename__ = "schedule"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    on_even_week = Column(Boolean, default=None)
-    date_number = Column(Integer, default=None)
+    week = Column(Enum(Week), nullable=True)
+    date_number = Column(Enum(Weekday), nullable=True)
+    can_select = Column(Boolean, default=False)
+    date_protection = Column(Date, nullable=True)
+
     subject_id = Column(
         Integer,
         ForeignKey("subjects.id", ondelete="CASCADE"),
     )
-    can_select = Column(Boolean, default=False)
-    date_protection = Column(Date, default=None)
     subject = orm.relationship(
         "Subject",
         lazy="joined",

@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from app.enums import OtherCommands, UserActionsEnum
+from app.enums import OtherCommands, UserRepositoryEnum
 
 
 def user_actions() -> InlineKeyboardMarkup:
@@ -8,18 +8,18 @@ def user_actions() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(row_width=3)
     keyboard.row(
         InlineKeyboardButton(
-            text=UserActionsEnum.UPDATE.description,
-            callback_data=UserActionsEnum.UPDATE.action,
+            text=UserRepositoryEnum.UPDATE.description,
+            callback_data=UserRepositoryEnum.UPDATE.action,
         ),
     ).row(
         InlineKeyboardButton(
-            text=UserActionsEnum.DELETE.description,
-            callback_data=UserActionsEnum.DELETE.action,
+            text=UserRepositoryEnum.DELETE.description,
+            callback_data=UserRepositoryEnum.DELETE.action,
         ),
     ).row(
         InlineKeyboardButton(
-            text=UserActionsEnum.CANCEL.description,
-            callback_data=UserActionsEnum.CANCEL.action,
+            text=UserRepositoryEnum.CANCEL.description,
+            callback_data=UserRepositoryEnum.CANCEL.action,
         ),
     )
     return keyboard

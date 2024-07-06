@@ -1,9 +1,9 @@
 from .actions import (
     EventActionsEnum,
-    GroupActionsEnum,
-    ScheduleActionsEnum,
-    SubjectActionsEnum,
-    UserActionsEnum,
+    GroupRepositoryEnum,
+    ScheduleRepositoryEnum,
+    SubjectRepositoryEnum,
+    UserRepositoryEnum,
 )
 from .classes import ScheduleCompact, SubjectCompact
 from .commands import (
@@ -18,10 +18,10 @@ from .week import DaysOfWeekEnum, SubjectPassesEnum
 
 __all__ = (
     EventActionsEnum,
-    GroupActionsEnum,
-    ScheduleActionsEnum,
-    SubjectActionsEnum,
-    UserActionsEnum,
+    GroupRepositoryEnum,
+    ScheduleRepositoryEnum,
+    SubjectRepositoryEnum,
+    UserRepositoryEnum,
     ScheduleCompact,
     SubjectCompact,
     AdminCommands,

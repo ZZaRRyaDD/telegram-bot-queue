@@ -2,10 +2,15 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database import GroupActions, QueueActions, UserActions
+from app.database.repositories import (
+    GroupRepository,
+    QueueRepository,
+    UserRepository,
+)
 from app.enums import ClientCommands, OtherCommands
+from app.filters import HasUser
 from app.keywords import get_list_of_groups, remove_cancel, select_cancel
-from app.services import check_user, is_headman, polynomial_hash
+from app.services import is_headman, polynomial_hash
 
 
 class SelectGroup(StatesGroup):
@@ -17,10 +22,10 @@ class SelectGroup(StatesGroup):
 
 async def start_select_group(message: types.Message) -> None:
     """Entrypoint for select group."""
-    if is_headman(message.from_user.id):
+    if await is_headman(message.from_user.id):
         await message.answer("Староста не может выбирать, ибо он держит ее")
         return
-    groups = GroupActions.get_groups()
+    groups = await GroupRepository.get_groups()
     if not groups:
         await message.answer("Пока нет ни одной группы")
         return
@@ -42,7 +47,7 @@ async def get_select_group(
         await state.finish()
         return
     await state.update_data(group=callback.data)
-    user = UserActions.get_user(callback.from_user.id, group=True)
+    user = await UserRepository.get_user(callback.from_user.id, group=True)
     if int(callback.data) == user.group_id:
         await callback.message.answer(
             "На данный момент вы уже состоите в данной группе",
@@ -59,17 +64,19 @@ async def get_select_group(
 
 async def get_secret_word(message: types.Message, state: FSMContext) -> None:
     """Input secret word."""
-    group = GroupActions.get_group(
+    group = await GroupRepository.get_group(
         group_id=int((await state.get_data())["group"]),
     )
-    if int(group.secret_word) != int(polynomial_hash(message.text)):
+    secret_word_hash = await polynomial_hash(message.text)
+    if group.secret_word != secret_word_hash:
         await message.answer(
             "Секретное слово не верно. Введите его заново.",
             reply_markup=select_cancel(),
         )
         return
-    UserActions.edit_user(message.from_user.id, {"group_id": group.id})
-    QueueActions.cleaning_user(message.from_user.id)
+    user = await UserRepository.get(message.from_user.id)
+    await UserRepository.update(db_obj=user, obj_in={"group_id": group.id})
+    await QueueRepository.cleaning_user(message.from_user.id)
     await message.answer(
         f"Теперь вы в группе {group.name}",
         reply_markup=remove_cancel(),
@@ -81,7 +88,7 @@ def register_handlers_select_group(dispatcher: Dispatcher) -> None:
     """Register handlers for select group."""
     dispatcher.register_message_handler(
         start_select_group,
-        lambda message: check_user(message.from_user.id),
+        HasUser(),
         commands=[ClientCommands.CHOICE_GROUP.command],
         state=None,
     )

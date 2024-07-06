@@ -12,7 +12,7 @@ class DaysOfWeekEnum(enum.Enum):
     SATURDAY = (5, "Суббота")
     STOP = ("Stop", "Завершить выбор")
 
-    def __init__(self, number: int, weekday: str) -> None:
+    def __init__(self, number: int | str, weekday: str) -> None:
         self.number = number
         self.weekday = weekday
 
@@ -20,10 +20,10 @@ class DaysOfWeekEnum(enum.Enum):
 class SubjectPassesEnum(enum.Enum):
     """Class choices for time of subject."""
 
-    EACH_WEEK = ("None", "Каждую неделю")
-    EACH_ODD_WEEK = ("False", "По нечетным неделям")
-    EACH_EVEN_WEEK = ("True", "По четным неделям")
+    EACH_WEEK = ("each_week", "Каждую неделю")
+    EACH_ODD_WEEK = ("each_odd_week", "По нечетным неделям")
+    EACH_EVEN_WEEK = ("each_even_week", "По четным неделям")
 
-    def __init__(self, bool_value: str, description: str) -> None:
-        self.bool_value = bool_value
+    def __init__(self, constant: str, description: str) -> None:
+        self.constant = constant
         self.description = description

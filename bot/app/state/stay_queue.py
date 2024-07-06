@@ -2,15 +2,16 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database import (
-    GroupActions,
-    QueueActions,
-    ScheduleActions,
-    SubjectActions,
+from app.database.repositories import (
+    GroupRepository,
+    QueueRepository,
+    ScheduleRepository,
+    SubjectRepository,
 )
 from app.enums import ClientCommands, OtherCommands, SubjectCompact
+from app.filters import HasUser, IsMemberOfGroup
 from app.keywords import get_list_of_numbers, get_list_of_subjects
-from app.services import check_user, member_group
+from app.services import member_group
 
 QUEUE_TEXT = """
 Выберите предмет.
@@ -26,9 +27,9 @@ class StayQueue(StatesGroup):
     number = State()
 
 
-def get_subject_info(user_id: int) -> str:
+async def get_subject_info(user_id: int) -> str:
     """Get info about subscribe subjects."""
-    positions = QueueActions.get_queue_info(user_id)
+    positions = await QueueRepository.get_queue_info(user_id)
     if not positions:
         return "Вы не записаны ни на один предмет"
     info = "Вы записаны на следующие предметы:\n\n"
@@ -37,7 +38,7 @@ def get_subject_info(user_id: int) -> str:
         subject_id = position.subject_id
         if subject_id in processes:
             continue
-        subject = SubjectActions.get_subject(subject_id)
+        subject = await SubjectRepository.get_subject(subject_id)
         numbers = sorted(
             filter(lambda x: x.subject_id == subject_id, positions),
             key=lambda x: x.number_practice,
@@ -75,23 +76,23 @@ async def start_stay_queue(message: types.Message) -> None:
         await message.answer("Чтобы выбрать предмет, нужно выбрать группу")
         return
     subjects = set(
-        subject.id for subject in GroupActions.get_group_by_user_id(
+        subject.id for subject in (await GroupRepository.get_group_by_user_id(
             message.from_user.id,
             subjects=True,
-        ).subjects
+        )).subjects
     )
     schedule = set(
         schedule.subject_id
-        for schedule in ScheduleActions.get_schedule(can_select=True)
+        for schedule in (await ScheduleRepository.get_schedule(can_select=True))
     )
     access_subjects = subjects.intersection(schedule)
     if not access_subjects:
         await message.answer("Нет предметов, на которые можно записаться")
         return
-    await message.answer(get_subject_info(message.from_user.id))
+    await message.answer(await get_subject_info(message.from_user.id))
     await StayQueue.name.set()
     access_subjects_list = [
-        SubjectActions.get_subject(subject_id=subject_id)
+        (await SubjectRepository.get_subject(subject_id=subject_id))
         for subject_id in access_subjects
     ]
     await message.answer(
@@ -112,7 +113,7 @@ async def get_subject_name(
         return
     subject_id = callback.data
     await state.update_data(subject=subject_id)
-    subject = SubjectActions.get_subject(int(subject_id))
+    subject = await SubjectRepository.get_subject(int(subject_id))
     await StayQueue.next()
     lab_works = [
         SubjectCompact(id=i, name=i)
@@ -136,10 +137,10 @@ async def get_numbers_lab_subject(
         return
     params = {
         "user_id": callback.from_user.id,
-        "number_practice": callback.data,
+        "number_practice": int(callback.data),
         "subject_id": int((await state.get_data())["subject"]),
     }
-    result = QueueActions.action_user(params)
+    result = await QueueRepository.action_user(params)
     message = ""
     if result is None:
         message = "В данный момент вы уже записаны в очередь на данную работу"
@@ -150,7 +151,7 @@ async def get_numbers_lab_subject(
     await callback.message.answer(message)
     await state.finish()
     await callback.message.answer(
-        get_subject_info(callback.from_user.id),
+        await get_subject_info(callback.from_user.id),
     )
 
 
@@ -158,7 +159,8 @@ def register_handlers_stay_queue(dispatcher: Dispatcher) -> None:
     """Register handlers for select subjects."""
     dispatcher.register_message_handler(
         start_stay_queue,
-        lambda message: check_user(message.from_user.id),
+        HasUser(),
+        IsMemberOfGroup(),
         commands=[ClientCommands.STAY_QUEUE.command],
         state=None,
     )

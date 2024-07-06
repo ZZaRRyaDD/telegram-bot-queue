@@ -2,9 +2,10 @@ import os
 
 from aiogram import Dispatcher, types
 
-from app.database import UserActions
+from app.database.repositories import UserRepository
 from app.enums import ClientCommands
-from app.services import check_user, print_info
+from app.filters import HasUser
+from app.services import print_info
 from app.state import (
     register_handlers_change_account,
     register_handlers_complete_practice,
@@ -67,22 +68,20 @@ async def set_commands_client(dispatcher: Dispatcher) -> None:
 
 async def start_command(message: types.Message) -> None:
     """Handler for start command."""
-    if not UserActions.get_user(message.from_user.id):
+    if not (await UserRepository.get_user(message.from_user.id)):
         await message.answer("Смотрю, ты еще не с нами. Давай это исправим!")
-        full_name = (
-            f"{message.from_user.last_name} {message.from_user.first_name}"
-        )
         new_user = {
             "id": message.from_user.id,
-            "full_name": full_name,
+            "first_name": message.from_user.first_name,
+            "last_name": message.from_user.last_name,
         }
-        UserActions.create_user(new_user)
+        await UserRepository.create(obj_in=new_user)
     await message.answer(HELLO_TEXT)
 
 
 async def info_user(message: types.Message) -> None:
     """Print info about user."""
-    await message.answer(print_info(message.from_user.id))
+    await message.answer(await print_info(message.from_user.id))
 
 
 async def to_admin(message: types.Message) -> None:
@@ -102,7 +101,7 @@ def register_handlers_client(dispatcher: Dispatcher) -> None:
     register_handlers_complete_practice(dispatcher)
     dispatcher.register_message_handler(
         info_user,
-        lambda message: check_user(message.from_user.id),
+        HasUser(),
         commands=[ClientCommands.INFO_PROFILE.command],
     )
     dispatcher.register_message_handler(

@@ -12,7 +12,7 @@ services:
     depends_on:
       - postgres
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - DATABASE_URL=${POSTGRES_PROTOCOL}://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
       - TOKEN=${TOKEN}
       - ADMIN_ID=${ADMIN_ID}
       - ADMIN_URL=${ADMIN_URL}
@@ -23,7 +23,6 @@ services:
       - DEBUG=False
     expose:
       - 3001
-    command: python -m app
 
   postgres:
     image: postgres:14.4
@@ -33,7 +32,7 @@ services:
       - postgres_data:/var/lib/postgresql/data/
       - ./dumps:/dumps
     expose:
-      - 5432
+      - ${POSTGRES_PORT}
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

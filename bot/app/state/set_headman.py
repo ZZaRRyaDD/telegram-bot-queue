@@ -2,11 +2,11 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.database import UserActions
+from app.database.repositories import UserRepository
 from app.enums import AdminCommands
+from app.filters import IsAdmin
 from app.initialize import bot
 from app.keywords import remove_cancel, select_cancel
-from app.services import check_admin
 
 
 def get_situation(new_status: bool) -> str:
@@ -46,7 +46,7 @@ async def input_id_headman(message: types.Message, state: FSMContext) -> None:
             reply_markup=select_cancel(),
         )
         return
-    user = UserActions.get_user(int(message.text))
+    user = await UserRepository.get_user(int(message.text))
     if user is None:
         await message.answer(
             "Такого пользователя нет. Введите корректный id",
@@ -54,7 +54,7 @@ async def input_id_headman(message: types.Message, state: FSMContext) -> None:
         )
         return
     new_status = not user.is_headman
-    UserActions.edit_user(user.id, {"is_headman": new_status})
+    await UserRepository.update(db_obj=user, obj_in={"is_headman": new_status})
     await message.answer(
         f"Пользователь {user.full_name} {get_situation(new_status)}",
         reply_markup=remove_cancel(),
@@ -67,7 +67,7 @@ def register_handlers_set_headman(dispatcher: Dispatcher) -> None:
     """Register handlers for set headman."""
     dispatcher.register_message_handler(
         start_set_headman,
-        lambda message: check_admin(message.from_user.id),
+        IsAdmin(),
         commands=[AdminCommands.SET_HEADMAN.command],
         state=None,
     )

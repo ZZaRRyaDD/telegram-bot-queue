@@ -1,28 +1,14 @@
-from sqlalchemy import (
-    BigInteger,
-    Boolean,
-    Column,
-    ForeignKey,
-    Integer,
-    String,
-    orm,
-)
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, orm
 
-from ..connect import Base
+from .base import BaseTable
 
 
-class User(Base):
-    """Model for each user."""
+class User(BaseTable):
     __tablename__ = "users"
 
-    id = Column(BigInteger, primary_key=True)
-    full_name = Column(String(128), nullable=False)
+    first_name = Column(String(128), nullable=False)
+    last_name = Column(String(128), nullable=True)
     is_headman = Column(Boolean, default=False)
-    group_id = Column(
-        Integer,
-        ForeignKey("groups.id", ondelete="SET NULL"),
-        nullable=True,
-    )
     subjects_practice = orm.relationship(
         "Subject",
         secondary="queue",
@@ -35,8 +21,20 @@ class User(Base):
         back_populates="users_completed",
         lazy="subquery",
     )
+
+    group_id = Column(
+        Integer,
+        ForeignKey("groups.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     group = orm.relationship(
         "Group",
         back_populates="students",
         lazy="joined",
     )
+
+    @property
+    def full_name(self):
+        last_name = f"{self.last_name} " if self.last_name else ""
+        first_name = self.first_name if self.first_name else ""
+        return f"{last_name}{first_name}"
