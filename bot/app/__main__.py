@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+from datetime import time
 
 import aioschedule
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
@@ -14,21 +15,24 @@ from app.handlers import (
 )
 from app.initialize import bot, dispatcher
 from app.schedule_tasks import send_reminder, send_top
-from app.services import get_time
 
 DEBUG = os.getenv("DEBUG") != "False"
-REMINDER_TIME = ("07:00:00", "12:00:00", "21:00:00")
-SEND_TOP_TIME = "08:00:00"
+REMINDER_TIME = (
+    time(hour=7, minute=0, tzinfo=None),
+    time(hour=12, minute=0, tzinfo=None),
+    time(hour=21, minute=0, tzinfo=None),
+)
+SEND_TOP_TIME = time(hour=8, minute=0, tzinfo=None)
 
 
 async def scheduler():
     """Activate periodic tasks"""
-    aioschedule.every().day.at(get_time(SEND_TOP_TIME)).do(send_top, bot=bot)
+    aioschedule.every().hour.do(send_top, bot=bot, top_time=SEND_TOP_TIME)
     for reminder in REMINDER_TIME:
-        aioschedule.every().day.at(get_time(reminder)).do(send_reminder, bot=bot)
+        aioschedule.every().hour.do(send_reminder, bot=bot, reminder_time=reminder)
     while True:
         await aioschedule.run_pending()
-        await asyncio.sleep(1)
+        await asyncio.sleep(60)
 
 
 async def on_startup(_) -> None:

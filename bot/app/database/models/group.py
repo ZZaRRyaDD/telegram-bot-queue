@@ -1,6 +1,6 @@
 import zoneinfo
 
-from sqlalchemy import Boolean, Column, String, orm, BigInteger
+from sqlalchemy import BigInteger, Boolean, Column, String, orm
 
 from .base import BaseTable
 

@@ -3,11 +3,11 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from app.enums import (
     DaysOfWeekEnum,
     EventActionsEnum,
-    GroupRepositoryEnum,
     GroupRandomQueueEnum,
+    GroupRepositoryEnum,
     ScheduleRepositoryEnum,
-    SubjectRepositoryEnum,
     SubjectPassesEnum,
+    SubjectRepositoryEnum,
     SubjectTypeEnum,
 )
 

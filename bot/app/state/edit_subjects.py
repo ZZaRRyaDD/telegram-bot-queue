@@ -14,8 +14,8 @@ from app.database.repositories import (
 )
 from app.enums import (
     HeadmanCommands,
-    ScheduleRepositoryEnum,
     ScheduleCompact,
+    ScheduleRepositoryEnum,
     SubjectRepositoryEnum,
     SubjectTypeEnum,
 )

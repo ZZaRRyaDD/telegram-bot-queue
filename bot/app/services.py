@@ -1,22 +1,11 @@
 import os
 import random
-from datetime import date, datetime, time, timedelta
 
 from app.database.models import Group, Subject
 from app.database.repositories import GroupRepository, UserRepository
 from app.enums import SubjectPassesEnum, SubjectTypeEnum
 
 DAY_WEEKS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]
-DIFFERENCE_TIME_HOURS = 7
-
-
-def get_time(str_time: str) -> str:
-    """Get time in utc."""
-    str_time_obj = time.fromisoformat(str_time)
-    return (
-        datetime.combine(date(2, 2, 2), str_time_obj) -
-        timedelta(hours=DIFFERENCE_TIME_HOURS)
-    ).time().isoformat("minutes")
 
 
 async def check_admin(id: int) -> bool:
